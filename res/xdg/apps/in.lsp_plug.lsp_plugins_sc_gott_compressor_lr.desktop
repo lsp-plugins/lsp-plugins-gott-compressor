@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=GOTT Compressor Mono
+Name=GOTT Compressor LeftRight
 GenericName=Compressor
-Comment=Performs Good Over-The-Top multiband compression of mono channel
-Exec=lsp-plugins-gott-compressor-mono
+Comment=Performs Good Over-The-Top multiband compression of individual left and right channels of stereo signal
+Exec=lsp-plugins-gott-compressor-lr
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false

@@ -41,82 +41,78 @@ namespace lsp
         //-------------------------------------------------------------------------
         // Plugin metadata
 
-        // NOTE: Port identifiers should not be longer than 7 characters as it will overflow VST2 parameter name buffers
         static const port_t gott_compressor_mono_ports[] =
         {
-            // Input and output audio ports
-            PORTS_MONO_PLUGIN,
-
-            // Input controls
-            BYPASS,
-            INT_CONTROL("d_in", "Delay in samples", U_SAMPLES, gott_compressor::SAMPLES),
-            DRY_GAIN(0.0f),
-            WET_GAIN(1.0f),
-            OUT_GAIN,
-
-            // Output controls
-            METER_MINMAX("d_out", "Delay time in milliseconds", U_MSEC, 0.0f, gott_compressor::DELAY_OUT_MAX_TIME),
-            METER_GAIN("min", "Input gain", GAIN_AMP_P_48_DB),
-            METER_GAIN("mout", "Output gain", GAIN_AMP_P_48_DB),
-
             PORTS_END
         };
 
-        // NOTE: Port identifiers should not be longer than 7 characters as it will overflow VST2 parameter name buffers
         static const port_t gott_compressor_stereo_ports[] =
         {
-            // Input and output audio ports
-            PORTS_STEREO_PLUGIN,
-
-            // Input controls
-            BYPASS,
-            INT_CONTROL("d_in", "Delay in samples", U_SAMPLES, gott_compressor::SAMPLES),
-            DRY_GAIN(0.0f),
-            WET_GAIN(1.0f),
-            OUT_GAIN,
-
-            // Output controls
-            METER_MINMAX("d_out", "Delay time in milliseconds", U_MSEC, 0.0f, gott_compressor::DELAY_OUT_MAX_TIME),
-            METER_GAIN("min_l", "Input gain left",  GAIN_AMP_P_48_DB),
-            METER_GAIN("mout_l", "Output gain left",  GAIN_AMP_P_48_DB),
-            METER_GAIN("min_r", "Input gain right",  GAIN_AMP_P_48_DB),
-            METER_GAIN("mout_r", "Output gain right", GAIN_AMP_P_48_DB),
-
             PORTS_END
         };
 
-        static const int plugin_classes[]       = { C_DELAY, -1 };
-        static const int clap_features_mono[]   = { CF_AUDIO_EFFECT, CF_UTILITY, CF_MONO, -1 };
-        static const int clap_features_stereo[] = { CF_AUDIO_EFFECT, CF_UTILITY, CF_STEREO, -1 };
+        static const port_t gott_compressor_lr_ports[] =
+        {
+            PORTS_END
+        };
+
+        static const port_t gott_compressor_ms_ports[] =
+        {
+            PORTS_END
+        };
+
+        static const port_t sc_gott_compressor_mono_ports[] =
+        {
+            PORTS_END
+        };
+
+        static const port_t sc_gott_compressor_stereo_ports[] =
+        {
+            PORTS_END
+        };
+
+        static const port_t sc_gott_compressor_lr_ports[] =
+        {
+            PORTS_END
+        };
+
+        static const port_t sc_gott_compressor_ms_ports[] =
+        {
+            PORTS_END
+        };
+
+        static const int plugin_classes[]       = { C_COMPRESSOR, -1 };
+        static const int clap_features_mono[]   = { CF_AUDIO_EFFECT, CF_COMPRESSOR, CF_MONO, -1 };
+        static const int clap_features_stereo[] = { CF_AUDIO_EFFECT, CF_COMPRESSOR, CF_STEREO, -1 };
 
         const meta::bundle_t gott_compressor_bundle =
         {
             "gott_compressor",
-            "Plugin Template",
-            B_UTILITIES,
+            "GOTT Comressor",
+            B_DYNAMICS,
             "", // TODO: provide ID of the video on YouTube
             "" // TODO: write plugin description, should be the same to the english version in 'bundles.json'
         };
 
         const plugin_t gott_compressor_mono =
         {
-            "Pluginschablone Mono",
-            "Plugin Template Mono",
-            "PS1M",
+            "GOTT Kompressor Mono",
+            "GOTT Compressor Mono",
+            "GC1M",
             &developers::v_sadovnikov,
             "gott_compressor_mono",
             LSP_LV2_URI("gott_compressor_mono"),
             LSP_LV2UI_URI("gott_compressor_mono"),
-            "xxxx",         // TODO: fill valid VST2 ID (4 letters/digits)
-            1,              // TODO: fill valid LADSPA identifier (positive decimal integer)
+            "ngcm",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 0,
             LSP_LADSPA_URI("gott_compressor_mono"),
             LSP_CLAP_URI("gott_compressor_mono"),
             LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
             plugin_classes,
             clap_features_mono,
-            E_DUMP_STATE,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_mono_ports,
-            "template/plugin.xml",
+            "dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_port_groups,
             &gott_compressor_bundle
@@ -124,27 +120,172 @@ namespace lsp
 
         const plugin_t gott_compressor_stereo =
         {
-            "Pluginschablone Stereo",
-            "Plugin Template Stereo",
-            "PS1S",
+            "GOTT Kompressor Stereo",
+            "GOTT Compressor Stereo",
+            "GC1S",
             &developers::v_sadovnikov,
             "gott_compressor_stereo",
             LSP_LV2_URI("gott_compressor_stereo"),
             LSP_LV2UI_URI("gott_compressor_stereo"),
-            "yyyy",         // TODO: fill valid VST2 ID (4 letters/digits)
-            2,              // TODO: fill valid LADSPA identifier (positive decimal integer)
+            "ngcs",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 1,
             LSP_LADSPA_URI("gott_compressor_stereo"),
             LSP_CLAP_URI("gott_compressor_stereo"),
             LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
             plugin_classes,
             clap_features_stereo,
-            E_DUMP_STATE,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_stereo_ports,
-            "template/plugin.xml",
+            "dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_port_groups,
             &gott_compressor_bundle
         };
+
+        const plugin_t gott_compressor_lr =
+        {
+            "GOTT Kompressor LeftRight",
+            "GOTT Compressor LeftRight",
+            "GC1LR",
+            &developers::v_sadovnikov,
+            "gott_compressor_lr",
+            LSP_LV2_URI("gott_compressor_lr"),
+            LSP_LV2UI_URI("gott_compressor_lr"),
+            "ngcl",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 2,
+            LSP_LADSPA_URI("gott_compressor_lr"),
+            LSP_CLAP_URI("gott_compressor_lr"),
+            LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
+            plugin_classes,
+            clap_features_stereo,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
+            gott_compressor_lr_ports,
+            "dynamics/gott_compressor/lr.xml",
+            NULL,
+            stereo_plugin_port_groups,
+            &gott_compressor_bundle
+        };
+
+        const plugin_t gott_compressor_ms =
+        {
+            "GOTT Kompressor MidSide",
+            "GOTT Compressor MidSide",
+            "GC1MS",
+            &developers::v_sadovnikov,
+            "gott_compressor_ms",
+            LSP_LV2_URI("gott_compressor_ms"),
+            LSP_LV2UI_URI("gott_compressor_ms"),
+            "ngcM",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 3,
+            LSP_LADSPA_URI("gott_compressor_ms"),
+            LSP_CLAP_URI("gott_compressor_ms"),
+            LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
+            plugin_classes,
+            clap_features_stereo,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
+            gott_compressor_ms_ports,
+            "dynamics/gott_compressor/ms.xml",
+            NULL,
+            stereo_plugin_port_groups,
+            &gott_compressor_bundle
+        };
+
+        const plugin_t sc_gott_compressor_mono =
+        {
+            "Sidechain GOTT Kompressor Mono",
+            "Sidechain GOTT Compressor Mono",
+            "SCGC1M",
+            &developers::v_sadovnikov,
+            "sc_gott_compressor_mono",
+            LSP_LV2_URI("sc_gott_compressor_mono"),
+            LSP_LV2UI_URI("sc_gott_compressor_mono"),
+            "sgcm",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 4,
+            LSP_LADSPA_URI("sc_gott_compressor_mono"),
+            LSP_CLAP_URI("sc_gott_compressor_mono"),
+            LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
+            plugin_classes,
+            clap_features_mono,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
+            sc_gott_compressor_mono_ports,
+            "dynamics/gott_compressor/mono.xml",
+            NULL,
+            mono_plugin_port_groups,
+            &gott_compressor_bundle
+        };
+
+        const plugin_t sc_gott_compressor_stereo =
+        {
+            "Sidechain GOTT Kompressor Stereo",
+            "Sidechain GOTT Compressor Stereo",
+            "SCGC1S",
+            &developers::v_sadovnikov,
+            "sc_gott_compressor_stereo",
+            LSP_LV2_URI("sc_gott_compressor_stereo"),
+            LSP_LV2UI_URI("sc_gott_compressor_stereo"),
+            "sgcs",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 5,
+            LSP_LADSPA_URI("sc_gott_compressor_stereo"),
+            LSP_CLAP_URI("sc_gott_compressor_stereo"),
+            LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
+            plugin_classes,
+            clap_features_stereo,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
+            sc_gott_compressor_stereo_ports,
+            "dynamics/gott_compressor/stereo.xml",
+            NULL,
+            stereo_plugin_port_groups,
+            &gott_compressor_bundle
+        };
+
+        const plugin_t sc_gott_compressor_lr =
+        {
+            "Sidechain GOTT Kompressor LeftRight",
+            "Sidechain GOTT Compressor LeftRight",
+            "SCGC1LR",
+            &developers::v_sadovnikov,
+            "sc_gott_compressor_lr",
+            LSP_LV2_URI("sc_gott_compressor_lr"),
+            LSP_LV2UI_URI("sc_gott_compressor_lr"),
+            "sgcl",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 6,
+            LSP_LADSPA_URI("sc_gott_compressor_lr"),
+            LSP_CLAP_URI("sc_gott_compressor_lr"),
+            LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
+            plugin_classes,
+            clap_features_stereo,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
+            sc_gott_compressor_lr_ports,
+            "dynamics/gott_compressor/lr.xml",
+            NULL,
+            stereo_plugin_port_groups,
+            &gott_compressor_bundle
+        };
+
+        const plugin_t sc_gott_compressor_ms =
+        {
+            "Sidechain GOTT Kompressor MidSide",
+            "Sidechain GOTT Compressor MidSide",
+            "SCGC1MS",
+            &developers::v_sadovnikov,
+            "sc_gott_compressor_ms",
+            LSP_LV2_URI("sc_gott_compressor_ms"),
+            LSP_LV2UI_URI("sc_gott_compressor_ms"),
+            "sgcM",
+            LSP_LADSPA_GOTT_COMPRESSOR_BASE + 7,
+            LSP_LADSPA_URI("sc_gott_compressor_ms"),
+            LSP_CLAP_URI("sc_gott_compressor_ms"),
+            LSP_PLUGINS_GOTT_COMPRESSOR_VERSION,
+            plugin_classes,
+            clap_features_stereo,
+            E_DUMP_STATE | E_INLINE_DISPLAY,
+            sc_gott_compressor_ms_ports,
+            "dynamics/gott_compressor/ms.xml",
+            NULL,
+            stereo_plugin_port_groups,
+            &gott_compressor_bundle
+        };
+
     } /* namespace meta */
 } /* namespace lsp */
 

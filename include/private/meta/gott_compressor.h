@@ -49,6 +49,12 @@ namespace lsp
         // Plugin type metadata
         extern const plugin_t gott_compressor_mono;
         extern const plugin_t gott_compressor_stereo;
+        extern const plugin_t gott_compressor_lr;
+        extern const plugin_t gott_compressor_ms;
+        extern const plugin_t sc_gott_compressor_mono;
+        extern const plugin_t sc_gott_compressor_stereo;
+        extern const plugin_t sc_gott_compressor_lr;
+        extern const plugin_t sc_gott_compressor_ms;
 
     } /* namespace meta */
 } /* namespace lsp */

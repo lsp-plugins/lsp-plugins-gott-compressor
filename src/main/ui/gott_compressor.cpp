@@ -31,10 +31,16 @@ namespace lsp
         static const meta::plugin_t *plugin_uis[] =
         {
             &meta::gott_compressor_mono,
-            &meta::gott_compressor_stereo
+            &meta::gott_compressor_stereo,
+            &meta::gott_compressor_ms,
+            &meta::gott_compressor_lr,
+            &meta::sc_gott_compressor_mono,
+            &meta::sc_gott_compressor_stereo,
+            &meta::sc_gott_compressor_ms,
+            &meta::sc_gott_compressor_lr
         };
 
-        static ui::Factory factory(plugin_uis, 2);
+        static ui::Factory factory(plugin_uis, 8);
 
     } /* namespace plugui */
 } /* namespace lsp */

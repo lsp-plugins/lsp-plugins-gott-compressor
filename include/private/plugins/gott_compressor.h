@@ -40,48 +40,6 @@ namespace lsp
                 gott_compressor & operator = (const gott_compressor &);
                 gott_compressor (const gott_compressor &);
 
-            protected:
-                enum mode_t
-                {
-                    CD_MONO,
-                    CD_STEREO,
-                    CD_X2_STEREO
-                };
-
-                typedef struct channel_t
-                {
-                    // DSP processing modules
-                    dspu::Delay         sLine;              // Delay line
-                    dspu::Bypass        sBypass;            // Bypass
-
-                    // Parameters
-                    ssize_t             nDelay;             // Actual delay of the signal
-                    float               fDryGain;           // Dry gain (unprocessed signal)
-                    float               fWetGain;           // Wet gain (processed signal)
-
-                    // Input ports
-                    plug::IPort        *pIn;                // Input port
-                    plug::IPort        *pOut;               // Output port
-                    plug::IPort        *pDelay;             // Delay (in samples)
-                    plug::IPort        *pDry;               // Dry control
-                    plug::IPort        *pWet;               // Wet control
-
-                    // Output ports
-                    plug::IPort        *pOutDelay;          // Output delay time
-                    plug::IPort        *pInLevel;           // Input signal level
-                    plug::IPort        *pOutLevel;          // Output signal level
-                } channel_t;
-
-            protected:
-                size_t              nChannels;          // Number of channels
-                channel_t          *vChannels;          // Delay channels
-                float              *vBuffer;            // Temporary buffer for audio processing
-
-                plug::IPort        *pBypass;            // Bypass
-                plug::IPort        *pGainOut;           // Output gain
-
-                uint8_t            *pData;              // Allocated data
-
             public:
                 explicit gott_compressor(const meta::plugin_t *meta);
                 virtual ~gott_compressor();
