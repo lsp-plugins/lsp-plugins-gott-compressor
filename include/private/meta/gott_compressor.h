@@ -24,6 +24,7 @@
 
 #include <lsp-plug.in/plug-fw/meta/types.h>
 #include <lsp-plug.in/plug-fw/const.h>
+#include <lsp-plug.in/dsp-units/const.h>
 
 namespace lsp
 {
@@ -33,17 +34,44 @@ namespace lsp
     {
         typedef struct gott_compressor
         {
-            static constexpr float  SAMPLES_MIN         = 0.0f;
-            static constexpr float  SAMPLES_MAX         = 10000.0f;
-            static constexpr float  SAMPLES_DFL         = 0.0f;
-            static constexpr float  SAMPLES_STEP        = 1.0f;
+            static constexpr float  IN_GAIN_DFL             = GAIN_AMP_0_DB;
+            static constexpr float  OUT_GAIN_DFL            = GAIN_AMP_0_DB;
 
-            static constexpr float  TIME_MIN            = 0.0f;
-            static constexpr float  TIME_MAX            = 1000.0f;
-            static constexpr float  TIME_DFL            = 0.0f;
-            static constexpr float  TIME_STEP           = 0.01f;
+            static constexpr float  REACT_TIME_MIN          = 0.000;
+            static constexpr float  REACT_TIME_MAX          = 1.000;
+            static constexpr float  REACT_TIME_DFL          = 0.200;
+            static constexpr float  REACT_TIME_STEP         = 0.001;
 
-            static constexpr float  DELAY_OUT_MAX_TIME  = 10000.0f;
+            static constexpr float  ZOOM_MIN                = GAIN_AMP_M_18_DB;
+            static constexpr float  ZOOM_MAX                = GAIN_AMP_0_DB;
+            static constexpr float  ZOOM_DFL                = GAIN_AMP_0_DB;
+            static constexpr float  ZOOM_STEP               = 0.0125f;
+
+            static constexpr float  SPLIT1_MIN              = 20.0f;
+            static constexpr float  SPLIT1_MAX              = 200.0f;
+            static constexpr float  SPLIT1_DFL              = 120.0f;
+            static constexpr float  SPLIT1_STEP             = 0.002f;
+
+            static constexpr float  SPLIT2_MIN              = SPLIT1_MAX + 50;
+            static constexpr float  SPLIT2_MAX              = 5000.0f;
+            static constexpr float  SPLIT2_DFL              = 2000.0f;
+            static constexpr float  SPLIT2_STEP             = 0.002f;
+
+            static constexpr float  SPLIT3_MIN              = SPLIT2_MAX + 500;
+            static constexpr float  SPLIT3_MAX              = 20000.0f;
+            static constexpr float  SPLIT3_DFL              = 7000.0f;
+            static constexpr float  SPLIT3_STEP             = 0.002f;
+
+            enum boost_t
+            {
+                FB_OFF,
+                FB_BT_3DB,
+                FB_MT_3DB,
+                FB_BT_6DB,
+                FB_MT_6DB,
+
+                FB_DEFAULT              = FB_BT_3DB
+            };
         } gott_compressor;
 
         // Plugin type metadata

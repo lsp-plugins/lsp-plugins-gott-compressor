@@ -41,6 +41,49 @@ namespace lsp
                 gott_compressor (const gott_compressor &);
 
             public:
+                enum gott_mode_t
+                {
+                    GOTT_MONO,
+                    GOTT_STEREO,
+                    GOTT_LR,
+                    GOTT_MS
+                };
+
+            protected:
+                typedef struct channel_t
+                {
+                    dspu::Bypass            sBypass;            // Bypass
+
+                    float                  *vIn;                // Input data buffer
+                    float                  *vOut;               // Output data buffer
+                    float                  *vScIn;              // Sidechain data buffer (if present)
+
+                    plug::IPort            *pIn;                // Input
+                    plug::IPort            *pOut;               // Output
+                    plug::IPort            *pScIn;              // Sidechain
+                } channel_t;
+
+            protected:
+                size_t                  nMode;                  // Processor mode
+                bool                    bSidechain;             // External side chain
+                channel_t              *vChannels;              // Processor channels
+
+                plug::IPort            *pBypass;                // Bypass port
+                plug::IPort            *pMode;                  // Global mode
+                plug::IPort            *pInGain;                // Input gain port
+                plug::IPort            *pOutGain;               // Output gain port
+                plug::IPort            *pDryGain;               // Dry gain port
+                plug::IPort            *pWetGain;               // Wet gain port
+                plug::IPort            *pReactivity;            // Reactivity
+                plug::IPort            *pShiftGain;             // Shift gain port
+                plug::IPort            *pZoom;                  // Zoom port
+                plug::IPort            *pEnvBoost;              // Envelope adjust
+                plug::IPort            *pSplits[3];             // Split frequencies
+                plug::IPort            *pExtraBand;             // Extra band enable
+
+                uint8_t                *pData;                  // Aligned data pointer
+
+            public:
                 explicit gott_compressor(const meta::plugin_t *meta);
                 virtual ~gott_compressor();
 

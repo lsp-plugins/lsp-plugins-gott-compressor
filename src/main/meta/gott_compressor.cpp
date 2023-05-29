@@ -41,43 +41,96 @@ namespace lsp
         //-------------------------------------------------------------------------
         // Plugin metadata
 
+        static const port_item_t gott_dyna_sc_boost[] =
+        {
+            { "None",           "sidechain.boost.none" },
+            { "Pink BT",        "sidechain.boost.pink_bt" },
+            { "Pink MT",        "sidechain.boost.pink_mt" },
+            { "Brown BT",       "sidechain.boost.brown_bt" },
+            { "Brown MT",       "sidechain.boost.brown_mt" },
+            { NULL, NULL }
+        };
+
+        static const port_item_t gott_global_dyna_modes[] =
+        {
+            { "Classic",        "mb_dyna_processor.classic" },
+            { "Modern",         "mb_dyna_processor.modern" },
+            { NULL, NULL }
+        };
+
+        #define GOTT_COMMON \
+            BYPASS, \
+            COMBO("mode", "Compressor mode", 1, gott_global_dyna_modes), \
+            AMP_GAIN("g_in", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
+            AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
+            AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
+            AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
+            LOG_CONTROL("react", "FFT reactivity", U_MSEC, gott_compressor::REACT_TIME), \
+            AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+            LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
+            COMBO("envb", "Envelope boost", gott_compressor::FB_DEFAULT, gott_dyna_sc_boost), \
+            LOG_CONTROL("sf1", "Split frequency 1", U_GAIN_AMP, gott_compressor::SPLIT1), \
+            LOG_CONTROL("sf2", "Split frequency 2", U_GAIN_AMP, gott_compressor::SPLIT2), \
+            LOG_CONTROL("sf3", "Split frequency 3", U_GAIN_AMP, gott_compressor::SPLIT3), \
+            SWITCH("ebe", "Enable extra band", 0)
+
         static const port_t gott_compressor_mono_ports[] =
         {
+            PORTS_MONO_PLUGIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t gott_compressor_stereo_ports[] =
         {
+            PORTS_STEREO_PLUGIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t gott_compressor_lr_ports[] =
         {
+            PORTS_STEREO_PLUGIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t gott_compressor_ms_ports[] =
         {
+            PORTS_STEREO_PLUGIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t sc_gott_compressor_mono_ports[] =
         {
+            PORTS_MONO_PLUGIN,
+            PORTS_MONO_SIDECHAIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t sc_gott_compressor_stereo_ports[] =
         {
+            PORTS_STEREO_PLUGIN,
+            PORTS_STEREO_SIDECHAIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t sc_gott_compressor_lr_ports[] =
         {
+            PORTS_STEREO_PLUGIN,
+            PORTS_STEREO_SIDECHAIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
         static const port_t sc_gott_compressor_ms_ports[] =
         {
+            PORTS_STEREO_PLUGIN,
+            PORTS_STEREO_SIDECHAIN,
+            GOTT_COMMON,
             PORTS_END
         };
 
@@ -210,7 +263,7 @@ namespace lsp
             sc_gott_compressor_mono_ports,
             "dynamics/gott_compressor/mono.xml",
             NULL,
-            mono_plugin_port_groups,
+            mono_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
 
@@ -234,7 +287,7 @@ namespace lsp
             sc_gott_compressor_stereo_ports,
             "dynamics/gott_compressor/stereo.xml",
             NULL,
-            stereo_plugin_port_groups,
+            stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
 
@@ -258,7 +311,7 @@ namespace lsp
             sc_gott_compressor_lr_ports,
             "dynamics/gott_compressor/lr.xml",
             NULL,
-            stereo_plugin_port_groups,
+            stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
 
@@ -282,7 +335,7 @@ namespace lsp
             sc_gott_compressor_ms_ports,
             "dynamics/gott_compressor/ms.xml",
             NULL,
-            stereo_plugin_port_groups,
+            stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
 
