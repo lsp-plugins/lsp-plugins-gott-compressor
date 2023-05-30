@@ -397,13 +397,14 @@ namespace lsp
                     dsp::copy(c->vInAnalyze, c->vBuffer, to_process);
                 }
 
-            #if 0
                 // MAIN PLUGIN STUFF
+            #if 0
+                size_t bands        = (bExtraBand) ? meta::gott_compressor::BANDS_MAX - 1 : meta::gott_compressor::BANDS_MAX;
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
 
-                    for (size_t j=0; j<c->nPlanSize; ++j)
+                    for (size_t j=0; j<c->bands; ++j)
                     {
                         dyna_band_t *b      = c->vPlan[j];
 
@@ -444,17 +445,17 @@ namespace lsp
                         }
                     }
 
-                    // Output curve parameters for disabled expanders
-                    for (size_t i=0; i<meta::mb_dyna_processor::BANDS_MAX; ++i)
-                    {
-                        dyna_band_t *b      = &c->vBands[i];
-                        if (b->bEnabled)
-                            continue;
-
-                        b->pEnvLvl->set_value(0.0f);
-                        b->pCurveLvl->set_value(0.0f);
-                        b->pMeterGain->set_value(GAIN_AMP_0_DB);
-                    }
+//                    // Output curve parameters for disabled expanders
+//                    for (size_t i=0; i<meta::mb_dyna_processor::BANDS_MAX; ++i)
+//                    {
+//                        dyna_band_t *b      = &c->vBands[i];
+//                        if (b->bEnabled)
+//                            continue;
+//
+//                        b->pEnvLvl->set_value(0.0f);
+//                        b->pCurveLvl->set_value(0.0f);
+//                        b->pMeterGain->set_value(GAIN_AMP_0_DB);
+//                    }
                 }
 
                 // Here, we apply VCA to input signal dependent on the input

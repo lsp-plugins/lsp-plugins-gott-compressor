@@ -23,10 +23,12 @@
 #define PRIVATE_PLUGINS_GOTT_COMPRESSOR_H_
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
+#include <lsp-plug.in/dsp-units/dynamics/DynamicProcessor.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
 #include <lsp-plug.in/dsp-units/filters/Filter.h>
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
+#include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 
 #include <private/meta/gott_compressor.h>
@@ -54,6 +56,42 @@ namespace lsp
                 };
 
             protected:
+                typedef struct band_t
+                {
+                    dspu::Sidechain         sSC;                // Sidechain module
+                    dspu::Equalizer         sEQ[2];             // Sidechain equalizers
+                    dspu::DynamicProcessor  sProc;              // Dynamic Processor
+                    dspu::Filter            sPassFilter;        // Passing filter for 'classic' mode
+                    dspu::Filter            sRejFilter;         // Rejection filter for 'classic' mode
+                    dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
+
+                    float                   fMinThresh;         // Minimum threshold
+                    float                   fUpThresh;          // Upward threshold
+                    float                   fDownThresh;        // Downward threshold
+                    float                   fUpRatio;           // Upward ratio
+                    float                   fDownRatio;         // Downward ratio
+                    float                   fAttackTime;        // Attack time
+                    float                   fReleaseTime;       // Release time
+                    float                   fMakeup;            // Makeup gain
+
+                    bool                    bEnabled;           // Enabled flag
+                    bool                    bMute;              // Mute channel
+                    bool                    bSolo;              // Solo channel
+
+                    plug::IPort             pMinThresh;         // Minimum threshold
+                    plug::IPort             pUpThresh;          // Upward threshold
+                    plug::IPort             pDownThresh;        // Downward threshold
+                    plug::IPort             pUpRatio;           // Upward ratio
+                    plug::IPort             pDownRatio;         // Downward ratio
+                    plug::IPort             pAttackTime;        // Attack time
+                    plug::IPort             pReleaseTime;       // Release time
+                    plug::IPort             pMakeup;            // Makeup gain
+
+                    plug::IPort             pEnabled;           // Enabled flag
+                    plug::IPort             pMute;              // Mute channel
+                    plug::IPort             pSolo;              // Solo channel
+                } band_t;
+
                 typedef struct channel_t
                 {
                     dspu::Bypass            sBypass;            // Bypass
@@ -92,6 +130,7 @@ namespace lsp
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
                 bool                    bModern;                // Modern/Classic mode switch
+                bool                    bExtraBand;             // Extra band
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
