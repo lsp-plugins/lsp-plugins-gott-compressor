@@ -74,10 +74,19 @@ namespace lsp
             LOG_CONTROL("sf3", "Split frequency 3", U_GAIN_AMP, gott_compressor::SPLIT3), \
             SWITCH("ebe", "Enable extra band", 0)
 
+        #define GOTT_METERS(id, label) \
+            SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
+            SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
+            MESH("ifg" id, "Input FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
+            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
+            METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
+            METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_24_DB)
+
         static const port_t gott_compressor_mono_ports[] =
         {
             PORTS_MONO_PLUGIN,
             GOTT_COMMON,
+            GOTT_METERS("", ""),
             PORTS_END
         };
 
@@ -85,6 +94,8 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+            GOTT_METERS("_l", " Left"),
+            GOTT_METERS("_r", " Right"),
             PORTS_END
         };
 
@@ -92,6 +103,8 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+            GOTT_METERS("_l", " Left"),
+            GOTT_METERS("_r", " Right"),
             PORTS_END
         };
 
@@ -99,6 +112,8 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+            GOTT_METERS("_m", " Mid"),
+            GOTT_METERS("_s", " Side"),
             PORTS_END
         };
 
@@ -107,6 +122,7 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             PORTS_MONO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_METERS("", ""),
             PORTS_END
         };
 
@@ -115,6 +131,8 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_METERS("_l", " Left"),
+            GOTT_METERS("_r", " Right"),
             PORTS_END
         };
 
@@ -123,6 +141,8 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_METERS("_l", " Left"),
+            GOTT_METERS("_r", " Right"),
             PORTS_END
         };
 
@@ -131,6 +151,8 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_METERS("_m", " Mid"),
+            GOTT_METERS("_s", " Side"),
             PORTS_END
         };
 

@@ -22,9 +22,13 @@
 #ifndef PRIVATE_PLUGINS_GOTT_COMPRESSOR_H_
 #define PRIVATE_PLUGINS_GOTT_COMPRESSOR_H_
 
-#include <lsp-plug.in/dsp-units/util/Delay.h>
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
+#include <lsp-plug.in/dsp-units/filters/Equalizer.h>
+#include <lsp-plug.in/dsp-units/filters/Filter.h>
+#include <lsp-plug.in/dsp-units/util/Analyzer.h>
+#include <lsp-plug.in/dsp-units/util/Delay.h>
 #include <lsp-plug.in/plug-fw/plug.h>
+
 #include <private/meta/gott_compressor.h>
 
 namespace lsp
@@ -53,20 +57,47 @@ namespace lsp
                 typedef struct channel_t
                 {
                     dspu::Bypass            sBypass;            // Bypass
+                    dspu::Filter            sEnvBoost[2];       // Envelope boost filter
+                    dspu::Equalizer         sDryEq;             // Dry equalizer
 
                     float                  *vIn;                // Input data buffer
                     float                  *vOut;               // Output data buffer
                     float                  *vScIn;              // Sidechain data buffer (if present)
+                    float                  *vInBuffer;          // Input buffer
+                    float                  *vBuffer;            // Temporary buffer
+                    float                  *vScBuffer;          // Sidechain buffer
+                    float                  *vExtScBuffer;       // External sidechain buffer
+                    float                  *vInAnalyze;         // Input signal analysis
+                    float                  *vOutAnalyze;        // Output signal analysis
+
+                    size_t                  nAnInChannel;       // Analyzer channel used for input signal analysis
+                    size_t                  nAnOutChannel;      // Analyzer channel used for output signal analysis
+                    bool                    bInFft;             // Input signal FFT enabled
+                    bool                    bOutFft;            // Output signal FFT enabled
 
                     plug::IPort            *pIn;                // Input
                     plug::IPort            *pOut;               // Output
                     plug::IPort            *pScIn;              // Sidechain
+                    plug::IPort            *pFftInSw;           // Pre-processing FFT analysis control port
+                    plug::IPort            *pFftOutSw;          // Post-processing FFT analysis controlport
+                    plug::IPort            *pFftIn;             // Pre-processing FFT analysis data
+                    plug::IPort            *pFftOut;            // Post-processing FFT analysis data
+                    plug::IPort            *pInLvl;             // Input level meter
+                    plug::IPort            *pOutLvl;            // Output level meter
                 } channel_t;
 
             protected:
+                dspu::Analyzer          sAnalyzer;              // Analyzer
+
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
+                bool                    bModern;                // Modern/Classic mode switch
+                float                   fInGain;                // Input gain adjustment
+                float                   fDryGain;               // Dry gain
+                float                   fWetGain;               // Wet gain
                 channel_t              *vChannels;              // Processor channels
+                float                  *vAnalyze[4];            // Analysis buffer
+                float                  *vBuffer;                // Temporary buffer
 
                 plug::IPort            *pBypass;                // Bypass port
                 plug::IPort            *pMode;                  // Global mode

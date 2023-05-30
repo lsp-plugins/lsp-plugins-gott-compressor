@@ -24,7 +24,9 @@
 
 #include <lsp-plug.in/plug-fw/meta/types.h>
 #include <lsp-plug.in/plug-fw/const.h>
+
 #include <lsp-plug.in/dsp-units/const.h>
+#include <lsp-plug.in/dsp-units/misc/windows.h>
 
 namespace lsp
 {
@@ -61,6 +63,17 @@ namespace lsp
             static constexpr float  SPLIT3_MAX              = 20000.0f;
             static constexpr float  SPLIT3_DFL              = 7000.0f;
             static constexpr float  SPLIT3_STEP             = 0.002f;
+
+            static constexpr size_t FFT_MESH_POINTS         = 640;
+            static constexpr size_t FFT_RANK                = 13;
+            static constexpr size_t FFT_ITEMS               = 1 << FFT_RANK;
+            static constexpr size_t FILTER_MESH_POINTS      = FFT_MESH_POINTS + 2;
+            static constexpr size_t FFT_WINDOW              = dspu::windows::HANN;
+
+            static constexpr size_t BANDS_MAX               = 4;
+            static constexpr size_t BANDS_DFL               = 3;
+
+            static constexpr size_t REFRESH_RATE            = 20;
 
             enum boost_t
             {
