@@ -24,6 +24,7 @@
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/dynamics/DynamicProcessor.h>
+#include <lsp-plug.in/dsp-units/filters/DynamicFilters.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
 #include <lsp-plug.in/dsp-units/filters/Filter.h>
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
@@ -65,6 +66,8 @@ namespace lsp
                     dspu::Filter            sRejFilter;         // Rejection filter for 'classic' mode
                     dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
 
+                    float                  *vVCA;               // Voltage-controlled amplification value for each band
+
                     float                   fMinThresh;         // Minimum threshold
                     float                   fUpThresh;          // Upward threshold
                     float                   fDownThresh;        // Downward threshold
@@ -74,22 +77,23 @@ namespace lsp
                     float                   fReleaseTime;       // Release time
                     float                   fMakeup;            // Makeup gain
 
+                    size_t                  nFilterID;          // Filter ID in dynamic filters
                     bool                    bEnabled;           // Enabled flag
                     bool                    bMute;              // Mute channel
                     bool                    bSolo;              // Solo channel
 
-                    plug::IPort             pMinThresh;         // Minimum threshold
-                    plug::IPort             pUpThresh;          // Upward threshold
-                    plug::IPort             pDownThresh;        // Downward threshold
-                    plug::IPort             pUpRatio;           // Upward ratio
-                    plug::IPort             pDownRatio;         // Downward ratio
-                    plug::IPort             pAttackTime;        // Attack time
-                    plug::IPort             pReleaseTime;       // Release time
-                    plug::IPort             pMakeup;            // Makeup gain
+                    plug::IPort            *pMinThresh;         // Minimum threshold
+                    plug::IPort            *pUpThresh;          // Upward threshold
+                    plug::IPort            *pDownThresh;        // Downward threshold
+                    plug::IPort            *pUpRatio;           // Upward ratio
+                    plug::IPort            *pDownRatio;         // Downward ratio
+                    plug::IPort            *pAttackTime;        // Attack time
+                    plug::IPort            *pReleaseTime;       // Release time
+                    plug::IPort            *pMakeup;            // Makeup gain
 
-                    plug::IPort             pEnabled;           // Enabled flag
-                    plug::IPort             pMute;              // Mute channel
-                    plug::IPort             pSolo;              // Solo channel
+                    plug::IPort            *pEnabled;           // Enabled flag
+                    plug::IPort            *pMute;              // Mute channel
+                    plug::IPort            *pSolo;              // Solo channel
                 } band_t;
 
                 typedef struct channel_t
@@ -97,6 +101,9 @@ namespace lsp
                     dspu::Bypass            sBypass;            // Bypass
                     dspu::Filter            sEnvBoost[2];       // Envelope boost filter
                     dspu::Equalizer         sDryEq;             // Dry equalizer
+                    dspu::Delay             sDelay;             // Lookahead Delay
+
+                    band_t                  vBands[meta::gott_compressor::BANDS_MAX];
 
                     float                  *vIn;                // Input data buffer
                     float                  *vOut;               // Output data buffer
@@ -104,7 +111,6 @@ namespace lsp
                     float                  *vInBuffer;          // Input buffer
                     float                  *vBuffer;            // Temporary buffer
                     float                  *vScBuffer;          // Sidechain buffer
-                    float                  *vExtScBuffer;       // External sidechain buffer
                     float                  *vInAnalyze;         // Input signal analysis
                     float                  *vOutAnalyze;        // Output signal analysis
 
@@ -126,17 +132,22 @@ namespace lsp
 
             protected:
                 dspu::Analyzer          sAnalyzer;              // Analyzer
+                dspu::DynamicFilters    sFilters;               // Dynamic filters for each band in 'modern' mode
 
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
                 bool                    bModern;                // Modern/Classic mode switch
                 bool                    bExtraBand;             // Extra band
+                bool                    bExtSidechain;          // External sidechain
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
+                float                   fScPreamp;              // Sidechain pre-amplification
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
                 float                  *vBuffer;                // Temporary buffer
+                float                  *vSC[2];                 // Sidechain pre-processing
+                float                  *vEnv;                   // Envelope buffer
 
                 plug::IPort            *pBypass;                // Bypass port
                 plug::IPort            *pMode;                  // Global mode
@@ -144,12 +155,14 @@ namespace lsp
                 plug::IPort            *pOutGain;               // Output gain port
                 plug::IPort            *pDryGain;               // Dry gain port
                 plug::IPort            *pWetGain;               // Wet gain port
+                plug::IPort            *pScPreamp;              // Sidechain preamp
                 plug::IPort            *pReactivity;            // Reactivity
                 plug::IPort            *pShiftGain;             // Shift gain port
                 plug::IPort            *pZoom;                  // Zoom port
                 plug::IPort            *pEnvBoost;              // Envelope adjust
                 plug::IPort            *pSplits[3];             // Split frequencies
                 plug::IPort            *pExtraBand;             // Extra band enable
+                plug::IPort            *pExtSidechain;          // External sidechain enable
 
                 uint8_t                *pData;                  // Aligned data pointer
 

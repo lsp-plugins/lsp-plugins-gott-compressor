@@ -65,6 +65,7 @@ namespace lsp
             AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
             AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
+            AMP_GAIN("g_sc", "Sidechain pre-amplification", 1.0f, 10.0f), \
             LOG_CONTROL("react", "FFT reactivity", U_MSEC, gott_compressor::REACT_TIME), \
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
             LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
@@ -73,6 +74,9 @@ namespace lsp
             LOG_CONTROL("sf2", "Split frequency 2", U_GAIN_AMP, gott_compressor::SPLIT2), \
             LOG_CONTROL("sf3", "Split frequency 3", U_GAIN_AMP, gott_compressor::SPLIT3), \
             SWITCH("ebe", "Enable extra band", 0)
+
+        #define GOTT_SC_COMMON \
+            SWITCH("esc", "Enable external sidechain", 0)
 
         #define GOTT_METERS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
@@ -122,6 +126,7 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             PORTS_MONO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_SC_COMMON,
             GOTT_METERS("", ""),
             PORTS_END
         };
@@ -131,6 +136,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_SC_COMMON,
             GOTT_METERS("_l", " Left"),
             GOTT_METERS("_r", " Right"),
             PORTS_END
@@ -141,6 +147,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_SC_COMMON,
             GOTT_METERS("_l", " Left"),
             GOTT_METERS("_r", " Right"),
             PORTS_END
@@ -151,6 +158,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
+            GOTT_SC_COMMON,
             GOTT_METERS("_m", " Mid"),
             GOTT_METERS("_s", " Side"),
             PORTS_END

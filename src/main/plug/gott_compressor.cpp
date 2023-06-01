@@ -113,9 +113,12 @@ namespace lsp
             }
 
             bModern             = true;
+            bExtraBand          = false;
+            bExtSidechain       = false;
             fInGain             = GAIN_AMP_0_DB;
             fDryGain            = GAIN_AMP_M_INF_DB;
             fWetGain            = GAIN_AMP_0_DB;
+            fScPreamp           = GAIN_AMP_0_DB;
 
             vChannels           = NULL;
             vAnalyze[0]         = NULL;
@@ -123,6 +126,9 @@ namespace lsp
             vAnalyze[2]         = NULL;
             vAnalyze[3]         = NULL;
             vBuffer             = NULL;
+            vSC[0]              = NULL;
+            vSC[1]              = NULL;
+            vEnv                = NULL;
 
             pBypass             = NULL;
             pMode               = NULL;
@@ -130,6 +136,7 @@ namespace lsp
             pOutGain            = NULL;
             pDryGain            = NULL;
             pWetGain            = NULL;
+            pScPreamp           = NULL;
             pReactivity         = NULL;
             pShiftGain          = NULL;
             pZoom               = NULL;
@@ -138,6 +145,7 @@ namespace lsp
             pSplits[1]          = NULL;
             pSplits[2]          = NULL;
             pExtraBand          = NULL;
+            pExtSidechain       = NULL;
 
             pData               = NULL;
         }
@@ -154,6 +162,7 @@ namespace lsp
             // Initialize analyzer
             size_t channels         = (nMode == GOTT_MONO) ? 1 : 2;
             size_t an_cid           = 0;
+            size_t filter_cid       = 0;
             if (!sAnalyzer.init(2*channels, meta::gott_compressor::FFT_RANK,
                                 MAX_SAMPLE_RATE, meta::gott_compressor::REFRESH_RATE))
                 return;
@@ -164,19 +173,27 @@ namespace lsp
             sAnalyzer.set_window(meta::gott_compressor::FFT_WINDOW);
             sAnalyzer.set_rate(meta::gott_compressor::REFRESH_RATE);
 
+            // Initialize filters according to number of bands
+            if (sFilters.init(meta::gott_compressor::BANDS_MAX * channels) != STATUS_OK)
+                return;
+
             // Compute amount of memory
             size_t szof_channels    = align_size(sizeof(channel_t) * channels, 0x20);
             size_t szof_buffer      = sizeof(float) * GOTT_BUFFER_SIZE;
             size_t to_alloc         =
                 szof_channels +
                 szof_buffer +       // vBuffer
+                szof_buffer*2 +     // vSC[2]
+                szof_buffer +       // vEnv
                 (
                     szof_buffer +   // vInBuffer for each channel
                     szof_buffer +   // vBuffer for each channel
                     szof_buffer +   // vScBuffer for each channel
-                    ((bSidechain) ? szof_buffer : 0) + // vExtScBuffer for each channel
                     szof_buffer +   // vInAnalyze each channel
-                    szof_buffer     // vOutAnalyze each channel
+                    szof_buffer +   // vOutAnalyze each channel
+                    (
+                        szof_buffer     // vVCA
+                    ) * meta::gott_compressor::BANDS_MAX
                 ) * channels;
 
             // Allocate data
@@ -188,6 +205,12 @@ namespace lsp
             ptr                    += szof_channels;
 
             vBuffer                 = reinterpret_cast<float *>(ptr);
+            ptr                    += szof_buffer;
+            vSC[0]                  = reinterpret_cast<float *>(ptr);
+            ptr                    += szof_buffer;
+            vSC[1]                  = reinterpret_cast<float *>(ptr);
+            ptr                    += szof_buffer;
+            vEnv                    = reinterpret_cast<float *>(ptr);
             ptr                    += szof_buffer;
 
             // Initialize channels
@@ -206,6 +229,52 @@ namespace lsp
                 c->sDryEq.init(meta::gott_compressor::BANDS_MAX - 1, 0);
                 c->sDryEq.set_mode(dspu::EQM_IIR);
 
+                c->sDelay.construct();
+
+                // Initialize bands
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b           = &c->vBands[j];
+
+                    b->sSC.construct();
+                    b->sEQ[0].construct();
+                    b->sEQ[1].construct();
+                    b->sProc.construct();
+                    b->sPassFilter.construct();
+                    b->sRejFilter.construct();
+                    b->sAllFilter.construct();
+
+                    b->vVCA             = reinterpret_cast<float *>(ptr);
+                    ptr                += szof_buffer;
+
+                    b->fMinThresh       = GAIN_AMP_M_72_DB;
+                    b->fUpThresh        = GAIN_AMP_M_48_DB;
+                    b->fDownThresh      = GAIN_AMP_M_12_DB;
+                    b->fUpRatio         = 100.0f;
+                    b->fDownRatio       = 4.0f;
+                    b->fAttackTime      = 10.0f;
+                    b->fReleaseTime     = 10.0f;
+                    b->fMakeup          = GAIN_AMP_0_DB;
+
+                    b->nFilterID        = filter_cid++;
+                    b->bEnabled         = true;
+                    b->bMute            = false;
+                    b->bSolo            = false;
+
+                    b->pMinThresh       = NULL;
+                    b->pUpThresh        = NULL;
+                    b->pDownThresh      = NULL;
+                    b->pUpRatio         = NULL;
+                    b->pDownRatio       = NULL;
+                    b->pAttackTime      = NULL;
+                    b->pReleaseTime     = NULL;
+                    b->pMakeup          = NULL;
+
+                    b->pEnabled         = NULL;
+                    b->pMute            = NULL;
+                    b->pSolo            = NULL;
+                }
+
                 c->vIn                  = NULL;
                 c->vOut                 = NULL;
                 c->vScIn                = NULL;
@@ -215,12 +284,6 @@ namespace lsp
                 ptr                    += szof_buffer;
                 c->vScBuffer            = reinterpret_cast<float *>(ptr);
                 ptr                    += szof_buffer;
-                c->vExtScBuffer         = NULL;
-                if (bSidechain)
-                {
-                    c->vExtScBuffer         = reinterpret_cast<float *>(ptr);
-                    ptr                    += szof_buffer;
-                }
                 c->vInAnalyze           = reinterpret_cast<float *>(ptr);
                 ptr                    += szof_buffer;
                 c->vOutAnalyze          = reinterpret_cast<float *>(ptr);
@@ -267,6 +330,7 @@ namespace lsp
             pOutGain                = TRACE_PORT(ports[port_id++]);
             pDryGain                = TRACE_PORT(ports[port_id++]);
             pWetGain                = TRACE_PORT(ports[port_id++]);
+            pScPreamp               = TRACE_PORT(ports[port_id++]);
             pReactivity             = TRACE_PORT(ports[port_id++]);
             pShiftGain              = TRACE_PORT(ports[port_id++]);
             pZoom                   = TRACE_PORT(ports[port_id++]);
@@ -275,6 +339,8 @@ namespace lsp
             pSplits[1]              = TRACE_PORT(ports[port_id++]);
             pSplits[2]              = TRACE_PORT(ports[port_id++]);
             pExtraBand              = TRACE_PORT(ports[port_id++]);
+            if (bSidechain)
+                pExtSidechain           = TRACE_PORT(ports[port_id++]);
 
             lsp_trace("Binding channel meter ports");
             for (size_t i=0; i<channels; ++i)
@@ -287,6 +353,9 @@ namespace lsp
                 c->pInLvl               = TRACE_PORT(ports[port_id++]);
                 c->pOutLvl              = TRACE_PORT(ports[port_id++]);
             }
+
+            // TODO
+            lsp_trace("Binding band ports");
         }
 
         void gott_compressor::destroy()
@@ -368,54 +437,61 @@ namespace lsp
                     dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
                     dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
                 }
-                if (bSidechain)
+
+                // Process sidechain
+                if (bSidechain && bExtSidechain)
                 {
                     if (nMode == GOTT_MS)
                     {
-                        dsp::lr_to_ms(vChannels[0].vExtScBuffer, vChannels[1].vExtScBuffer, vChannels[0].vScIn, vChannels[1].vScIn, to_process);
-                        dsp::mul_k2(vChannels[0].vExtScBuffer, fInGain, to_process);
-                        dsp::mul_k2(vChannels[1].vExtScBuffer, fInGain, to_process);
+                        dsp::lr_to_ms(vChannels[0].vScBuffer, vChannels[1].vScBuffer, vChannels[0].vScIn, vChannels[1].vScIn, to_process);
+                        dsp::mul_k2(vChannels[0].vScBuffer, fInGain, to_process);
+                        dsp::mul_k2(vChannels[1].vScBuffer, fInGain, to_process);
                     }
                     else if (nMode == GOTT_MONO)
-                        dsp::mul_k3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
+                        dsp::mul_k3(vChannels[0].vScBuffer, vChannels[0].vScIn, fInGain, to_process);
                     else
                     {
-                        dsp::mul_k3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
-                        dsp::mul_k3(vChannels[1].vExtScBuffer, vChannels[1].vScIn, fInGain, to_process);
+                        dsp::mul_k3(vChannels[0].vScBuffer, vChannels[0].vScIn, fInGain, to_process);
+                        dsp::mul_k3(vChannels[1].vScBuffer, vChannels[1].vScIn, fInGain, to_process);
                     }
                 }
-
+                else
+                {
+                    if (nMode != GOTT_MONO)
+                    {
+                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, to_process);
+                        dsp::copy(vChannels[1].vScBuffer, vChannels[1].vBuffer, to_process);
+                    }
+                    else
+                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, to_process);
+                }
 
                 // Do frequency boost and input channel analysis
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
-                    c->sEnvBoost[0].process(c->vScBuffer, c->vBuffer, to_process);
-                    if (bSidechain)
-                        c->sEnvBoost[1].process(c->vExtScBuffer, c->vExtScBuffer, to_process);
-
+                    c->sEnvBoost[0].process(c->vScBuffer, c->vScBuffer, to_process);
                     dsp::copy(c->vInAnalyze, c->vBuffer, to_process);
                 }
 
                 // MAIN PLUGIN STUFF
-            #if 0
                 size_t bands        = (bExtraBand) ? meta::gott_compressor::BANDS_MAX - 1 : meta::gott_compressor::BANDS_MAX;
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
 
-                    for (size_t j=0; j<c->bands; ++j)
+                    for (size_t j=0; j<bands; ++j)
                     {
-                        dyna_band_t *b      = c->vPlan[j];
+                        band_t *b           = &c->vBands[j];
 
                         // Prepare sidechain signal with band equalizers
-                        b->sEQ[0].process(vSc[0], (b->bExtSc) ? vChannels[0].vExtScBuffer : vChannels[0].vScBuffer, to_process);
+                        b->sEQ[0].process(vSC[0], vChannels[0].vScBuffer, to_process);
                         if (channels > 1)
-                            b->sEQ[1].process(vSc[1], (b->bExtSc) ? vChannels[1].vExtScBuffer : vChannels[1].vScBuffer, to_process);
+                            b->sEQ[1].process(vSC[1], vChannels[1].vScBuffer, to_process);
 
                         // Preprocess VCA signal
-                        b->sSC.process(vBuffer, const_cast<const float **>(vSc), to_process); // Band now contains processed by sidechain signal
-                        b->sScDelay.process(vBuffer, vBuffer, b->fScPreamp, to_process); // Apply sidechain preamp and lookahead delay
+                        b->sSC.process(vBuffer, const_cast<const float **>(vSC), to_process); // Band now contains processed by sidechain signal
+                        dsp::mul_k2(vBuffer, fScPreamp, to_process);
 
                         if (b->bEnabled)
                         {
@@ -426,13 +502,13 @@ namespace lsp
 
                             // Output curve level
                             float lvl = dsp::abs_max(vEnv, to_process);
-                            b->pEnvLvl->set_value(lvl);
-                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process));
+//                            b->pEnvLvl->set_value(lvl);
+//                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process));
                             lvl = b->sProc.curve(lvl) * b->fMakeup;
-                            b->pCurveLvl->set_value(lvl);
+//                            b->pCurveLvl->set_value(lvl);
 
                             // Remember last envelope level and buffer level
-                            b->fGainLevel   = b->vVCA[to_process-1];
+//                            b->fGainLevel   = b->vVCA[to_process-1];
 
                             // Check muting option
                             if (b->bMute)
@@ -441,21 +517,21 @@ namespace lsp
                         else
                         {
                             dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
-                            b->fGainLevel   = GAIN_AMP_0_DB;
+//                            b->fGainLevel   = GAIN_AMP_0_DB;
                         }
                     }
 
-//                    // Output curve parameters for disabled expanders
-//                    for (size_t i=0; i<meta::mb_dyna_processor::BANDS_MAX; ++i)
-//                    {
-//                        dyna_band_t *b      = &c->vBands[i];
-//                        if (b->bEnabled)
-//                            continue;
-//
+                    // Output curve parameters for disabled bands
+                    for (size_t i=0; i<meta::gott_compressor::BANDS_MAX; ++i)
+                    {
+                        band_t *b      = &c->vBands[i];
+                        if (b->bEnabled)
+                            continue;
+
 //                        b->pEnvLvl->set_value(0.0f);
 //                        b->pCurveLvl->set_value(0.0f);
 //                        b->pMeterGain->set_value(GAIN_AMP_0_DB);
-//                    }
+                    }
                 }
 
                 // Here, we apply VCA to input signal dependent on the input
@@ -468,9 +544,9 @@ namespace lsp
                         c->sDelay.process(c->vBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature
                         dsp::copy(c->vInBuffer, c->vBuffer, to_process);
 
-                        for (size_t j=0; j<c->nPlanSize; ++j)
+                        for (size_t j=0; j<bands; ++j)
                         {
-                            dyna_band_t *b      = c->vPlan[j];
+                            band_t *b          = &c->vBands[j];
                             sFilters.process(b->nFilterID, c->vBuffer, c->vBuffer, b->vVCA, to_process);
                         }
                     }
@@ -487,9 +563,9 @@ namespace lsp
                         dsp::copy(vBuffer, c->vInBuffer, to_process);
                         dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
 
-                        for (size_t j=0; j<c->nPlanSize; ++j)
+                        for (size_t j=0; j<bands; ++j)
                         {
-                            dyna_band_t *b      = c->vPlan[j];
+                            band_t *b       = &c->vBands[j];
 
                             b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process); // Process the signal with all-pass
                             b->sPassFilter.process(vEnv, vBuffer, to_process); // Filter frequencies from input
@@ -501,7 +577,6 @@ namespace lsp
                 }
 
                 // MAIN PLUGIN STUFF END
-            #endif
 
                 // Do output channel analysis
                 for (size_t i=0; i<channels; ++i)
