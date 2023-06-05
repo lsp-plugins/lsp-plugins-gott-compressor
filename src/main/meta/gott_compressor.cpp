@@ -53,8 +53,8 @@ namespace lsp
 
         static const port_item_t gott_global_dyna_modes[] =
         {
-            { "Classic",        "mb_dyna_processor.classic" },
-            { "Modern",         "mb_dyna_processor.modern" },
+            { "Classic",        "gott_comp.classic" },
+            { "Modern",         "gott_comp.modern" },
             { NULL, NULL }
         };
 
