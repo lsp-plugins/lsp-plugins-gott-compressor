@@ -78,18 +78,46 @@ namespace lsp
         #define GOTT_SC_COMMON \
             SWITCH("esc", "Enable external sidechain", 0)
 
-        #define GOTT_METERS(id, label) \
+        #define GOTT_ANALYSIS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
             MESH("ifg" id, "Input FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
-            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
+            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS)
+
+        #define GOTT_METERS(id, label) \
             METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
             METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_24_DB)
+
+        #define GOTT_BAND(id, label) \
+            LOG_CONTROL("tm_" id, "Minimum threshold" label, U_GAIN_AMP, gott_compressor::THRESH_MIN), \
+            LOG_CONTROL("tu_" id, "Upward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_UP), \
+            LOG_CONTROL("td_" id, "Downward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_DOWN), \
+            LOG_CONTROL("ru_" id, "Upward ratio" label, U_NONE, gott_compressor::RATIO), \
+            LOG_CONTROL("rd_" id, "Downward ratio" label, U_NONE, gott_compressor::RATIO), \
+            LOG_CONTROL("ta_" id, "Attack time" label, U_NONE, gott_compressor::ATTACK_TIME), \
+            LOG_CONTROL("tr_" id, "Release time" label, U_NONE, gott_compressor::RELEASE_TIME), \
+            LOG_CONTROL("mk_" id, "Makeup gain" label, U_NONE, gott_compressor::MAKEUP), \
+            SWITCH("be_" id, "Enable band" label, 1.0f), \
+            SWITCH("bs_" id, "Solo band" label, 0.0f), \
+            SWITCH("bm_" id, "Mute band" label, 0.0f) \
+
+//        plug::IPort            *pMakeup;            // Makeup gain
+//
+//        plug::IPort            *pEnabled;           // Enabled flag
+//        plug::IPort            *pMute;              // Mute channel
+//        plug::IPort            *pSolo;              // Solo channel
 
         static const port_t gott_compressor_mono_ports[] =
         {
             PORTS_MONO_PLUGIN,
             GOTT_COMMON,
+
+            GOTT_BAND("1", ""),
+            GOTT_BAND("2", ""),
+            GOTT_BAND("3", ""),
+            GOTT_BAND("4", ""),
+
+            GOTT_ANALYSIS("", ""),
             GOTT_METERS("", ""),
             PORTS_END
         };
@@ -98,7 +126,15 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+
+            GOTT_BAND("1", ""),
+            GOTT_BAND("2", ""),
+            GOTT_BAND("3", ""),
+            GOTT_BAND("4", ""),
+
+            GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
+            GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
             PORTS_END
         };
@@ -107,7 +143,19 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+
+            GOTT_BAND("1l", "left"),
+            GOTT_BAND("2l", "left"),
+            GOTT_BAND("3l", "left"),
+            GOTT_BAND("4l", "left"),
+            GOTT_BAND("1r", "right"),
+            GOTT_BAND("2r", "right"),
+            GOTT_BAND("3r", "right"),
+            GOTT_BAND("4r", "right"),
+
+            GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
+            GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
             PORTS_END
         };
@@ -116,8 +164,20 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
-            GOTT_METERS("_m", " Mid"),
-            GOTT_METERS("_s", " Side"),
+
+            GOTT_BAND("1m", "mid"),
+            GOTT_BAND("2m", "mid"),
+            GOTT_BAND("3m", "mid"),
+            GOTT_BAND("4m", "mid"),
+            GOTT_BAND("1s", "side"),
+            GOTT_BAND("2s", "side"),
+            GOTT_BAND("3s", "side"),
+            GOTT_BAND("4s", "side"),
+
+            GOTT_ANALYSIS("_m", " Mid"),
+            GOTT_METERS("_l", " Left"),
+            GOTT_ANALYSIS("_s", " Side"),
+            GOTT_METERS("_r", " Right"),
             PORTS_END
         };
 
@@ -127,6 +187,13 @@ namespace lsp
             PORTS_MONO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
+
+            GOTT_BAND("1", ""),
+            GOTT_BAND("2", ""),
+            GOTT_BAND("3", ""),
+            GOTT_BAND("4", ""),
+
+            GOTT_ANALYSIS("", ""),
             GOTT_METERS("", ""),
             PORTS_END
         };
@@ -137,7 +204,15 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
+
+            GOTT_BAND("1", ""),
+            GOTT_BAND("2", ""),
+            GOTT_BAND("3", ""),
+            GOTT_BAND("4", ""),
+
+            GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
+            GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
             PORTS_END
         };
@@ -148,7 +223,19 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
+
+            GOTT_BAND("1l", "left"),
+            GOTT_BAND("2l", "left"),
+            GOTT_BAND("3l", "left"),
+            GOTT_BAND("4l", "left"),
+            GOTT_BAND("1r", "right"),
+            GOTT_BAND("2r", "right"),
+            GOTT_BAND("3r", "right"),
+            GOTT_BAND("4r", "right"),
+
+            GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
+            GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
             PORTS_END
         };
@@ -159,8 +246,20 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
-            GOTT_METERS("_m", " Mid"),
-            GOTT_METERS("_s", " Side"),
+
+            GOTT_BAND("1m", "mid"),
+            GOTT_BAND("2m", "mid"),
+            GOTT_BAND("3m", "mid"),
+            GOTT_BAND("4m", "mid"),
+            GOTT_BAND("1s", "side"),
+            GOTT_BAND("2s", "side"),
+            GOTT_BAND("3s", "side"),
+            GOTT_BAND("4s", "side"),
+
+            GOTT_ANALYSIS("_m", " Mid"),
+            GOTT_METERS("_l", " Left"),
+            GOTT_ANALYSIS("_s", " Side"),
+            GOTT_METERS("_r", " Right"),
             PORTS_END
         };
 

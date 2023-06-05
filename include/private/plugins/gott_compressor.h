@@ -79,8 +79,8 @@ namespace lsp
 
                     size_t                  nFilterID;          // Filter ID in dynamic filters
                     bool                    bEnabled;           // Enabled flag
-                    bool                    bMute;              // Mute channel
                     bool                    bSolo;              // Solo channel
+                    bool                    bMute;              // Mute channel
 
                     plug::IPort            *pMinThresh;         // Minimum threshold
                     plug::IPort            *pUpThresh;          // Upward threshold
@@ -92,8 +92,8 @@ namespace lsp
                     plug::IPort            *pMakeup;            // Makeup gain
 
                     plug::IPort            *pEnabled;           // Enabled flag
-                    plug::IPort            *pMute;              // Mute channel
                     plug::IPort            *pSolo;              // Solo channel
+                    plug::IPort            *pMute;              // Mute channel
                 } band_t;
 
                 typedef struct channel_t

@@ -271,8 +271,8 @@ namespace lsp
                     b->pMakeup          = NULL;
 
                     b->pEnabled         = NULL;
-                    b->pMute            = NULL;
                     b->pSolo            = NULL;
+                    b->pMute            = NULL;
                 }
 
                 c->vIn                  = NULL;
@@ -342,6 +342,29 @@ namespace lsp
             if (bSidechain)
                 pExtSidechain           = TRACE_PORT(ports[port_id++]);
 
+            lsp_trace("Binding band ports");
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+
+                    b->pMinThresh           = TRACE_PORT(ports[port_id++]);
+                    b->pUpThresh            = TRACE_PORT(ports[port_id++]);
+                    b->pDownThresh          = TRACE_PORT(ports[port_id++]);
+                    b->pUpRatio             = TRACE_PORT(ports[port_id++]);
+                    b->pDownRatio           = TRACE_PORT(ports[port_id++]);
+                    b->pAttackTime          = TRACE_PORT(ports[port_id++]);
+                    b->pReleaseTime         = TRACE_PORT(ports[port_id++]);
+                    b->pMakeup              = TRACE_PORT(ports[port_id++]);
+
+                    b->pEnabled             = TRACE_PORT(ports[port_id++]);
+                    b->pSolo                = TRACE_PORT(ports[port_id++]);
+                    b->pMute                = TRACE_PORT(ports[port_id++]);
+                }
+            }
+
             lsp_trace("Binding channel meter ports");
             for (size_t i=0; i<channels; ++i)
             {
@@ -353,9 +376,6 @@ namespace lsp
                 c->pInLvl               = TRACE_PORT(ports[port_id++]);
                 c->pOutLvl              = TRACE_PORT(ports[port_id++]);
             }
-
-            // TODO
-            lsp_trace("Binding band ports");
         }
 
         void gott_compressor::destroy()

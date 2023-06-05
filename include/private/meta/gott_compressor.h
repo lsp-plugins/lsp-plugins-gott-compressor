@@ -73,6 +73,41 @@ namespace lsp
             static constexpr size_t BANDS_MAX               = 4;
             static constexpr size_t BANDS_DFL               = 3;
 
+            static constexpr float  THRESH_MIN_MIN          = GAIN_AMP_M_72_DB;
+            static constexpr float  THRESH_MIN_MAX          = GAIN_AMP_0_DB;
+            static constexpr float  THRESH_MIN_DFL          = GAIN_AMP_M_60_DB;
+            static constexpr float  THRESH_MIN_STEP         = 0.01f;
+
+            static constexpr float  THRESH_UP_MIN           = GAIN_AMP_M_72_DB;
+            static constexpr float  THRESH_UP_MAX           = GAIN_AMP_0_DB;
+            static constexpr float  THRESH_UP_DFL           = GAIN_AMP_M_36_DB;
+            static constexpr float  THRESH_UP_STEP          = 0.01f;
+
+            static constexpr float  THRESH_DOWN_MIN         = GAIN_AMP_M_72_DB;
+            static constexpr float  THRESH_DOWN_MAX         = GAIN_AMP_0_DB;
+            static constexpr float  THRESH_DOWN_DFL         = GAIN_AMP_M_12_DB;
+            static constexpr float  THRESH_DOWN_STEP        = 0.01f;
+
+            static constexpr float  RATIO_MIN               = 1.0f;
+            static constexpr float  RATIO_MAX               = 100.0f;
+            static constexpr float  RATIO_DFL               = 50.0f;
+            static constexpr float  RATIO_STEP              = 0.01f;
+
+            static constexpr float  ATTACK_TIME_MIN         = 0.0f;
+            static constexpr float  ATTACK_TIME_MAX         = 2000.0f;
+            static constexpr float  ATTACK_TIME_DFL         = 20.0f;
+            static constexpr float  ATTACK_TIME_STEP        = 0.0025f;
+
+            static constexpr float  RELEASE_TIME_MIN        = 0.0f;
+            static constexpr float  RELEASE_TIME_MAX        = 5000.0f;
+            static constexpr float  RELEASE_TIME_DFL        = 100.0f;
+            static constexpr float  RELEASE_TIME_STEP       = 0.0025f;
+
+            static constexpr float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;
+            static constexpr float  MAKEUP_MAX              = GAIN_AMP_P_60_DB;
+            static constexpr float  MAKEUP_DFL              = GAIN_AMP_0_DB;
+            static constexpr float  MAKEUP_STEP             = 0.05f;
+
             static constexpr size_t REFRESH_RATE            = 20;
 
             enum boost_t
