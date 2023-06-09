@@ -94,18 +94,13 @@ namespace lsp
             LOG_CONTROL("td_" id, "Downward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_DOWN), \
             LOG_CONTROL("ru_" id, "Upward ratio" label, U_NONE, gott_compressor::RATIO), \
             LOG_CONTROL("rd_" id, "Downward ratio" label, U_NONE, gott_compressor::RATIO), \
-            LOG_CONTROL("ta_" id, "Attack time" label, U_NONE, gott_compressor::ATTACK_TIME), \
-            LOG_CONTROL("tr_" id, "Release time" label, U_NONE, gott_compressor::RELEASE_TIME), \
-            LOG_CONTROL("mk_" id, "Makeup gain" label, U_NONE, gott_compressor::MAKEUP), \
+            LOG_CONTROL("ta_" id, "Attack time" label, U_MSEC, gott_compressor::ATTACK_TIME), \
+            LOG_CONTROL("tr_" id, "Release time" label, U_MSEC, gott_compressor::RELEASE_TIME), \
+            LOG_CONTROL("mk_" id, "Makeup gain" label, U_GAIN_AMP, gott_compressor::MAKEUP), \
             SWITCH("be_" id, "Enable band" label, 1.0f), \
             SWITCH("bs_" id, "Solo band" label, 0.0f), \
-            SWITCH("bm_" id, "Mute band" label, 0.0f) \
-
-//        plug::IPort            *pMakeup;            // Makeup gain
-//
-//        plug::IPort            *pEnabled;           // Enabled flag
-//        plug::IPort            *pMute;              // Mute channel
-//        plug::IPort            *pSolo;              // Solo channel
+            SWITCH("bm_" id, "Mute band" label, 0.0f), \
+            MESH("ccg_" id, "Compression curve graph" label, 2, gott_compressor::CURVE_MESH_SIZE)
 
         static const port_t gott_compressor_mono_ports[] =
         {

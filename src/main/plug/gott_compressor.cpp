@@ -129,6 +129,7 @@ namespace lsp
             vSC[0]              = NULL;
             vSC[1]              = NULL;
             vEnv                = NULL;
+            vCurveBuffer        = NULL;
 
             pBypass             = NULL;
             pMode               = NULL;
@@ -178,13 +179,15 @@ namespace lsp
                 return;
 
             // Compute amount of memory
-            size_t szof_channels    = align_size(sizeof(channel_t) * channels, 0x20);
-            size_t szof_buffer      = sizeof(float) * GOTT_BUFFER_SIZE;
+            size_t szof_channels    = align_size(sizeof(channel_t) * channels, OPTIMAL_ALIGN);
+            size_t szof_buffer      = align_size(sizeof(float) * GOTT_BUFFER_SIZE, OPTIMAL_ALIGN);
+            size_t szof_curve       = align_size(sizeof(float) * meta::gott_compressor::CURVE_MESH_SIZE, OPTIMAL_ALIGN);
             size_t to_alloc         =
                 szof_channels +
                 szof_buffer +       // vBuffer
                 szof_buffer*2 +     // vSC[2]
                 szof_buffer +       // vEnv
+                szof_curve +        // vCurveBuffer
                 (
                     szof_buffer +   // vInBuffer for each channel
                     szof_buffer +   // vBuffer for each channel
@@ -192,7 +195,8 @@ namespace lsp
                     szof_buffer +   // vInAnalyze each channel
                     szof_buffer +   // vOutAnalyze each channel
                     (
-                        szof_buffer     // vVCA
+                        szof_buffer +   // vVCA
+                        szof_curve      // vCurveBuffer
                     ) * meta::gott_compressor::BANDS_MAX
                 ) * channels;
 
@@ -212,6 +216,8 @@ namespace lsp
             ptr                    += szof_buffer;
             vEnv                    = reinterpret_cast<float *>(ptr);
             ptr                    += szof_buffer;
+            vCurveBuffer            = reinterpret_cast<float *>(ptr);
+            ptr                    += szof_curve;
 
             // Initialize channels
             for (size_t i=0; i<channels; ++i)
@@ -246,6 +252,8 @@ namespace lsp
 
                     b->vVCA             = reinterpret_cast<float *>(ptr);
                     ptr                += szof_buffer;
+                    b->vCurveBuffer     = reinterpret_cast<float *>(ptr);
+                    ptr                += szof_curve;
 
                     b->fMinThresh       = GAIN_AMP_M_72_DB;
                     b->fUpThresh        = GAIN_AMP_M_48_DB;
@@ -255,6 +263,7 @@ namespace lsp
                     b->fAttackTime      = 10.0f;
                     b->fReleaseTime     = 10.0f;
                     b->fMakeup          = GAIN_AMP_0_DB;
+                    b->nSync            = S_ALL;
 
                     b->nFilterID        = filter_cid++;
                     b->bEnabled         = true;
@@ -362,6 +371,8 @@ namespace lsp
                     b->pEnabled             = TRACE_PORT(ports[port_id++]);
                     b->pSolo                = TRACE_PORT(ports[port_id++]);
                     b->pMute                = TRACE_PORT(ports[port_id++]);
+
+                    b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
                 }
             }
 
@@ -376,6 +387,11 @@ namespace lsp
                 c->pInLvl               = TRACE_PORT(ports[port_id++]);
                 c->pOutLvl              = TRACE_PORT(ports[port_id++]);
             }
+
+            // Initialize curve (logarithmic) in range of -72 .. +24 db
+            float delta = (meta::gott_compressor::CURVE_DB_MAX - meta::gott_compressor::CURVE_DB_MIN) / (meta::gott_compressor::CURVE_MESH_SIZE-1);
+            for (size_t i=0; i<meta::gott_compressor::CURVE_MESH_SIZE; ++i)
+                vCurveBuffer[i]         = dspu::db_to_gain(meta::gott_compressor::CURVE_DB_MIN + delta * i);
         }
 
         void gott_compressor::destroy()
@@ -407,12 +423,103 @@ namespace lsp
             }
         }
 
+        void gott_compressor::ui_activated()
+        {
+            size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+
+            // Force meshes with the UI to synchronized
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b           = &c->vBands[j];
+                    b->nSync            = S_ALL;
+                }
+            }
+        }
+
         void gott_compressor::update_sample_rate(long sr)
         {
+            // Determine number of channels
+            size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+            size_t max_delay    = dspu::millis_to_samples(sr, meta::gott_compressor::LOOKAHEAD_MAX);
+
+            // Update analyzer's sample rate
+            sAnalyzer.set_sample_rate(sr);
+            sFilters.set_sample_rate(sr);
+//            bEnvUpdate          = true; // TODO
+
+            // Update channels
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c = &vChannels[i];
+
+                c->sBypass.init(sr);
+                c->sDelay.init(max_delay);
+                c->sDryEq.set_sample_rate(sr);
+
+                // Update bands
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b           = &c->vBands[j];
+
+                    b->sSC.set_sample_rate(sr);
+                    b->sProc.set_sample_rate(sr);
+
+                    b->sPassFilter.set_sample_rate(sr);
+                    b->sRejFilter.set_sample_rate(sr);
+                    b->sAllFilter.set_sample_rate(sr);
+
+                    b->sEQ[0].set_sample_rate(sr);
+                    if (channels > 1)
+                        b->sEQ[1].set_sample_rate(sr);
+                }
+            }
         }
 
         void gott_compressor::update_settings()
         {
+            size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c = &vChannels[i];
+
+                // Update bands
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b           = &c->vBands[j];
+
+                    // Update processor settings
+                    b->sProc.set_attack_time(0, b->pAttackTime->value());
+                    b->sProc.set_release_time(0, b->pReleaseTime->value());
+
+                    float makeup            = b->pMakeup->value();
+                    float up_ratio          = b->pUpRatio->value();
+                    float down_ratio        = b->pDownRatio->value();
+                    float f_down_gain       = b->pDownThresh->value();
+                    float f_up_gain         = lsp_min(b->pUpThresh->value(), f_down_gain * 0.999f);
+                    float f_min_gain        = lsp_min(b->pMinThresh->value(), f_up_gain * 0.999f);
+                    float f_min_value       = f_up_gain - (f_up_gain - f_min_gain) / up_ratio;
+
+                    b->sProc.set_dot(0, f_down_gain, f_down_gain, GAIN_AMP_M_6_DB);
+                    b->sProc.set_dot(1, f_up_gain, f_up_gain, GAIN_AMP_M_6_DB);
+                    b->sProc.set_dot(2, f_min_gain, f_min_value, GAIN_AMP_M_6_DB);
+                    b->sProc.set_dot(3, NULL);
+
+                    b->sProc.set_in_ratio(1.0f);
+                    b->sProc.set_out_ratio(down_ratio);
+
+                    if ((b->sProc.modified()) || (b->fMakeup != makeup))
+                    {
+                        b->sProc.update_settings();
+                        b->fMakeup      = makeup;
+                        b->nSync       |= S_COMP_CURVE;
+                    }
+                }
+            }
         }
 
         void gott_compressor::process(size_t samples)
@@ -644,6 +751,44 @@ namespace lsp
                 samples    -= to_process;
             } // while (samples > 0)
 
+
+            // Synchronize meshes with the UI
+            plug::mesh_t *mesh = NULL;
+
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b           = &c->vBands[j];
+
+                    if (b->nSync & S_COMP_CURVE)
+                    {
+                        mesh                = (b->pCurveMesh != NULL) ? b->pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                        if ((mesh != NULL) && (mesh->isEmpty()))
+                        {
+                            if (b->bEnabled)
+                            {
+                                // Copy frequency points
+                                dsp::copy(mesh->pvData[0], vCurveBuffer, meta::gott_compressor::CURVE_MESH_SIZE);
+                                b->sProc.curve(mesh->pvData[1], vCurveBuffer, meta::gott_compressor::CURVE_MESH_SIZE);
+                                if (b->fMakeup != GAIN_AMP_0_DB)
+                                    dsp::mul_k2(mesh->pvData[1], b->fMakeup, meta::gott_compressor::CURVE_MESH_SIZE);
+
+                                // Mark mesh containing data
+                                mesh->data(2, meta::gott_compressor::CURVE_MESH_SIZE);
+                            }
+                            else
+                                mesh->data(2, 0);
+
+                            // Mark mesh as synchronized
+                            b->nSync           &= ~S_COMP_CURVE;
+                        }
+                    }
+                }
+            }
+
         #if 0
             // Output FFT curves for each channel
             for (size_t i=0; i<channels; ++i)
@@ -716,51 +861,6 @@ namespace lsp
 
                             // Mark mesh as synchronized
                             b->nSync           &= ~S_EQ_CURVE;
-                        }
-                    }
-
-                    // Compression curve
-                    if (b->nSync & S_DP_CURVE)
-                    {
-                        mesh                = (b->pCurveGraph != NULL) ? b->pCurveGraph->buffer<plug::mesh_t>() : NULL;
-                        if ((mesh != NULL) && (mesh->isEmpty()))
-                        {
-                            if (b->bEnabled)
-                            {
-                                // Copy frequency points
-                                dsp::copy(mesh->pvData[0], vCurve, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-                                b->sProc.curve(mesh->pvData[1], vCurve, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-                                if (b->fMakeup != GAIN_AMP_0_DB)
-                                    dsp::mul_k2(mesh->pvData[1], b->fMakeup, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-
-                                // Mark mesh containing data
-                                mesh->data(2, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-                            }
-                            else
-                                mesh->data(2, 0);
-
-                            // Mark mesh as synchronized
-                            b->nSync           &= ~S_DP_CURVE;
-                        }
-
-                        // Model graph
-                        mesh                = (b->pModelGraph != NULL) ? b->pModelGraph->buffer<plug::mesh_t>() : NULL;
-                        if ((mesh != NULL) && (mesh->isEmpty()))
-                        {
-                            if (b->bEnabled)
-                            {
-                                // Copy frequency points
-                                dsp::copy(mesh->pvData[0], vCurve, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-                                b->sProc.model(mesh->pvData[1], vCurve, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-
-                                // Mark mesh containing data
-                                mesh->data(2, meta::mb_dyna_processor::CURVE_MESH_SIZE);
-                            }
-                            else
-                                mesh->data(2, 0);
-
-                            // Mark mesh as synchronized
-                            b->nSync           &= ~S_DP_MODEL;
                         }
                     }
                 }

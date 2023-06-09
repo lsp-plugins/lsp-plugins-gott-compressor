@@ -57,6 +57,14 @@ namespace lsp
                 };
 
             protected:
+                enum sync_t
+                {
+                    S_COMP_CURVE    = 1 << 0,
+                    S_EQ_CURVE      = 1 << 2,
+
+                    S_ALL           = S_COMP_CURVE | S_EQ_CURVE
+                };
+
                 typedef struct band_t
                 {
                     dspu::Sidechain         sSC;                // Sidechain module
@@ -67,6 +75,7 @@ namespace lsp
                     dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
 
                     float                  *vVCA;               // Voltage-controlled amplification value for each band
+                    float                  *vCurveBuffer;       // Compression curve
 
                     float                   fMinThresh;         // Minimum threshold
                     float                   fUpThresh;          // Upward threshold
@@ -76,6 +85,7 @@ namespace lsp
                     float                   fAttackTime;        // Attack time
                     float                   fReleaseTime;       // Release time
                     float                   fMakeup;            // Makeup gain
+                    size_t                  nSync;              // Mesh synchronization flags
 
                     size_t                  nFilterID;          // Filter ID in dynamic filters
                     bool                    bEnabled;           // Enabled flag
@@ -94,6 +104,7 @@ namespace lsp
                     plug::IPort            *pEnabled;           // Enabled flag
                     plug::IPort            *pSolo;              // Solo channel
                     plug::IPort            *pMute;              // Mute channel
+                    plug::IPort            *pCurveMesh;         // Curve mesh
                 } band_t;
 
                 typedef struct channel_t
@@ -148,6 +159,7 @@ namespace lsp
                 float                  *vBuffer;                // Temporary buffer
                 float                  *vSC[2];                 // Sidechain pre-processing
                 float                  *vEnv;                   // Envelope buffer
+                float                  *vCurveBuffer;           // Compression curve (input values)
 
                 plug::IPort            *pBypass;                // Bypass port
                 plug::IPort            *pMode;                  // Global mode
@@ -168,16 +180,17 @@ namespace lsp
 
             public:
                 explicit gott_compressor(const meta::plugin_t *meta);
-                virtual ~gott_compressor();
+                virtual ~gott_compressor() override;
 
-                virtual void        init(plug::IWrapper *wrapper, plug::IPort **ports);
-                void                destroy();
+                virtual void        init(plug::IWrapper *wrapper, plug::IPort **ports) override;
+                virtual void        destroy() override;
 
             public:
-                virtual void        update_sample_rate(long sr);
-                virtual void        update_settings();
-                virtual void        process(size_t samples);
-                virtual void        dump(dspu::IStateDumper *v) const;
+                virtual void        update_sample_rate(long sr) override;
+                virtual void        update_settings() override;
+                virtual void        ui_activated();
+                virtual void        process(size_t samples) override;
+                virtual void        dump(dspu::IStateDumper *v) const override;
         };
 
     } /* namespace plugins */

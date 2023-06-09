@@ -69,6 +69,9 @@ namespace lsp
             static constexpr size_t FFT_ITEMS               = 1 << FFT_RANK;
             static constexpr size_t FILTER_MESH_POINTS      = FFT_MESH_POINTS + 2;
             static constexpr size_t FFT_WINDOW              = dspu::windows::HANN;
+            static constexpr size_t CURVE_MESH_SIZE         = 256;
+            static constexpr float  CURVE_DB_MIN            = -72;
+            static constexpr float  CURVE_DB_MAX            = +24;
 
             static constexpr size_t BANDS_MAX               = 4;
             static constexpr size_t BANDS_DFL               = 3;
@@ -91,7 +94,7 @@ namespace lsp
             static constexpr float  RATIO_MIN               = 1.0f;
             static constexpr float  RATIO_MAX               = 100.0f;
             static constexpr float  RATIO_DFL               = 50.0f;
-            static constexpr float  RATIO_STEP              = 0.01f;
+            static constexpr float  RATIO_STEP              = 0.0025f;
 
             static constexpr float  ATTACK_TIME_MIN         = 0.0f;
             static constexpr float  ATTACK_TIME_MAX         = 2000.0f;
@@ -103,10 +106,15 @@ namespace lsp
             static constexpr float  RELEASE_TIME_DFL        = 100.0f;
             static constexpr float  RELEASE_TIME_STEP       = 0.0025f;
 
+            static constexpr float  LOOKAHEAD_MIN           = 0.0f;
+            static constexpr float  LOOKAHEAD_MAX           = 20.0f;
+            static constexpr float  LOOKAHEAD_DFL           = 0.0f;
+            static constexpr float  LOOKAHEAD_STEP          = 0.01f;
+
             static constexpr float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;
             static constexpr float  MAKEUP_MAX              = GAIN_AMP_P_60_DB;
             static constexpr float  MAKEUP_DFL              = GAIN_AMP_0_DB;
-            static constexpr float  MAKEUP_STEP             = 0.05f;
+            static constexpr float  MAKEUP_STEP             = 0.01f;
 
             static constexpr size_t REFRESH_RATE            = 20;
 
