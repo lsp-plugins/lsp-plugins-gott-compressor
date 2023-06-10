@@ -76,6 +76,7 @@ namespace lsp
 
                     float                  *vVCA;               // Voltage-controlled amplification value for each band
                     float                  *vCurveBuffer;       // Compression curve
+                    float                  *vFilterBuffer;      // Band Filter buffer
 
                     float                   fMinThresh;         // Minimum threshold
                     float                   fUpThresh;          // Upward threshold
@@ -106,6 +107,7 @@ namespace lsp
                     plug::IPort            *pSolo;              // Solo channel
                     plug::IPort            *pMute;              // Mute channel
                     plug::IPort            *pCurveMesh;         // Curve mesh
+                    plug::IPort            *pFreqMesh;          // Filter frequencymesh
                 } band_t;
 
                 typedef struct channel_t
@@ -130,6 +132,7 @@ namespace lsp
                     size_t                  nAnOutChannel;      // Analyzer channel used for output signal analysis
                     bool                    bInFft;             // Input signal FFT enabled
                     bool                    bOutFft;            // Output signal FFT enabled
+                    bool                    bRebuildFilers;     // Rebuild filter configuration
 
                     plug::IPort            *pIn;                // Input
                     plug::IPort            *pOut;               // Output
@@ -149,18 +152,21 @@ namespace lsp
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
                 bool                    bModern;                // Modern/Classic mode switch
-                bool                    bExtraBand;             // Extra band
+                size_t                  nBands;                 // Number of bands
                 bool                    bExtSidechain;          // External sidechain
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
                 float                   fScPreamp;              // Sidechain pre-amplification
+                float                   vSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
                 float                  *vBuffer;                // Temporary buffer
                 float                  *vSC[2];                 // Sidechain pre-processing
                 float                  *vEnv;                   // Envelope buffer
                 float                  *vCurveBuffer;           // Compression curve (input values)
+                float                  *vFreqBuffer;            // Frequencies (input values)
+                uint32_t               *vFreqIndexes;           // Analyzer FFT indexes
 
                 plug::IPort            *pBypass;                // Bypass port
                 plug::IPort            *pMode;                  // Global mode
@@ -173,7 +179,7 @@ namespace lsp
                 plug::IPort            *pShiftGain;             // Shift gain port
                 plug::IPort            *pZoom;                  // Zoom port
                 plug::IPort            *pEnvBoost;              // Envelope adjust
-                plug::IPort            *pSplits[3];             // Split frequencies
+                plug::IPort            *pSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 plug::IPort            *pExtraBand;             // Extra band enable
                 plug::IPort            *pExtSidechain;          // External sidechain enable
 

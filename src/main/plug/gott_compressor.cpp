@@ -113,7 +113,7 @@ namespace lsp
             }
 
             bModern             = true;
-            bExtraBand          = false;
+            nBands              = meta::gott_compressor::BANDS_MAX;
             bExtSidechain       = false;
             fInGain             = GAIN_AMP_0_DB;
             fDryGain            = GAIN_AMP_M_INF_DB;
@@ -130,6 +130,8 @@ namespace lsp
             vSC[1]              = NULL;
             vEnv                = NULL;
             vCurveBuffer        = NULL;
+            vFreqBuffer         = NULL;
+            vFreqIndexes        = NULL;
 
             pBypass             = NULL;
             pMode               = NULL;
@@ -182,12 +184,17 @@ namespace lsp
             size_t szof_channels    = align_size(sizeof(channel_t) * channels, OPTIMAL_ALIGN);
             size_t szof_buffer      = align_size(sizeof(float) * GOTT_BUFFER_SIZE, OPTIMAL_ALIGN);
             size_t szof_curve       = align_size(sizeof(float) * meta::gott_compressor::CURVE_MESH_SIZE, OPTIMAL_ALIGN);
+            size_t szof_freq        = align_size(sizeof(float) * meta::gott_compressor::FFT_MESH_POINTS, OPTIMAL_ALIGN);
+            size_t szof_indexes     = align_size(meta::gott_compressor::FFT_MESH_POINTS * sizeof(uint32_t), OPTIMAL_ALIGN);
+
             size_t to_alloc         =
                 szof_channels +
                 szof_buffer +       // vBuffer
                 szof_buffer*2 +     // vSC[2]
                 szof_buffer +       // vEnv
                 szof_curve +        // vCurveBuffer
+                szof_freq +         // vFreqBuffer
+                szof_indexes +      // vFreqIndexes
                 (
                     szof_buffer +   // vInBuffer for each channel
                     szof_buffer +   // vBuffer for each channel
@@ -196,6 +203,7 @@ namespace lsp
                     szof_buffer +   // vOutAnalyze each channel
                     (
                         szof_buffer +   // vVCA
+                        szof_freq*2 +   // vFilterBuffer
                         szof_curve      // vCurveBuffer
                     ) * meta::gott_compressor::BANDS_MAX
                 ) * channels;
@@ -218,6 +226,10 @@ namespace lsp
             ptr                    += szof_buffer;
             vCurveBuffer            = reinterpret_cast<float *>(ptr);
             ptr                    += szof_curve;
+            vFreqBuffer             = reinterpret_cast<float *>(ptr);
+            ptr                    += szof_freq;
+            vFreqIndexes            = reinterpret_cast<uint32_t *>(ptr);
+            ptr                    += szof_indexes;
 
             // Initialize channels
             for (size_t i=0; i<channels; ++i)
@@ -250,10 +262,21 @@ namespace lsp
                     b->sRejFilter.construct();
                     b->sAllFilter.construct();
 
+                    // Initialize sidechain equalizers
+                    b->sEQ[0].init(2, 0);
+                    b->sEQ[0].set_mode(dspu::EQM_IIR);
+                    if (channels > 1)
+                    {
+                        b->sEQ[1].init(2, 0);
+                        b->sEQ[1].set_mode(dspu::EQM_IIR);
+                    }
+
                     b->vVCA             = reinterpret_cast<float *>(ptr);
                     ptr                += szof_buffer;
                     b->vCurveBuffer     = reinterpret_cast<float *>(ptr);
                     ptr                += szof_curve;
+                    b->vFilterBuffer    = reinterpret_cast<float *>(ptr);
+                    ptr                += szof_freq * 2;
 
                     b->fMinThresh       = GAIN_AMP_M_72_DB;
                     b->fUpThresh        = GAIN_AMP_M_48_DB;
@@ -306,6 +329,7 @@ namespace lsp
 
                 c->bInFft               = false;
                 c->bOutFft              = false;
+                c->bRebuildFilers       = true;
 
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
@@ -375,6 +399,7 @@ namespace lsp
                     b->pMute                = TRACE_PORT(ports[port_id++]);
 
                     b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
+                    b->pFreqMesh            = TRACE_PORT(ports[port_id++]);
                 }
             }
 
@@ -478,21 +503,66 @@ namespace lsp
                     if (channels > 1)
                         b->sEQ[1].set_sample_rate(sr);
                 }
+
+                // Mark filters to rebuild
+                c->bRebuildFilers       = true;
             }
         }
 
         void gott_compressor::update_settings()
         {
+            dspu::filter_params_t fp;
             size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+            bool solo_on        = false;
+            bool rebuild_filters= false;
+            int active_channels = 0;
+            size_t num_bands    = (pExtraBand->value() >= 0.5f) ? meta::gott_compressor::BANDS_MAX : meta::gott_compressor::BANDS_MAX - 1;
+
+            // Check band and split configuration
+            if (nBands != num_bands)
+            {
+                rebuild_filters     = true;
+                nBands              = num_bands;
+            }
+            for (size_t i=0; i<(num_bands-1); ++i)
+            {
+                float freq          = pSplits[i]->value();
+                if (freq != vSplits[i])
+                {
+                    rebuild_filters     = true;
+                    vSplits[i]          = freq;
+                }
+            }
 
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c = &vChannels[i];
 
+                // Check configuration
+                if (rebuild_filters)
+                    c->bRebuildFilers       = true;
+
+                // Update analyzer settings
+                c->bInFft       = c->pFftInSw->value() >= 0.5f;
+                c->bOutFft      = c->pFftOutSw->value() >= 0.5f;
+
+                sAnalyzer.enable_channel(c->nAnInChannel, c->bInFft);
+                sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->value()  >= 0.5f);
+
+                if (sAnalyzer.channel_active(c->nAnInChannel))
+                    active_channels ++;
+                if (sAnalyzer.channel_active(c->nAnOutChannel))
+                    active_channels ++;
+
                 // Update bands
                 for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                 {
-                    band_t *b           = &c->vBands[j];
+                    band_t *b               = &c->vBands[j];
+
+                    // Update solo/mute options
+                    bool enabled            = (j < meta::gott_compressor::BANDS_MAX - 1) || (pExtraBand->value() >= 0.5f);
+                    bool mute               = (b->pMute->value() >= 0.5f);
+                    bool solo               = (enabled) && (b->pSolo->value() >= 0.5f);
 
                     // Update processor settings
                     b->sProc.set_attack_time(0, b->pAttackTime->value());
@@ -521,6 +591,153 @@ namespace lsp
                         b->fMakeup      = makeup;
                         b->nSync       |= S_COMP_CURVE;
                     }
+                    if ((b->bSolo != solo) || (b->bMute != mute))
+                    {
+                        b->bSolo        = solo;
+                        b->bMute        = mute;
+                        b->nSync       |= S_COMP_CURVE;
+                    }
+                    if (solo)
+                        solo_on         = true;
+                }
+            }
+
+            // Update analyzer parameters
+            sAnalyzer.set_reactivity(pReactivity->value());
+            if (pShiftGain != NULL)
+                sAnalyzer.set_shift(pShiftGain->value() * 100.0f);
+            sAnalyzer.set_activity(active_channels > 0);
+
+            // Update analyzer
+            if (sAnalyzer.needs_reconfiguration())
+            {
+                sAnalyzer.reconfigure();
+                sAnalyzer.get_frequencies(
+                    vFreqBuffer,
+                    vFreqIndexes,
+                    SPEC_FREQ_MIN,
+                    SPEC_FREQ_MAX,
+                    meta::gott_compressor::FFT_MESH_POINTS);
+            }
+
+            // Second pass over filter
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c    = &vChannels[i];
+
+                // Check muting option
+                for (size_t j=0; j<nBands; ++j)
+                {
+                    band_t *b       = &c->vBands[j];
+                    if ((!b->bMute) && (solo_on))
+                        b->bMute        = !b->bSolo;
+                }
+
+                // Rebuild compression plan
+                if (c->bRebuildFilers)
+                {
+                    // Configure equalizers
+                    for (size_t j=0; j<nBands; ++j)
+                    {
+                        band_t *b   = &c->vBands[j];
+
+                        float freq_start    = (j > 0) ? vSplits[j-1] : 0.0f;
+                        float freq_end      = (j < (nBands - 1)) ? vSplits[j] : fSampleRate * 0.5f;
+
+                        b->nSync           |= S_EQ_CURVE;
+
+                        lsp_trace("band[%d] start=%f, end=%f", int(j), freq_start, freq_end);
+
+                        // Configure equalizer for the sidechain
+                        for (size_t k=0; k<channels; ++k)
+                        {
+                            // Configure lo-pass filter
+                            fp.nType        = (j != (nBands-1)) ? dspu::FLT_BT_LRX_LOPASS : dspu::FLT_NONE;
+                            fp.fFreq        = freq_end;
+                            fp.fFreq2       = fp.fFreq;
+                            fp.fQuality     = 0.0f;
+                            fp.fGain        = 1.0f;
+                            fp.fQuality     = 0.0f;
+                            fp.nSlope       = 2;
+
+                            b->sEQ[k].set_params(0, &fp);
+
+                            // Configure hi-pass filter
+                            fp.nType        = (j != 0) ? dspu::FLT_BT_LRX_HIPASS : dspu::FLT_NONE;
+                            fp.fFreq        = freq_start;
+                            fp.fFreq2       = fp.fFreq;
+                            fp.fQuality     = 0.0f;
+                            fp.fGain        = 1.0f;
+                            fp.fQuality     = 0.0f;
+                            fp.nSlope       = 2;
+
+                            b->sEQ[k].set_params(1, &fp);
+                        }
+
+                        // Update transfer function for equalizer
+                        b->sEQ[0].freq_chart(b->vFilterBuffer, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::pcomplex_mod(b->vFilterBuffer, b->vFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+
+                        // Update filter parameters, depending on operating mode
+                        if (bModern)
+                        {
+                            // Configure filter for band
+                            if (j <= 0)
+                            {
+                                fp.nType        = dspu::FLT_BT_LRX_LOSHELF;
+                                fp.fFreq        = freq_end;
+                                fp.fFreq2       = freq_end;
+                            }
+                            else if (j >= (nBands - 1))
+                            {
+                                fp.nType        = dspu::FLT_BT_LRX_HISHELF;
+                                fp.fFreq        = freq_start;
+                                fp.fFreq2       = freq_start;
+                            }
+                            else
+                            {
+                                fp.nType        = dspu::FLT_BT_LRX_LADDERPASS;
+                                fp.fFreq        = freq_start;
+                                fp.fFreq2       = freq_start;
+                            }
+
+                            fp.fGain        = 1.0f;
+                            fp.nSlope       = 2;
+                            fp.fQuality     = 0.0;
+
+                            lsp_trace("Filter type=%d, from=%f, to=%f", int(fp.nType), fp.fFreq, fp.fFreq2);
+
+                            sFilters.set_params(b->nFilterID, &fp);
+                        }
+                        else
+                        {
+                            fp.fGain        = 1.0f;
+                            fp.nSlope       = 2;
+                            fp.fQuality     = 0.0;
+                            fp.fFreq        = freq_end;
+                            fp.fFreq2       = freq_end;
+
+                            // We're going from low frequencies to high frequencies
+                            if (j >= (nBands - 1))
+                            {
+                                fp.nType    = dspu::FLT_NONE;
+                                b->sPassFilter.update(fSampleRate, &fp);
+                                b->sRejFilter.update(fSampleRate, &fp);
+                                b->sAllFilter.update(fSampleRate, &fp);
+                            }
+                            else
+                            {
+                                fp.nType    = dspu::FLT_BT_LRX_LOPASS;
+                                b->sPassFilter.update(fSampleRate, &fp);
+                                fp.nType    = dspu::FLT_BT_LRX_HIPASS;
+                                b->sRejFilter.update(fSampleRate, &fp);
+                                fp.nType    = (j == 0) ? dspu::FLT_NONE : dspu::FLT_BT_LRX_ALLPASS;
+                                b->sAllFilter.update(fSampleRate, &fp);
+                            }
+                        }
+                    }
+
+                    c->bRebuildFilers   = false;
                 }
             }
         }
@@ -605,12 +822,11 @@ namespace lsp
                 }
 
                 // MAIN PLUGIN STUFF
-                size_t bands        = (bExtraBand) ? meta::gott_compressor::BANDS_MAX - 1 : meta::gott_compressor::BANDS_MAX;
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
 
-                    for (size_t j=0; j<bands; ++j)
+                    for (size_t j=0; j<nBands; ++j)
                     {
                         band_t *b           = &c->vBands[j];
 
@@ -674,7 +890,7 @@ namespace lsp
                         c->sDelay.process(c->vBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature
                         dsp::copy(c->vInBuffer, c->vBuffer, to_process);
 
-                        for (size_t j=0; j<bands; ++j)
+                        for (size_t j=0; j<nBands; ++j)
                         {
                             band_t *b          = &c->vBands[j];
                             sFilters.process(b->nFilterID, c->vBuffer, c->vBuffer, b->vVCA, to_process);
@@ -693,7 +909,7 @@ namespace lsp
                         dsp::copy(vBuffer, c->vInBuffer, to_process);
                         dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
 
-                        for (size_t j=0; j<bands; ++j)
+                        for (size_t j=0; j<nBands; ++j)
                         {
                             band_t *b       = &c->vBands[j];
 
@@ -766,6 +982,29 @@ namespace lsp
                 {
                     band_t *b           = &c->vBands[j];
 
+                    // Compressor band curve
+                    if (b->nSync & S_EQ_CURVE)
+                    {
+                        mesh                = (b->pFreqMesh!= NULL) ? b->pFreqMesh->buffer<plug::mesh_t>() : NULL;
+                        if ((mesh != NULL) && (mesh->isEmpty()))
+                        {
+                            // Add extra points
+                            mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
+                            mesh->pvData[0][meta::gott_compressor::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                            mesh->pvData[1][0] = 0.0f;
+                            mesh->pvData[1][meta::gott_compressor::FFT_MESH_POINTS+1] = 0.0f;
+
+                            // Fill mesh
+                            dsp::copy(&mesh->pvData[0][1], vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::copy(&mesh->pvData[1][1], b->vFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            mesh->data(2, meta::gott_compressor::FILTER_MESH_POINTS);
+
+                            // Mark mesh as synchronized
+                            b->nSync           &= ~S_EQ_CURVE;
+                        }
+                    }
+
+                    // Compressor function curve
                     if (b->nSync & S_COMP_CURVE)
                     {
                         mesh                = (b->pCurveMesh != NULL) ? b->pCurveMesh->buffer<plug::mesh_t>() : NULL;
@@ -845,27 +1084,7 @@ namespace lsp
                     // FFT spectrogram
                     plug::mesh_t *mesh        = NULL;
 
-                    // FFT curve
-                    if (b->nSync & S_EQ_CURVE)
-                    {
-                        mesh                = (b->pScFreqChart != NULL) ? b->pScFreqChart->buffer<plug::mesh_t>() : NULL;
-                        if ((mesh != NULL) && (mesh->isEmpty()))
-                        {
-                            // Add extra points
-                            mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
-                            mesh->pvData[0][meta::mb_dyna_processor::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
-                            mesh->pvData[1][0] = 0.0f;
-                            mesh->pvData[1][meta::mb_dyna_processor::MESH_POINTS+1] = 0.0f;
 
-                            // Fill mesh
-                            dsp::copy(&mesh->pvData[0][1], vFreqs, meta::mb_dyna_processor::MESH_POINTS);
-                            dsp::mul_k3(&mesh->pvData[1][1], b->vTr, b->fScPreamp, meta::mb_dyna_processor::MESH_POINTS);
-                            mesh->data(2, meta::mb_dyna_processor::FILTER_MESH_POINTS);
-
-                            // Mark mesh as synchronized
-                            b->nSync           &= ~S_EQ_CURVE;
-                        }
-                    }
                 }
 
                 // Output FFT curve for input

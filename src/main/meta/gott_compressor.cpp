@@ -101,7 +101,8 @@ namespace lsp
             SWITCH("be_" id, "Enable band" label, 1.0f), \
             SWITCH("bs_" id, "Solo band" label, 0.0f), \
             SWITCH("bm_" id, "Mute band" label, 0.0f), \
-            MESH("ccg_" id, "Compression curve graph" label, 2, gott_compressor::CURVE_MESH_SIZE)
+            MESH("ccg_" id, "Compression curve graph" label, 2, gott_compressor::CURVE_MESH_SIZE), \
+            MESH("bfc_" id, "Band frequency chart" label, 2, gott_compressor::FILTER_MESH_POINTS)
 
         static const port_t gott_compressor_mono_ports[] =
         {
