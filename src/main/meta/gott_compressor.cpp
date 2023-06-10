@@ -94,6 +94,7 @@ namespace lsp
             LOG_CONTROL("td_" id, "Downward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_DOWN), \
             LOG_CONTROL("ru_" id, "Upward ratio" label, U_NONE, gott_compressor::RATIO), \
             LOG_CONTROL("rd_" id, "Downward ratio" label, U_NONE, gott_compressor::RATIO), \
+            LOG_CONTROL("kn_" id, "Knee" label, U_GAIN_AMP, gott_compressor::KNEE), \
             LOG_CONTROL("ta_" id, "Attack time" label, U_MSEC, gott_compressor::ATTACK_TIME), \
             LOG_CONTROL("tr_" id, "Release time" label, U_MSEC, gott_compressor::RELEASE_TIME), \
             LOG_CONTROL("mk_" id, "Makeup gain" label, U_GAIN_AMP, gott_compressor::MAKEUP), \

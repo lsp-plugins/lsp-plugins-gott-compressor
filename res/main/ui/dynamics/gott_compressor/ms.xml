@@ -247,12 +247,12 @@
 			
 				<ui:eval id="channel" value="(:c ieq 0) ? 'num_id_M_id' : 'num_id_S_ide'"/>
 
-				<grid rows="8" cols="25" spacing="2" transpose="true">
+				<grid rows="11" cols="25" spacing="2" transpose="true">
 					<ui:for id="i" first="1" count="4">
 						<ui:set id="ch" value="_${:i}${(:c ieq 0) ? 'm' : 's'}"/>
 
 						<!-- Col 1 -->
-						<cell cols="4">
+						<cell cols="3">
 							<graph width.min="128" height.min="128" expand="false">
 								<origin hpos="-1" vpos="-1" visible="false"/>
 		
@@ -316,7 +316,7 @@
 							</graph>
 						</cell>
 						
-						<cell cols="4">
+						<cell cols="3">
 							<hbox>
 								<button id="bs${ch}" text="labels.chan.S_olo" height="19" hfill="true" ui:inject="Button_green_8"/>
 								<button id="bm${ch}" text="labels.chan.M_ute" height="19" hfill="true" ui:inject="Button_red_8" pad.l="4"/>
@@ -327,33 +327,37 @@
 						<label text="labels.thresh.min" />
 						<knob id="tm${ch}" />
 						<value id="tm${ch}" />
-						<label text="labels.makeup" />
-						<knob id="mk${ch}" />
-						<value id="mk${ch}" />
+						<label text="labels.ratio_up" />
+						<knob id="ru${ch}" />
+						<value id="ru${ch}" />
+						<label text="labels.attack" />
+						<knob id="ta${ch}" />
+						<value id="ta${ch}" />
+
 						
 						<!-- Col 2 -->
 						<label text="labels.thresh.up" />
 						<knob id="tu${ch}" />
 						<value id="tu${ch}" />
-						<label text="labels.ratio_up" />
-						<knob id="ru${ch}" />
-						<value id="ru${ch}" />
+						<label text="labels.ratio_down" />
+						<knob id="rd${ch}" />
+						<value id="rd${ch}" />
+						<label text="labels.release" />
+						<knob id="tr${ch}" />
+						<value id="tr${ch}" />
 						
 						<!-- Col 3 -->
 						<label text="labels.thresh.down" />
 						<knob id="td${ch}" />
 						<value id="td${ch}" />
-						<label text="labels.ratio_down" />
-						<knob id="rd${ch}" />
-						<value id="rd${ch}" />
-						
+						<label text="labels.makeup" />
+						<knob id="mk${ch}" />
+						<value id="mk${ch}" />
+												
 						<!-- Col 4 -->						
-						<label text="labels.attack" />
-						<knob id="ta${ch}" />
-						<value id="ta${ch}" />
-						<label text="labels.release" />
-						<knob id="tr${ch}" />
-						<value id="tr${ch}" />
+						<label text="labels.knee" />
+						<knob id="kn${ch}" />
+						<value id="kn${ch}" />
 					</ui:for>
 					
 				

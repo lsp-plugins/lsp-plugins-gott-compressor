@@ -275,6 +275,7 @@ namespace lsp
                     b->pDownThresh      = NULL;
                     b->pUpRatio         = NULL;
                     b->pDownRatio       = NULL;
+                    b->pKnee            = NULL;
                     b->pAttackTime      = NULL;
                     b->pReleaseTime     = NULL;
                     b->pMakeup          = NULL;
@@ -364,6 +365,7 @@ namespace lsp
                     b->pDownThresh          = TRACE_PORT(ports[port_id++]);
                     b->pUpRatio             = TRACE_PORT(ports[port_id++]);
                     b->pDownRatio           = TRACE_PORT(ports[port_id++]);
+                    b->pKnee                = TRACE_PORT(ports[port_id++]);
                     b->pAttackTime          = TRACE_PORT(ports[port_id++]);
                     b->pReleaseTime         = TRACE_PORT(ports[port_id++]);
                     b->pMakeup              = TRACE_PORT(ports[port_id++]);
@@ -500,13 +502,14 @@ namespace lsp
                     float up_ratio          = b->pUpRatio->value();
                     float down_ratio        = b->pDownRatio->value();
                     float f_down_gain       = b->pDownThresh->value();
+                    float knee              = b->pKnee->value();
                     float f_up_gain         = lsp_min(b->pUpThresh->value(), f_down_gain * 0.999f);
                     float f_min_gain        = lsp_min(b->pMinThresh->value(), f_up_gain * 0.999f);
                     float f_min_value       = f_up_gain - (f_up_gain - f_min_gain) / up_ratio;
 
-                    b->sProc.set_dot(0, f_down_gain, f_down_gain, GAIN_AMP_M_6_DB);
-                    b->sProc.set_dot(1, f_up_gain, f_up_gain, GAIN_AMP_M_6_DB);
-                    b->sProc.set_dot(2, f_min_gain, f_min_value, GAIN_AMP_M_6_DB);
+                    b->sProc.set_dot(0, f_down_gain, f_down_gain, knee);
+                    b->sProc.set_dot(1, f_up_gain, f_up_gain, knee);
+                    b->sProc.set_dot(2, f_min_gain, f_min_value, knee);
                     b->sProc.set_dot(3, NULL);
 
                     b->sProc.set_in_ratio(1.0f);

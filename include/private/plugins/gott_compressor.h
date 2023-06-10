@@ -97,6 +97,7 @@ namespace lsp
                     plug::IPort            *pDownThresh;        // Downward threshold
                     plug::IPort            *pUpRatio;           // Upward ratio
                     plug::IPort            *pDownRatio;         // Downward ratio
+                    plug::IPort            *pKnee;              // Knee
                     plug::IPort            *pAttackTime;        // Attack time
                     plug::IPort            *pReleaseTime;       // Release time
                     plug::IPort            *pMakeup;            // Makeup gain

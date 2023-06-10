@@ -96,6 +96,11 @@ namespace lsp
             static constexpr float  RATIO_DFL               = 50.0f;
             static constexpr float  RATIO_STEP              = 0.0025f;
 
+            static constexpr float  KNEE_MIN                = GAIN_AMP_M_24_DB;
+            static constexpr float  KNEE_MAX                = GAIN_AMP_0_DB;
+            static constexpr float  KNEE_DFL                = GAIN_AMP_M_6_DB;
+            static constexpr float  KNEE_STEP               = 0.01f;
+
             static constexpr float  ATTACK_TIME_MIN         = 0.0f;
             static constexpr float  ATTACK_TIME_MAX         = 2000.0f;
             static constexpr float  ATTACK_TIME_DFL         = 20.0f;
