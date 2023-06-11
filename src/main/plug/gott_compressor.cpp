@@ -113,12 +113,14 @@ namespace lsp
             }
 
             bModern             = true;
+            bEnvUpdate          = true;
             nBands              = meta::gott_compressor::BANDS_MAX;
             bExtSidechain       = false;
             fInGain             = GAIN_AMP_0_DB;
             fDryGain            = GAIN_AMP_M_INF_DB;
             fWetGain            = GAIN_AMP_0_DB;
             fScPreamp           = GAIN_AMP_0_DB;
+            nEnvBoost           = 0;
 
             vChannels           = NULL;
             vAnalyze[0]         = NULL;
@@ -476,7 +478,7 @@ namespace lsp
             // Update analyzer's sample rate
             sAnalyzer.set_sample_rate(sr);
             sFilters.set_sample_rate(sr);
-//            bEnvUpdate          = true; // TODO
+            bEnvUpdate          = true;
 
             // Update channels
             for (size_t i=0; i<channels; ++i)
@@ -516,6 +518,7 @@ namespace lsp
             bool solo_on        = false;
             bool rebuild_filters= false;
             int active_channels = 0;
+            size_t env_boost    = pEnvBoost->value();
             size_t num_bands    = (pExtraBand->value() >= 0.5f) ? meta::gott_compressor::BANDS_MAX : meta::gott_compressor::BANDS_MAX - 1;
 
             // Check band and split configuration
@@ -600,7 +603,49 @@ namespace lsp
                     if (solo)
                         solo_on         = true;
                 }
+
+                // Update envelope boost filters
+                if ((env_boost != nEnvBoost) || (bEnvUpdate))
+                {
+                    fp.fFreq        = meta::gott_compressor::FREQ_BOOST_MIN;
+                    fp.fFreq2       = 0.0f;
+                    fp.fGain        = 1.0f;
+                    fp.fQuality     = 0.0f;
+
+                    switch (env_boost)
+                    {
+                        case meta::gott_compressor::FB_BT_3DB:
+                            fp.nType        = dspu::FLT_BT_RLC_ENVELOPE;
+                            fp.nSlope       = 1;
+                            break;
+                        case meta::gott_compressor::FB_MT_3DB:
+                            fp.nType        = dspu::FLT_MT_RLC_ENVELOPE;
+                            fp.nSlope       = 1;
+                            break;
+                        case meta::gott_compressor::FB_BT_6DB:
+                            fp.nType        = dspu::FLT_BT_RLC_ENVELOPE;
+                            fp.nSlope       = 2;
+                            break;
+                        case meta::gott_compressor::FB_MT_6DB:
+                            fp.nType        = dspu::FLT_MT_RLC_ENVELOPE;
+                            fp.nSlope       = 2;
+                            break;
+                        case meta::gott_compressor::FB_OFF:
+                        default:
+                            fp.nType        = dspu::FLT_NONE;
+                            fp.nSlope       = 1;
+                            break;
+                    }
+
+                    c->sEnvBoost[0].update(fSampleRate, &fp);
+                    if (bSidechain)
+                        c->sEnvBoost[1].update(fSampleRate, &fp);
+                }
             }
+
+            // Commit the envelope state
+            nEnvBoost       = env_boost;
+            bEnvUpdate      = false;
 
             // Update analyzer parameters
             sAnalyzer.set_reactivity(pReactivity->value());
@@ -1029,6 +1074,40 @@ namespace lsp
                         }
                     }
                 }
+
+                // Output FFT curve for input
+                plug::mesh_t *mesh            = (c->pFftIn != NULL) ? c->pFftIn->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    if (c->bInFft)
+                    {
+                        // Copy frequency points
+                        dsp::copy(mesh->pvData[0], vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vFreqIndexes, meta::gott_compressor::FFT_MESH_POINTS);
+
+                        // Mark mesh containing data
+                        mesh->data(2, meta::gott_compressor::FFT_MESH_POINTS);
+                    }
+                    else
+                        mesh->data(2, 0);
+                }
+
+                // Output FFT curve for output
+                mesh            = (c->pFftOut != NULL) ? c->pFftOut->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    if (sAnalyzer.channel_active(c->nAnOutChannel))
+                    {
+                        // Copy frequency points
+                        dsp::copy(mesh->pvData[0], vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vFreqIndexes, meta::gott_compressor::FFT_MESH_POINTS);
+
+                        // Mark mesh containing data
+                        mesh->data(2, meta::gott_compressor::FFT_MESH_POINTS);
+                    }
+                    else
+                        mesh->data(2, 0);
+                }
             }
 
         #if 0
@@ -1075,51 +1154,6 @@ namespace lsp
                     }
                 }
                 dsp::pcomplex_mod(c->vTrMem, c->vTr, meta::mb_dyna_processor::FFT_MESH_POINTS);
-
-                // Output FFT curve, compression curve and FFT spectrogram for each band
-                for (size_t j=0; j<meta::mb_dyna_processor::BANDS_MAX; ++j)
-                {
-                    dyna_band_t *b      = &c->vBands[j];
-
-                    // FFT spectrogram
-                    plug::mesh_t *mesh        = NULL;
-
-
-                }
-
-                // Output FFT curve for input
-                plug::mesh_t *mesh            = (c->pFftIn != NULL) ? c->pFftIn->buffer<plug::mesh_t>() : NULL;
-                if ((mesh != NULL) && (mesh->isEmpty()))
-                {
-                    if (c->bInFft)
-                    {
-                        // Copy frequency points
-                        dsp::copy(mesh->pvData[0], vFreqs, meta::mb_dyna_processor::FFT_MESH_POINTS);
-                        sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vIndexes, meta::mb_dyna_processor::FFT_MESH_POINTS);
-
-                        // Mark mesh containing data
-                        mesh->data(2, meta::mb_dyna_processor::FFT_MESH_POINTS);
-                    }
-                    else
-                        mesh->data(2, 0);
-                }
-
-                // Output FFT curve for output
-                mesh            = (c->pFftOut != NULL) ? c->pFftOut->buffer<plug::mesh_t>() : NULL;
-                if ((mesh != NULL) && (mesh->isEmpty()))
-                {
-                    if (sAnalyzer.channel_active(c->nAnOutChannel))
-                    {
-                        // Copy frequency points
-                        dsp::copy(mesh->pvData[0], vFreqs, meta::mb_dyna_processor::FFT_MESH_POINTS);
-                        sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vIndexes, meta::mb_dyna_processor::FFT_MESH_POINTS);
-
-                        // Mark mesh containing data
-                        mesh->data(2, meta::mb_dyna_processor::FFT_MESH_POINTS);
-                    }
-                    else
-                        mesh->data(2, 0);
-                }
 
                 // Output Channel curve
                 mesh            = (c->pAmpGraph != NULL) ? c->pAmpGraph->buffer<plug::mesh_t>() : NULL;

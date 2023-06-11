@@ -87,7 +87,6 @@ namespace lsp
                     float                   fReleaseTime;       // Release time
                     float                   fMakeup;            // Makeup gain
                     size_t                  nSync;              // Mesh synchronization flags
-
                     size_t                  nFilterID;          // Filter ID in dynamic filters
                     bool                    bEnabled;           // Enabled flag
                     bool                    bSolo;              // Solo channel
@@ -152,12 +151,14 @@ namespace lsp
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
                 bool                    bModern;                // Modern/Classic mode switch
+                bool                    bEnvUpdate;             // Envelope filter update
                 size_t                  nBands;                 // Number of bands
                 bool                    bExtSidechain;          // External sidechain
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
                 float                   fScPreamp;              // Sidechain pre-amplification
+                size_t                  nEnvBoost;              // Envelope boost
                 float                   vSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer

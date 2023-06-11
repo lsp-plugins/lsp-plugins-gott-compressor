@@ -121,6 +121,9 @@ namespace lsp
             static constexpr float  MAKEUP_DFL              = GAIN_AMP_0_DB;
             static constexpr float  MAKEUP_STEP             = 0.01f;
 
+            static constexpr float  FREQ_BOOST_MIN          = 10.0f;
+            static constexpr float  FREQ_BOOST_MAX          = 20000.0f;
+
             static constexpr size_t REFRESH_RATE            = 20;
 
             enum boost_t
