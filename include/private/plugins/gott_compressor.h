@@ -86,6 +86,7 @@ namespace lsp
                     float                   fAttackTime;        // Attack time
                     float                   fReleaseTime;       // Release time
                     float                   fMakeup;            // Makeup gain
+                    float                   fGainLevel;         // Measured gain adjustment level
                     size_t                  nSync;              // Mesh synchronization flags
                     size_t                  nFilterID;          // Filter ID in dynamic filters
                     bool                    bEnabled;           // Enabled flag
@@ -126,6 +127,8 @@ namespace lsp
                     float                  *vScBuffer;          // Sidechain buffer
                     float                  *vInAnalyze;         // Input signal analysis
                     float                  *vOutAnalyze;        // Output signal analysis
+                    float                  *vTmpFilterBuffer;   // Filter transfer function of the channel (temporary)
+                    float                  *vFilterBuffer;      // Filter transfer function of the channel
 
                     size_t                  nAnInChannel;       // Analyzer channel used for input signal analysis
                     size_t                  nAnOutChannel;      // Analyzer channel used for output signal analysis
@@ -140,6 +143,7 @@ namespace lsp
                     plug::IPort            *pFftOutSw;          // Post-processing FFT analysis controlport
                     plug::IPort            *pFftIn;             // Pre-processing FFT analysis data
                     plug::IPort            *pFftOut;            // Post-processing FFT analysis data
+                    plug::IPort            *pAmpGraph;          // Amplitude graph
                     plug::IPort            *pInLvl;             // Input level meter
                     plug::IPort            *pOutLvl;            // Output level meter
                 } channel_t;
@@ -165,6 +169,9 @@ namespace lsp
                 float                  *vBuffer;                // Temporary buffer
                 float                  *vSC[2];                 // Sidechain pre-processing
                 float                  *vEnv;                   // Envelope buffer
+                float                  *vTr;                    // Transfer buffer
+                float                  *vPFc;                   // Pass filter characteristics buffer
+                float                  *vRFc;                   // Reject filter characteristics buffer
                 float                  *vCurveBuffer;           // Compression curve (input values)
                 float                  *vFreqBuffer;            // Frequencies (input values)
                 uint32_t               *vFreqIndexes;           // Analyzer FFT indexes
@@ -175,7 +182,11 @@ namespace lsp
                 plug::IPort            *pOutGain;               // Output gain port
                 plug::IPort            *pDryGain;               // Dry gain port
                 plug::IPort            *pWetGain;               // Wet gain port
+                plug::IPort            *pScMode;                // Sidechain mode
+                plug::IPort            *pScSource;              // Sidechain source
                 plug::IPort            *pScPreamp;              // Sidechain preamp
+                plug::IPort            *pScReact;               // Sidechain reactivity
+                plug::IPort            *pLookahead;             // Lookahead time
                 plug::IPort            *pReactivity;            // Reactivity
                 plug::IPort            *pShiftGain;             // Shift gain port
                 plug::IPort            *pZoom;                  // Zoom port

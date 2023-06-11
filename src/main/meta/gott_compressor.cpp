@@ -58,6 +58,26 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t gott_sc_modes[] =
+        {
+            { "Peak",           "sidechain.peak"            },
+            { "RMS",            "sidechain.rms"             },
+            { "LPF",            "sidechain.lpf"             },
+            { "SMA",            "sidechain.sma"             },
+            { NULL, NULL }
+        };
+
+        static const port_item_t gott_sc_sources[] =
+        {
+            { "Middle",         "sidechain.middle"          },
+            { "Side",           "sidechain.side"            },
+            { "Left",           "sidechain.left"            },
+            { "Right",          "sidechain.right"           },
+            { "Min",            "sidechain.min"             },
+            { "Max",            "sidechain.max"             },
+            { NULL, NULL }
+        };
+
         #define GOTT_COMMON \
             BYPASS, \
             COMBO("mode", "Compressor mode", 1, gott_global_dyna_modes), \
@@ -65,7 +85,11 @@ namespace lsp
             AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
             AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
-            AMP_GAIN("g_sc", "Sidechain pre-amplification", 1.0f, 10.0f), \
+            COMBO("sc_mode", "Sidechain mode", gott_compressor::SC_MODE_DFL, gott_sc_modes), \
+            COMBO("sc_src", "Sidechain source", 0, gott_sc_sources), \
+            AMP_GAIN("sc_pamp", "Sidechain pre-amplification", 1.0f, 10.0f), \
+            LOG_CONTROL("sc_rea", "Sidechain reactivity", U_MSEC, gott_compressor::SC_REACTIVITY), \
+            LOG_CONTROL("lkahead", "Lookahead", U_MSEC, gott_compressor::LOOKAHEAD), \
             LOG_CONTROL("react", "FFT reactivity", U_MSEC, gott_compressor::REACT_TIME), \
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
             LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
@@ -82,7 +106,8 @@ namespace lsp
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
             MESH("ifg" id, "Input FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
-            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS)
+            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
+            MESH("ag" id, "Compressor amplitude graph " label, 2, gott_compressor::FFT_MESH_POINTS)
 
         #define GOTT_METERS(id, label) \
             METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
