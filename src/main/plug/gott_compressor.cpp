@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
- * Created on: 25 нояб. 2020 г.
+ * Created on: 29 мая 2023 г.
  *
  * lsp-plugins-gott-compressor is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -166,6 +166,7 @@ namespace lsp
 
         gott_compressor::~gott_compressor()
         {
+            destroy();
         }
 
         void gott_compressor::init(plug::IWrapper *wrapper, plug::IPort **ports)
@@ -430,6 +431,8 @@ namespace lsp
             pExtraBand              = TRACE_PORT(ports[port_id++]);
             if (bSidechain)
                 pExtSidechain           = TRACE_PORT(ports[port_id++]);
+            if ((nMode == GOTT_LR) || (nMode == GOTT_MS))
+                TRACE_PORT(ports[port_id++]); // Skip channel selector
 
             lsp_trace("Binding band ports");
             for (size_t i=0; i<channels; ++i)
@@ -1275,8 +1278,15 @@ namespace lsp
                 pWrapper->query_display_draw();
         }
 
+        bool gott_compressor::inline_display(plug::ICanvas *cv, size_t width, size_t height)
+        {
+            // TODO
+            return false;
+        }
+
         void gott_compressor::dump(dspu::IStateDumper *v) const
         {
+            // TODO
         }
 
     } /* namespace plugins */

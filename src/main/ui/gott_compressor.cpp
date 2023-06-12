@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
- * Created on: 25 нояб. 2020 г.
+ * Created on: 29 мая 2023 г.
  *
  * lsp-plugins-gott-compressor is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

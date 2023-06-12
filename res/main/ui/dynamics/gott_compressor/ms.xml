@@ -246,7 +246,7 @@
 		<!-- down part -->
 		<hbox>
 		<cgroup id="csel">
-			<ui:for id="c" first="0" count="1">
+			<ui:for id="c" first="0" count="2">
 			
 				<ui:eval id="channel" value="(:c ieq 0) ? 'num_id_M_id' : 'num_id_S_ide'"/>
 

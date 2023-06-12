@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
- * Created on: 25 нояб. 2020 г.
+ * Created on: 29 мая 2023 г.
  *
  * lsp-plugins-gott-compressor is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,6 +75,20 @@ namespace lsp
             { "Right",          "sidechain.right"           },
             { "Min",            "sidechain.min"             },
             { "Max",            "sidechain.max"             },
+            { NULL, NULL }
+        };
+
+        static const port_item_t gott_lr_selectors[] =
+        {
+            { "Left",           "gott_comp.selectors.left"  },
+            { "Right",          "gott_comp.selectors.right" },
+            { NULL, NULL }
+        };
+
+        static const port_item_t gott_ms_selectors[] =
+        {
+            { "Mid",           "gott_comp.selectors.middle" },
+            { "Side",          "gott_comp.selectors.side"   },
             { NULL, NULL }
         };
 
@@ -168,6 +182,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+            COMBO("csel", "Channel selector", 0, gott_lr_selectors),
 
             GOTT_BAND("_1l", "left"),
             GOTT_BAND("_2l", "left"),
@@ -189,6 +204,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+            COMBO("csel", "Channel selector", 0, gott_ms_selectors),
 
             GOTT_BAND("_1m", "mid"),
             GOTT_BAND("_2m", "mid"),
@@ -248,6 +264,7 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
+            COMBO("csel", "Channel selector", 0, gott_lr_selectors),
 
             GOTT_BAND("_1l", "left"),
             GOTT_BAND("_2l", "left"),
@@ -271,6 +288,7 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
+            COMBO("csel", "Channel selector", 0, gott_ms_selectors),
 
             GOTT_BAND("_1m", "mid"),
             GOTT_BAND("_2m", "mid"),

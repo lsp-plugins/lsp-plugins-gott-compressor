@@ -1,6 +1,13 @@
 {
 	"gott_comp": {
 		"classic": "Classic",
-		"modern": "Modern"
+		"modern": "Modern",
+		
+		"selectors": {
+			"left": "Left channel",
+			"middle": "Middle channel",
+			"right": "Right channel",
+			"side": "Side channel"
+		}
 	}
 }
