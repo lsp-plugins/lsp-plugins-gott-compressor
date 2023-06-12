@@ -207,7 +207,7 @@ namespace lsp
             public:
                 virtual void        update_sample_rate(long sr) override;
                 virtual void        update_settings() override;
-                virtual void        ui_activated();
+                virtual void        ui_activated() override;
                 virtual void        process(size_t samples) override;
                 virtual void        dump(dspu::IStateDumper *v) const override;
         };

@@ -264,6 +264,7 @@ namespace lsp
                 if (bSidechain)
                     c->sEnvBoost[1].init(NULL);
 
+                c->sDryEq.construct();
                 c->sDryEq.init(meta::gott_compressor::BANDS_MAX - 1, 0);
                 c->sDryEq.set_mode(dspu::EQM_IIR);
 
@@ -577,6 +578,7 @@ namespace lsp
             size_t env_boost    = pEnvBoost->value();
             size_t num_bands    = (pExtraBand->value() >= 0.5f) ? meta::gott_compressor::BANDS_MAX : meta::gott_compressor::BANDS_MAX - 1;
             float sc_preamp     = pScPreamp->value();
+            size_t lookahead    = dspu::millis_to_samples(fSampleRate, pLookahead->value());
 
             // Check band and split configuration
             if (nBands != num_bands)
@@ -707,6 +709,9 @@ namespace lsp
                     if (bSidechain)
                         c->sEnvBoost[1].update(fSampleRate, &fp);
                 }
+
+                // Update lookahead delay
+                c->sDelay.set_delay(lookahead);
             }
 
             // Commit the envelope state
@@ -849,9 +854,28 @@ namespace lsp
                         }
                     }
 
+                    // Set-up all-pass filters for the 'dry' chain which can be mixed with the 'wet' chain.
+                    for (size_t j=0; j<meta::gott_compressor::BANDS_MAX-1; ++j)
+                    {
+                        band_t *b       = (j < (nBands-1)) ? &c->vBands[j] : NULL;
+                        fp.nType        = (b != NULL) ? dspu::FLT_BT_LRX_ALLPASS : dspu::FLT_NONE;
+                        fp.fFreq        = (b != NULL) ? vSplits[j] : 0.0f;
+                        fp.fFreq2       = fp.fFreq;
+                        fp.fQuality     = 0.0f;
+                        fp.fGain        = 1.0f;
+                        fp.fQuality     = 0.0f;
+                        fp.nSlope       = 2;
+
+                        c->sDryEq.set_params(j, &fp);
+                    }
+
+                    // Cleanup flag indicating that filters should be rebuilt
                     c->bRebuildFilers   = false;
                 }
             }
+
+            // Report latency
+            set_latency(lookahead);
         }
 
         void gott_compressor::process(size_t samples)
