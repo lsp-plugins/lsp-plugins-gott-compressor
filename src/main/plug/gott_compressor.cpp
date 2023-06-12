@@ -121,6 +121,8 @@ namespace lsp
             fWetGain            = GAIN_AMP_0_DB;
             fScPreamp           = GAIN_AMP_0_DB;
             nEnvBoost           = 0;
+            for (size_t i=0; i<meta::gott_compressor::BANDS_MAX-1; ++i)
+                vSplits[i]          = 0.0f;
 
             vChannels           = NULL;
             vAnalyze[0]         = NULL;
