@@ -301,6 +301,14 @@ namespace lsp
                         b->sEQ[1].set_mode(dspu::EQM_IIR);
                     }
 
+                    // Initialize dynamic processor
+                    for (size_t k=0; k<4; ++k)
+                    {
+                        b->sProc.set_attack_level(k, -1.0f);
+                        b->sProc.set_release_level(k, -1.0f);
+                    }
+
+                    // Initialize oteher fields
                     b->vVCA             = reinterpret_cast<float *>(ptr);
                     ptr                += szof_buffer;
                     b->vCurveBuffer     = reinterpret_cast<float *>(ptr);
@@ -337,6 +345,11 @@ namespace lsp
                     b->pEnabled         = NULL;
                     b->pSolo            = NULL;
                     b->pMute            = NULL;
+                    b->pCurveMesh       = NULL;
+                    b->pFreqMesh        = NULL;
+                    b->pEnvLvl          = NULL;
+                    b->pCurveLvl        = NULL;
+                    b->pMeterGain       = NULL;
                 }
 
                 c->vIn                  = NULL;
@@ -440,6 +453,9 @@ namespace lsp
 
                     b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
                     b->pFreqMesh            = TRACE_PORT(ports[port_id++]);
+                    b->pEnvLvl              = TRACE_PORT(ports[port_id++]);
+                    b->pCurveLvl            = TRACE_PORT(ports[port_id++]);
+                    b->pMeterGain           = TRACE_PORT(ports[port_id++]);
                 }
             }
 
@@ -622,7 +638,7 @@ namespace lsp
                     band_t *b               = &c->vBands[j];
 
                     // Update solo/mute options
-                    bool enabled            = (j < meta::gott_compressor::BANDS_MAX - 1) || (pExtraBand->value() >= 0.5f);
+                    bool enabled            = (j < nBands) && (b->pEnabled->value() >= 0.5f);
                     bool mute               = (b->pMute->value() >= 0.5f);
                     bool solo               = (enabled) && (b->pSolo->value() >= 0.5f);
 
@@ -662,10 +678,11 @@ namespace lsp
                         b->fMakeup      = makeup;
                         b->nSync       |= S_COMP_CURVE;
                     }
-                    if ((b->bSolo != solo) || (b->bMute != mute))
+                    if ((b->bSolo != solo) || (b->bMute != mute) || (b->bEnabled != enabled))
                     {
                         b->bSolo        = solo;
                         b->bMute        = mute;
+                        b->bEnabled     = enabled;
                         b->nSync       |= S_COMP_CURVE;
                     }
                     if (solo)
@@ -984,10 +1001,10 @@ namespace lsp
 
                             // Output curve level
                             float lvl = dsp::abs_max(vEnv, to_process);
-//                            b->pEnvLvl->set_value(lvl);
-//                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process));
+                            b->pEnvLvl->set_value(lvl);
+                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process));
                             lvl = b->sProc.curve(lvl) * b->fMakeup;
-//                            b->pCurveLvl->set_value(lvl);
+                            b->pCurveLvl->set_value(lvl);
 
                             // Remember last envelope level and buffer level
                             b->fGainLevel   = b->vVCA[to_process-1];
@@ -1010,9 +1027,9 @@ namespace lsp
                         if (b->bEnabled)
                             continue;
 
-//                        b->pEnvLvl->set_value(0.0f);
-//                        b->pCurveLvl->set_value(0.0f);
-//                        b->pMeterGain->set_value(GAIN_AMP_0_DB);
+                        b->pEnvLvl->set_value(0.0f);
+                        b->pCurveLvl->set_value(0.0f);
+                        b->pMeterGain->set_value(GAIN_AMP_0_DB);
                     }
                 }
 

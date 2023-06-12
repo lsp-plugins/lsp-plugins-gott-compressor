@@ -123,11 +123,14 @@ namespace lsp
             LOG_CONTROL("ta" id, "Attack time" label, U_MSEC, gott_compressor::ATTACK_TIME), \
             LOG_CONTROL("tr" id, "Release time" label, U_MSEC, gott_compressor::RELEASE_TIME), \
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, gott_compressor::MAKEUP), \
-            SWITCH("be" id, "Enable band" label, 1.0f), \
+            SWITCH("be" id, "Enable compressor on the band" label, 1.0f), \
             SWITCH("bs" id, "Solo band" label, 0.0f), \
             SWITCH("bm" id, "Mute band" label, 0.0f), \
             MESH("ccg" id, "Compression curve graph" label, 2, gott_compressor::CURVE_MESH_SIZE), \
-            MESH("bfc" id, "Band frequency chart" label, 2, gott_compressor::FILTER_MESH_POINTS)
+            MESH("bfc" id, "Band frequency chart" label, 2, gott_compressor::FILTER_MESH_POINTS), \
+            METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_36_DB), \
+            METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_36_DB), \
+            METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_72_DB)
 
         static const port_t gott_compressor_mono_ports[] =
         {

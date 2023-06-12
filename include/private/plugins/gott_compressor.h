@@ -108,6 +108,9 @@ namespace lsp
                     plug::IPort            *pMute;              // Mute channel
                     plug::IPort            *pCurveMesh;         // Curve mesh
                     plug::IPort            *pFreqMesh;          // Filter frequencymesh
+                    plug::IPort            *pEnvLvl;            // Envelope level meter
+                    plug::IPort            *pCurveLvl;          // Reduction curve level meter
+                    plug::IPort            *pMeterGain;         // Reduction gain meter
                 } band_t;
 
                 typedef struct channel_t

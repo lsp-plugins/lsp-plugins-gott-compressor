@@ -283,10 +283,10 @@
 								<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
 		
 								<!-- Meshes -->
-								<mesh id="ccg_${i}m" width="3" color="mid" smooth="true"/>
-								<mesh id="ccg_${i}s" width="3" color="side" smooth="true"/>
-								<dot x.id="elm_${i}m" y.id="clm_${i}m" color="mid" bcolor="mid"/>
-								<dot x.id="elm_${i}s" y.id="clm_${i}s" color="side" bcolor="side"/>
+								<mesh id="ccg_${i}m" width="3" color="mid" smooth="true" />
+								<mesh id="ccg_${i}s" width="3" color="side" smooth="true" />
+								<dot x.id="elm_${i}m" y.id="clm_${i}m" color="mid" bcolor="mid" />
+								<dot x.id="elm_${i}s" y.id="clm_${i}s" color="side" bcolor="side" />
 		
 								<!-- Markers -->
 								<marker id="al_${i}m" color="attack_1"/>
@@ -320,10 +320,16 @@
 						</cell>
 						
 						<cell cols="3">
-							<hbox>
+							<hbox homogeneous="true">
 								<button id="bs${ch}" text="labels.chan.S_olo" height="19" hfill="true" ui:inject="Button_green_8"/>
 								<button id="bm${ch}" text="labels.chan.M_ute" height="19" hfill="true" ui:inject="Button_red_8" pad.l="4"/>
-								<button id="be${ch}" text="labels.chan.on" height="19" hfill="true" ui:inject="Button_yellow_8" visibility="ex :sce_${ch}" pad.l="4"/>
+								<button id="be${ch}" text="labels.chan.on" height="19" hfill="true" ui:inject="Button_yellow_8" pad.l="4"/>
+								<ui:if test=":i ilt 4">
+									<void visibility="${:i}" pad.l="4"/>
+								</ui:if>
+								<ui:if test=":i ige 4">
+									<button id="ebe" text="labels.chan.ON" height="19" hfill="true" ui:inject="Button_yellow_8" pad.l="4"/>
+								</ui:if>
 							</hbox>
 						</cell>
 					
