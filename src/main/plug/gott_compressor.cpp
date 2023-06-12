@@ -428,6 +428,7 @@ namespace lsp
             pSplits[0]              = TRACE_PORT(ports[port_id++]);
             pSplits[1]              = TRACE_PORT(ports[port_id++]);
             pSplits[2]              = TRACE_PORT(ports[port_id++]);
+            TRACE_PORT(ports[port_id++]); // Skip filter curve enable button
             pExtraBand              = TRACE_PORT(ports[port_id++]);
             if (bSidechain)
                 pExtSidechain           = TRACE_PORT(ports[port_id++]);
@@ -442,25 +443,52 @@ namespace lsp
                 {
                     band_t *b               = &c->vBands[j];
 
-                    b->pMinThresh           = TRACE_PORT(ports[port_id++]);
-                    b->pUpThresh            = TRACE_PORT(ports[port_id++]);
-                    b->pDownThresh          = TRACE_PORT(ports[port_id++]);
-                    b->pUpRatio             = TRACE_PORT(ports[port_id++]);
-                    b->pDownRatio           = TRACE_PORT(ports[port_id++]);
-                    b->pKnee                = TRACE_PORT(ports[port_id++]);
-                    b->pAttackTime          = TRACE_PORT(ports[port_id++]);
-                    b->pReleaseTime         = TRACE_PORT(ports[port_id++]);
-                    b->pMakeup              = TRACE_PORT(ports[port_id++]);
+                    if ((nMode == GOTT_STEREO) && (j > 0))
+                    {
+                        band_t *sb              = &vChannels[0].vBands[j];
 
-                    b->pEnabled             = TRACE_PORT(ports[port_id++]);
-                    b->pSolo                = TRACE_PORT(ports[port_id++]);
-                    b->pMute                = TRACE_PORT(ports[port_id++]);
+                        b->pMinThresh           = sb->pMinThresh;
+                        b->pUpThresh            = sb->pUpThresh;
+                        b->pDownThresh          = sb->pDownThresh;
+                        b->pUpRatio             = sb->pUpRatio;
+                        b->pDownRatio           = sb->pDownRatio;
+                        b->pKnee                = sb->pKnee;
+                        b->pAttackTime          = sb->pAttackTime;
+                        b->pReleaseTime         = sb->pReleaseTime;
+                        b->pMakeup              = sb->pMakeup;
 
-                    b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
-                    b->pFreqMesh            = TRACE_PORT(ports[port_id++]);
-                    b->pEnvLvl              = TRACE_PORT(ports[port_id++]);
-                    b->pCurveLvl            = TRACE_PORT(ports[port_id++]);
-                    b->pMeterGain           = TRACE_PORT(ports[port_id++]);
+                        b->pEnabled             = sb->pEnabled;
+                        b->pSolo                = sb->pSolo;
+                        b->pMute                = sb->pMute;
+
+                        b->pCurveMesh           = sb->pCurveMesh;
+                        b->pFreqMesh            = sb->pFreqMesh;
+                        b->pEnvLvl              = sb->pEnvLvl;
+                        b->pCurveLvl            = sb->pCurveLvl;
+                        b->pMeterGain           = sb->pMeterGain;
+                    }
+                    else
+                    {
+                        b->pMinThresh           = TRACE_PORT(ports[port_id++]);
+                        b->pUpThresh            = TRACE_PORT(ports[port_id++]);
+                        b->pDownThresh          = TRACE_PORT(ports[port_id++]);
+                        b->pUpRatio             = TRACE_PORT(ports[port_id++]);
+                        b->pDownRatio           = TRACE_PORT(ports[port_id++]);
+                        b->pKnee                = TRACE_PORT(ports[port_id++]);
+                        b->pAttackTime          = TRACE_PORT(ports[port_id++]);
+                        b->pReleaseTime         = TRACE_PORT(ports[port_id++]);
+                        b->pMakeup              = TRACE_PORT(ports[port_id++]);
+
+                        b->pEnabled             = TRACE_PORT(ports[port_id++]);
+                        b->pSolo                = TRACE_PORT(ports[port_id++]);
+                        b->pMute                = TRACE_PORT(ports[port_id++]);
+
+                        b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
+                        b->pFreqMesh            = TRACE_PORT(ports[port_id++]);
+                        b->pEnvLvl              = TRACE_PORT(ports[port_id++]);
+                        b->pCurveLvl            = TRACE_PORT(ports[port_id++]);
+                        b->pMeterGain           = TRACE_PORT(ports[port_id++]);
+                    }
                 }
             }
 

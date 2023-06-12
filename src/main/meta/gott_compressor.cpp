@@ -108,13 +108,14 @@ namespace lsp
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
             LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
             COMBO("envb", "Envelope boost", gott_compressor::FB_DEFAULT, gott_dyna_sc_boost), \
-            LOG_CONTROL("sf1", "Split frequency 1", U_GAIN_AMP, gott_compressor::SPLIT1), \
-            LOG_CONTROL("sf2", "Split frequency 2", U_GAIN_AMP, gott_compressor::SPLIT2), \
-            LOG_CONTROL("sf3", "Split frequency 3", U_GAIN_AMP, gott_compressor::SPLIT3), \
+            LOG_CONTROL("sf1", "Split frequency 1", U_HZ, gott_compressor::SPLIT1), \
+            LOG_CONTROL("sf2", "Split frequency 2", U_HZ, gott_compressor::SPLIT2), \
+            LOG_CONTROL("sf3", "Split frequency 3", U_HZ, gott_compressor::SPLIT3), \
+            SWITCH("flt", "Band filter curves", 1.0f), \
             SWITCH("ebe", "Enable extra band", 0)
 
         #define GOTT_SC_COMMON \
-            SWITCH("esc", "Enable external sidechain", 0)
+            SWITCH("sc_ext", "Enable external sidechain", 0)
 
         #define GOTT_ANALYSIS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
