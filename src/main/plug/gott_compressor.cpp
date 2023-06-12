@@ -439,12 +439,12 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c            = &vChannels[i];
-                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
-                {
-                    band_t *b               = &c->vBands[j];
 
-                    if ((nMode == GOTT_STEREO) && (j > 0))
+                if ((nMode == GOTT_STEREO) && (i > 0))
+                {
+                    for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                     {
+                        band_t *b               = &c->vBands[j];
                         band_t *sb              = &vChannels[0].vBands[j];
 
                         b->pMinThresh           = sb->pMinThresh;
@@ -467,8 +467,13 @@ namespace lsp
                         b->pCurveLvl            = sb->pCurveLvl;
                         b->pMeterGain           = sb->pMeterGain;
                     }
-                    else
+                }
+                else
+                {
+                    for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                     {
+                        band_t *b               = &c->vBands[j];
+
                         b->pMinThresh           = TRACE_PORT(ports[port_id++]);
                         b->pUpThresh            = TRACE_PORT(ports[port_id++]);
                         b->pDownThresh          = TRACE_PORT(ports[port_id++]);
