@@ -188,7 +188,7 @@
 								<value id="g_out" width.min="50" sline="true" halign="0"/>
 							</vbox>
 
-							<knob id="g_dry" balance="0.5" scolor="dry" pad.r="4"/>
+							<knob id="g_dry" scolor="dry" pad.r="4"/>
 							<vbox vfill="false">
 								<label text="labels.signal.dry" halign="0"/>
 								<value id="g_dry" width.min="50" sline="true" halign="0"/>
@@ -309,9 +309,9 @@
 				
 										<!-- Text -->
 										<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
-										<ui:attributes x="0 db" halign="1" valign="-1">
+										<ui:attributes x="0 db" halign="1" valign="1">
 											<text y="24 db" text="graph.units.db"/>
-											<text y="12 db" text="+12"/>
+											<text y="+12 db" text="+12"/>
 											<text y="-12 db" text="-12"/>
 											<text y="-24 db" text="-24"/>
 											<text y="-36 db" text="-36"/>
@@ -319,9 +319,9 @@
 											<text y="-60 db" text="-60"/>
 											<text y="-72 db" text="graph.axis.out" valign="1"/>
 										</ui:attributes>
-										<ui:attributes y="0 db" halign="-1" valign="1">
+										<ui:attributes y="0 db" halign="1" valign="1">
 											<text x="24 db" text="graph.units.db"/>
-											<text x="12 db" text="+12"/>
+											<text x="+12 db" text="+12"/>
 											<text x="-12 db" text="-12"/>
 											<text x="-24 db" text="-24"/>
 											<text x="-36 db" text="-36"/>

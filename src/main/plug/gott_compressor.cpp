@@ -658,9 +658,18 @@ namespace lsp
                 if (rebuild_filters)
                     c->bRebuildFilers       = true;
 
+                // Update bypass settings
+                c->sBypass.set_bypass(pBypass->value());
+
+                // Store gain
+                float out_gain      = pOutGain->value();
+                fInGain             = pInGain->value();
+                fDryGain            = out_gain * pDryGain->value();
+                fWetGain            = out_gain * pWetGain->value();
+
                 // Update analyzer settings
-                c->bInFft       = c->pFftInSw->value() >= 0.5f;
-                c->bOutFft      = c->pFftOutSw->value() >= 0.5f;
+                c->bInFft           = c->pFftInSw->value() >= 0.5f;
+                c->bOutFft          = c->pFftOutSw->value() >= 0.5f;
 
                 sAnalyzer.enable_channel(c->nAnInChannel, c->bInFft);
                 sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->value()  >= 0.5f);
@@ -678,7 +687,7 @@ namespace lsp
                     // Update solo/mute options
                     bool enabled            = (j < nBands) && (b->pEnabled->value() >= 0.5f);
                     bool mute               = (b->pMute->value() >= 0.5f);
-                    bool solo               = (enabled) && (b->pSolo->value() >= 0.5f);
+                    bool solo               = (b->pSolo->value() >= 0.5f);
 
                     // Update sidechain settings
                     b->sSC.set_mode(pScMode->value());
@@ -880,6 +889,7 @@ namespace lsp
                             lsp_trace("Filter type=%d, from=%f, to=%f", int(fp.nType), fp.fFreq, fp.fFreq2);
 
                             sFilters.set_params(b->nFilterID, &fp);
+                            sFilters.set_filter_active(b->nFilterID, j < nBands);
                         }
                         else
                         {
