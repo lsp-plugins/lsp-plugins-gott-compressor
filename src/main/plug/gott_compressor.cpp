@@ -1432,7 +1432,153 @@ namespace lsp
 
         void gott_compressor::dump(dspu::IStateDumper *v) const
         {
-            // TODO
+            size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+
+            v->write_object("sAnalyzer", &sAnalyzer);
+            v->write_object("sFilters", &sFilters);
+
+            v->write("nMode", nMode);
+            v->write("bSidechain", bSidechain);
+            v->write("bModern", bModern);
+            v->write("bEnvUpdate", bEnvUpdate);
+            v->write("nBands", nBands);
+            v->write("bExtSidechain", bExtSidechain);
+            v->write("fInGain", fInGain);
+            v->write("fDryGain", fDryGain);
+            v->write("fWetGain", fWetGain);
+            v->write("fScPreamp", fScPreamp);
+            v->write("nEnvBoost", nEnvBoost);
+            v->write("fZoom", fZoom);
+            v->writev("vSplits", vSplits, meta::gott_compressor::BANDS_MAX - 1);
+            {
+                v->begin_array("vChannels", vChannels, channels);
+                lsp_finally { v->end_array(); };
+
+                for (size_t i=0; i<channels; ++i)
+                {
+                    channel_t *c        = &vChannels[i];
+
+                    v->write_object("sBypass", &c->sBypass);
+                    v->write_object_array("sEnvBoost", c->sEnvBoost, 2);
+                    v->write_object("sDryEq", &c->sBypass);
+                    v->write_object("sDelay", &c->sBypass);
+
+                    {
+                        v->begin_array("vChannels", vChannels, channels);
+                        lsp_finally { v->end_array(); };
+
+                        for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                        {
+                            band_t *b       = &c->vBands[j];
+
+                            v->write_object("sSC", &b->sSC);
+                            v->write_object_array("sEQ", b->sEQ, 2);
+                            v->write_object("sProc", &b->sProc);
+                            v->write_object("sPassFilter", &b->sPassFilter);
+                            v->write_object("sRejFilter", &b->sRejFilter);
+                            v->write_object("sAllFilter", &b->sAllFilter);
+
+                            v->write("vVCA", b->vVCA);
+                            v->write("vCurveBuffer", b->vCurveBuffer);
+                            v->write("vFilterBuffer", b->vFilterBuffer);
+
+                            v->write("fMinThresh", b->fMinThresh);
+                            v->write("fUpThresh", b->fUpThresh);
+                            v->write("fDownThresh", b->fDownThresh);
+                            v->write("fUpRatio", b->fUpRatio);
+                            v->write("fDownRatio", b->fDownRatio);
+                            v->write("fAttackTime", b->fAttackTime);
+                            v->write("fReleaseTime", b->fReleaseTime);
+                            v->write("fMakeup", b->fMakeup);
+                            v->write("fGainLevel", b->fGainLevel);
+                            v->write("nSync", b->nSync);
+                            v->write("nFilterID", b->nFilterID);
+                            v->write("bEnabled", b->bEnabled);
+                            v->write("bSolo", b->bSolo);
+                            v->write("bMute", b->bMute);
+
+                            v->write("pMinThresh", b->pMinThresh);
+                            v->write("pUpThresh", b->pUpThresh);
+                            v->write("pDownThresh", b->pDownThresh);
+                            v->write("pUpRatio", b->pUpRatio);
+                            v->write("pDownRatio", b->pDownRatio);
+                            v->write("pKnee", b->pKnee);
+                            v->write("pAttackTime", b->pAttackTime);
+                            v->write("pReleaseTime", b->pReleaseTime);
+                            v->write("pMakeup", b->pMakeup);
+
+                            v->write("pEnabled", b->pEnabled);
+                            v->write("pSolo", b->pSolo);
+                            v->write("pMute", b->pMute);
+                            v->write("pCurveMesh", b->pCurveMesh);
+                            v->write("pFreqMesh", b->pFreqMesh);
+                            v->write("pEnvLvl", b->pEnvLvl);
+                            v->write("pCurveLvl", b->pCurveLvl);
+                            v->write("pMeterGain", b->pMeterGain);
+                        }
+                    }
+
+                    v->write("vIn", c->vIn);
+                    v->write("vOut", c->vOut);
+                    v->write("vScIn", c->vScIn);
+                    v->write("vInBuffer", c->vInBuffer);
+                    v->write("vBuffer", c->vBuffer);
+                    v->write("vScBuffer", c->vScBuffer);
+                    v->write("vInAnalyze", c->vInAnalyze);
+                    v->write("vOutAnalyze", c->vOutAnalyze);
+                    v->write("vTmpFilterBuffer", c->vTmpFilterBuffer);
+                    v->write("vFilterBuffer", c->vFilterBuffer);
+
+                    v->write("nAnInChannel", c->nAnInChannel);
+                    v->write("nAnOutChannel", c->nAnOutChannel);
+                    v->write("bInFft", c->bInFft);
+                    v->write("bOutFft", c->bOutFft);
+                    v->write("bRebuildFilers", c->bRebuildFilers);
+
+                    v->write("pIn", c->pIn);
+                    v->write("pOut", c->pOut);
+                    v->write("pScIn", c->pScIn);
+                    v->write("pFftInSw", c->pFftInSw);
+                    v->write("pFftOutSw", c->pFftOutSw);
+                    v->write("pFftIn", c->pFftIn);
+                    v->write("pFftOut", c->pFftOut);
+                    v->write("pAmpGraph", c->pAmpGraph);
+                    v->write("pInLvl", c->pInLvl);
+                    v->write("pOutLvl", c->pOutLvl);
+                }
+            }
+            v->writev("vAnalyze", vAnalyze, 4);
+            v->write("vBuffer", vBuffer);
+            v->writev("vSC", vSC, 4);
+            v->write("vEnv", vEnv);
+            v->write("vTr", vTr);
+            v->write("vPFc", vPFc);
+            v->write("vRFc", vRFc);
+            v->write("vCurveBuffer", vCurveBuffer);
+            v->write("vFreqBuffer", vFreqBuffer);
+            v->write("vFreqIndexes", vFreqIndexes);
+            v->write("pIDisplay", pIDisplay);
+
+            v->write("pBypass", pBypass);
+            v->write("pMode", pMode);
+            v->write("pInGain", pInGain);
+            v->write("pOutGain", pOutGain);
+            v->write("pDryGain", pDryGain);
+            v->write("pWetGain", pWetGain);
+            v->write("pScMode", pScMode);
+            v->write("pScSource", pScSource);
+            v->write("pScPreamp", pScPreamp);
+            v->write("pScReact", pScReact);
+            v->write("pLookahead", pLookahead);
+            v->write("pReactivity", pReactivity);
+            v->write("pShiftGain", pShiftGain);
+            v->write("pZoom", pZoom);
+            v->write("pEnvBoost", pEnvBoost);
+            v->writev("pSplits", pSplits, meta::gott_compressor::BANDS_MAX - 1);
+            v->write("pExtraBand", pExtraBand);
+            v->write("pExtSidechain", pExtSidechain);
+
+            v->write("pData", pData);
         }
 
     } /* namespace plugins */
