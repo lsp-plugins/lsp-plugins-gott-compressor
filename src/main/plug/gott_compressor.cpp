@@ -25,6 +25,7 @@
 #include <lsp-plug.in/dsp-units/units.h>
 #include <lsp-plug.in/dsp-units/misc/envelope.h>
 #include <lsp-plug.in/plug-fw/meta/func.h>
+#include <lsp-plug.in/shared/id_colors.h>
 #include <lsp-plug.in/stdlib/string.h>
 
 #include <private/plugins/gott_compressor.h>
@@ -121,6 +122,7 @@ namespace lsp
             fWetGain            = GAIN_AMP_0_DB;
             fScPreamp           = GAIN_AMP_0_DB;
             nEnvBoost           = 0;
+            fZoom               = GAIN_AMP_0_DB;
             for (size_t i=0; i<meta::gott_compressor::BANDS_MAX-1; ++i)
                 vSplits[i]          = 0.0f;
 
@@ -139,6 +141,7 @@ namespace lsp
             vCurveBuffer        = NULL;
             vFreqBuffer         = NULL;
             vFreqIndexes        = NULL;
+            pIDisplay           = NULL;
 
             pBypass             = NULL;
             pMode               = NULL;
@@ -172,7 +175,7 @@ namespace lsp
         void gott_compressor::init(plug::IWrapper *wrapper, plug::IPort **ports)
         {
             // Call parent class for initialization
-            Module::init(wrapper, ports);
+            plug::Module::init(wrapper, ports);
 
             // Initialize analyzer
             size_t channels         = (nMode == GOTT_MONO) ? 1 : 2;
@@ -518,10 +521,13 @@ namespace lsp
 
         void gott_compressor::destroy()
         {
-            Module::destroy();
+            plug::Module::destroy();
 
             // Destroy analyzer
             sAnalyzer.destroy();
+
+            // Destroy dynamic filters
+            sFilters.destroy();
 
             // Destroy channels
             if (vChannels != NULL)
@@ -553,6 +559,13 @@ namespace lsp
                 }
 
                 vChannels               = NULL;
+            }
+
+            // Destroy inline display
+            if (pIDisplay != NULL)
+            {
+                pIDisplay->destroy();
+                pIDisplay   = NULL;
             }
 
             // Free allocated data
@@ -650,6 +663,13 @@ namespace lsp
                 }
             }
 
+            // Store gain
+            float out_gain      = pOutGain->value();
+            fInGain             = pInGain->value();
+            fDryGain            = out_gain * pDryGain->value();
+            fWetGain            = out_gain * pWetGain->value();
+            fZoom               = pZoom->value();
+
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c = &vChannels[i];
@@ -660,12 +680,6 @@ namespace lsp
 
                 // Update bypass settings
                 c->sBypass.set_bypass(pBypass->value());
-
-                // Store gain
-                float out_gain      = pOutGain->value();
-                fInGain             = pInGain->value();
-                fDryGain            = out_gain * pDryGain->value();
-                fWetGain            = out_gain * pWetGain->value();
 
                 // Update analyzer settings
                 c->bInFft           = c->pFftInSw->value() >= 0.5f;
@@ -1323,8 +1337,97 @@ namespace lsp
 
         bool gott_compressor::inline_display(plug::ICanvas *cv, size_t width, size_t height)
         {
-            // TODO
-            return false;
+            // Check proportions
+            if (height > (M_RGOLD_RATIO * width))
+                height  = M_RGOLD_RATIO * width;
+
+            // Init canvas
+            if (!cv->init(width, height))
+                return false;
+            width   = cv->width();
+            height  = cv->height();
+
+            // Clear background
+            bool bypassing = vChannels[0].sBypass.bypassing();
+            cv->set_color_rgb((bypassing) ? CV_DISABLED : CV_BACKGROUND);
+            cv->paint();
+
+            // Draw axis
+            cv->set_line_width(1.0);
+
+            // "-72 db / (:zoom ** 3)" max="24 db * :zoom"
+
+            float miny  = logf(GAIN_AMP_M_72_DB / dsp::ipowf(fZoom, 3));
+            float maxy  = logf(GAIN_AMP_P_24_DB * fZoom);
+
+            float zx    = 1.0f/SPEC_FREQ_MIN;
+            float zy    = dsp::ipowf(fZoom, 3)/GAIN_AMP_M_72_DB;
+            float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
+            float dy    = height/(miny-maxy);
+
+            // Draw vertical lines
+            cv->set_color_rgb(CV_YELLOW, 0.5f);
+            for (float i=100.0f; i<SPEC_FREQ_MAX; i *= 10.0f)
+            {
+                float ax = dx*(logf(i*zx));
+                cv->line(ax, 0, ax, height);
+            }
+
+            // Draw horizontal lines
+            cv->set_color_rgb(CV_WHITE, 0.5f);
+            for (float i=GAIN_AMP_M_72_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_12_DB)
+            {
+                float ay = height + dy*(logf(i*zy));
+                cv->line(0, ay, width, ay);
+            }
+
+            // Allocate buffer: f, x, y, tr
+            pIDisplay           = core::IDBuffer::reuse(pIDisplay, 4, width+2);
+            core::IDBuffer *b   = pIDisplay;
+            if (b == NULL)
+                return false;
+
+            // Initialize mesh
+            b->v[0][0]          = SPEC_FREQ_MIN*0.5f;
+            b->v[0][width+1]    = SPEC_FREQ_MAX*2.0f;
+            b->v[3][0]          = 1.0f;
+            b->v[3][width+1]    = 1.0f;
+
+            size_t channels = ((nMode == GOTT_MONO) || (nMode == GOTT_STEREO)) ? 1 : 2;
+            static uint32_t c_colors[] = {
+                    CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
+                    CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
+                    CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL,
+                    CV_MIDDLE_CHANNEL, CV_SIDE_CHANNEL
+                   };
+
+            bool aa = cv->set_anti_aliasing(true);
+            cv->set_line_width(2);
+
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c    = &vChannels[i];
+
+                for (size_t j=0; j<width; ++j)
+                {
+                    size_t k        = (j*meta::gott_compressor::FFT_MESH_POINTS)/width;
+                    b->v[0][j+1]    = vFreqBuffer[k];
+                    b->v[3][j+1]    = c->vFilterBuffer[k];
+                }
+
+                dsp::fill(b->v[1], 0.0f, width+2);
+                dsp::fill(b->v[2], height, width+2);
+                dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, width+2);
+                dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, width+2);
+
+                // Draw mesh
+                uint32_t color = (bypassing || !(active())) ? CV_SILVER : c_colors[nMode*2 + i];
+                Color stroke(color), fill(color, 0.5f);
+                cv->draw_poly(b->v[1], b->v[2], width+2, stroke, fill);
+            }
+            cv->set_anti_aliasing(aa);
+
+            return true;
         }
 
         void gott_compressor::dump(dspu::IStateDumper *v) const

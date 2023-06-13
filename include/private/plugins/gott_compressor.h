@@ -30,6 +30,7 @@
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
+#include <lsp-plug.in/plug-fw/core/IDBuffer.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 
 #include <private/meta/gott_compressor.h>
@@ -166,6 +167,7 @@ namespace lsp
                 float                   fWetGain;               // Wet gain
                 float                   fScPreamp;              // Sidechain pre-amplification
                 size_t                  nEnvBoost;              // Envelope boost
+                float                   fZoom;                  // Zoom value
                 float                   vSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
@@ -178,6 +180,7 @@ namespace lsp
                 float                  *vCurveBuffer;           // Compression curve (input values)
                 float                  *vFreqBuffer;            // Frequencies (input values)
                 uint32_t               *vFreqIndexes;           // Analyzer FFT indexes
+                core::IDBuffer         *pIDisplay;              // Inline display buffer
 
                 plug::IPort            *pBypass;                // Bypass port
                 plug::IPort            *pMode;                  // Global mode
