@@ -121,7 +121,7 @@ namespace lsp
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
             MESH("ifg" id, "Input FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
-            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
+            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS + 2), \
             MESH("ag" id, "Compressor amplitude graph " label, 2, gott_compressor::FFT_MESH_POINTS)
 
         #define GOTT_METERS(id, label) \

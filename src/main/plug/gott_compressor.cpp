@@ -1248,12 +1248,18 @@ namespace lsp
                 {
                     if (c->bInFft)
                     {
+                        // Add extra points
+                        mesh->pvData[0][0] = SPEC_FREQ_MIN * 0.5f;
+                        mesh->pvData[0][meta::gott_compressor::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[1][0] = 0.0f;
+                        mesh->pvData[1][meta::gott_compressor::FFT_MESH_POINTS+1] = 0.0f;
+
                         // Copy frequency points
-                        dsp::copy(mesh->pvData[0], vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                        sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vFreqIndexes, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::copy(&mesh->pvData[0][1], vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnInChannel, &mesh->pvData[1][1], vFreqIndexes, meta::gott_compressor::FFT_MESH_POINTS);
 
                         // Mark mesh containing data
-                        mesh->data(2, meta::gott_compressor::FFT_MESH_POINTS);
+                        mesh->data(2, meta::gott_compressor::FFT_MESH_POINTS + 2);
                     }
                     else
                         mesh->data(2, 0);
