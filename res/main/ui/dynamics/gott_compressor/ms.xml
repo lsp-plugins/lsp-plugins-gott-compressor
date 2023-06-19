@@ -579,20 +579,26 @@
 									<knob id="ru${ch}"/>
 									<vbox vfill="false" pad.l="4">
 										<label text="labels.ratio"/>
-										<hbox hfill="false" hreduce="true" width.min="50">
-											<value id="ru${ch}"/>
-											<label text=":1"/>
-										</hbox>
+										<align width.min="50" hreduce="true">
+											<hbox hfill="false">
+												<value id="ru${ch}"/>
+												<label text=":"/>
+												<label text="1"/>
+											</hbox>
+										</align>
 									</vbox>
 								</hbox>
 								<hbox hfill="false" pad.h="6">
 									<knob id="rd${ch}"/>
 									<vbox vfill="false" pad.l="4">
 										<label text="labels.ratio"/>
-										<hbox hfill="false" hreduce="true" width.min="50">
-											<label text="1:"/>
-											<value id="rd${ch}"/>
-										</hbox>
+										<align width.min="50" hreduce="true">
+											<hbox hfill="false">
+												<label text="1"/>
+												<label text=":"/>
+												<value id="rd${ch}"/>
+											</hbox>
+										</align>
 									</vbox>
 								</hbox>
 								<hbox hfill="false" pad.h="6">
