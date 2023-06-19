@@ -95,26 +95,26 @@
 							<ui:set id="ch" value="_${b}${:i ? 's' : 'm'}"/>
 							<ui:if test=":b ieq 1">
 								<!-- Band 1 -->
-								<ui:eval id="sf" value=":i ? '(:sf1 * 10) ** 0.5' : '10'"/>
-								<ui:eval id="ef" value=":i ? ':sf1' : '(:sf1 * 10) ** 0.5'"/>
+								<ui:eval id="sf" value=":i ? 'sqrt (:sf1 * 10)' : '10'"/>
+								<ui:eval id="ef" value=":i ? ':sf1' : 'sqrt (:sf1 * 10)'"/>
 								<ui:set id="vis" value="true"/>
 							</ui:if>
 							<ui:if test=":b ieq 2">
 								<!-- Band 2 -->
-								<ui:eval id="sf" value=":i ? '(:sf2 * :sf1) ** 0.5' : ':sf1'"/>
-								<ui:eval id="ef" value=":i ? ':sf2' : '(:sf2 * :sf1) ** 0.5'"/>
+								<ui:eval id="sf" value=":i ? 'sqrt (:sf2 * :sf1)' : ':sf1'"/>
+								<ui:eval id="ef" value=":i ? ':sf2' : 'sqrt (:sf2 * :sf1)'"/>
 								<ui:set id="vis" value="true"/>
 							</ui:if>
 							<ui:if test=":b ieq 3">
 								<!-- Band 3 -->
-								<ui:eval id="sf" value=":i ? '((:ebe ? :sf3 : 24000) * :sf2) ** 0.5' : ':sf2'"/>
-								<ui:eval id="ef" value=":i ? '(:ebe ? :sf3 : 24000)' : '((:ebe ? :sf3 : 24000) * :sf2) ** 0.5'"/>
+								<ui:eval id="sf" value=":i ? 'sqrt ((:ebe ? :sf3 : 24000) * :sf2)' : ':sf2'"/>
+								<ui:eval id="ef" value=":i ? '(:ebe ? :sf3 : 24000)' : 'sqrt ((:ebe ? :sf3 : 24000) * :sf2)'"/>
 								<ui:set id="vis" value="true"/>
 							</ui:if>
 							<ui:if test=":b ieq 4">
 								<!-- Band 4 -->
-								<ui:eval id="sf" value=":i ? '(24000 * :sf3) ** 0.5' : ':sf3'"/>
-								<ui:eval id="ef" value=":i ? '24000' : '(24000 * :sf3) ** 0.5'"/>
+								<ui:eval id="sf" value=":i ? 'sqrt (24000 * :sf3)' : ':sf3'"/>
+								<ui:eval id="ef" value=":i ? '24000' : 'sqrt (24000 * :sf3)'"/>
 								<ui:set id="vis" value=":ebe"/>
 							</ui:if>
 
@@ -131,8 +131,8 @@
 								smooth="true"
 								color="${color}"
 								hcolor="${color}"
-								lborder="116 - :rd${ch}"
-								hlborder="116 - :rd${ch}"
+								lborder="(2 - lg :rd${ch}) * 48"
+								hlborder="(2 - lg :rd${ch}) * 48"
 								lcolor="${color}"
 								lcolor.a="0.6"
 								hlcolor.a="0.5"
@@ -153,8 +153,8 @@
 								smooth="true"
 								color="${color}"
 								hcolor="${color}"
-								rborder="116 - :ru${ch}"
-								hrborder="116 - :ru${ch}"
+								rborder="(2 - lg :ru${ch}) * 48"
+								hrborder="(2 - lg :ru${ch}) * 48"
 								rcolor="${color}"
 								rcolor.a="0.6"
 								hrcolor.a="0.5"
