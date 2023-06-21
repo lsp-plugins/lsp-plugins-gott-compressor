@@ -60,7 +60,7 @@ namespace lsp
             static constexpr float  SPLIT2_STEP             = SPLIT1_STEP;
 
             static constexpr float  SPLIT3_MIN              = SPLIT2_MAX + 250;
-            static constexpr float  SPLIT3_MAX              = 20000.0f;
+            static constexpr float  SPLIT3_MAX              = 14000.0f;
             static constexpr float  SPLIT3_DFL              = 7000.0f;
             static constexpr float  SPLIT3_STEP             = SPLIT1_STEP;
 

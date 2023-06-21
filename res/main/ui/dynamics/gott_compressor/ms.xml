@@ -452,44 +452,39 @@
 										<ui:if test=":i ieq 1">
 											<vbox vfill="false" pad.l="4">
 												<label text="labels.bands.frequency_low"/>
-												<hbox hfill="false" width.min="85">
-													<label text="0"/>
-													<label text=" - "/>
-													<value id="sf1" sline="true"/>
-													<label text=" @ "/>
-													<value id="_time_sr" />
-												</hbox>
+												<label text="labels.gott_comp.freq_range"
+													text:start="0"
+													text:end=":sf1"
+													text.evaluate="true" />
 											</vbox>
 										</ui:if>
 										<ui:if test=":i ieq 2">
 											<vbox vfill="false" pad.l="4">
 												<label text="labels.bands.frequency_mid"/>
-												<hbox hfill="false" width.min="85">
-													<value id="sf1" detailed="false" sline="true"/>
-													<label text=" - "/>
-													<value id="sf2" sline="true"/>
-												</hbox>
+												<label text="labels.gott_comp.freq_range"
+													text:start=":sf1"
+													text:end=":sf2"
+													text.evaluate="true" />
 											</vbox>
 										</ui:if>
 										<ui:if test=":i ieq 3">
 											<vbox vfill="false" pad.l="4">
 												<label text="labels.bands.frequency_hi"/>
-												<hbox hfill="false" width.min="85">
-													<value id="sf2" detailed="false" sline="true"/>
-													<label text=" - "/>
-													<value id="sf3" sline="true"/>
-												</hbox>
+												<label text="labels.gott_comp.freq_range"
+													text:start=":sf2"
+													text:end="(:ebe) ? :sf3 : :_time_sr * 0.5"
+													text.evaluate="true" />
 											</vbox>
 										</ui:if>
 										<ui:if test=":i ieq 4">
 											<vbox vfill="false" pad.l="4">
 												<label text="labels.bands.frequency_hi_e"/>
-												<hbox hfill="false" width.min="85">
-													<value id="sf3" detailed="false" sline="true"/>
-													<label text=" - "/>
-													<label text="---" visibility="!:ebe" />
-													<label text="labels.values.x_hz" text:value="_time_sr" visibility=":ebe" />
-												</hbox>
+												<label text="labels.gott_comp.freq_no_range" visibility="!:ebe" />
+												<label text="labels.gott_comp.freq_range"
+													text:start=":sf3"
+													text:end=":_time_sr * 0.5"
+													text.evaluate="true"
+													visibility=":ebe" />
 											</vbox>
 										</ui:if>
 									</hbox>

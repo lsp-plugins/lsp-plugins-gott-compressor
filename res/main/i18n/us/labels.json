@@ -1,0 +1,6 @@
+{
+	"gott_comp": {
+		"freq_range": "{@start%.1f} - {@end%.1f} Hz",
+		"freq_no_range": "n/a"
+	}
+}
