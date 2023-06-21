@@ -1,7 +1,8 @@
 <plugin resizable="true">
 	<ui:set id="has_solo" value="
-			:bs_1m or :bs_2m or :bs_3m or :bs_4m or :bs_1s or :bs_2s or :bs_3s or :bs_4s
-	"/>
+		(:bs_1m or :bs_2m or :bs_3m or (:ebe and :bs_4m)) or
+		(:bs_1s or :bs_2s or :bs_3s or (:ebe and :bs_4s))"/>
+	
 	<vbox spacing="4">
 		<grid rows="2" cols="6" vspacing="4" hspacing="4" expand="true">
 
@@ -201,18 +202,8 @@
 
 							<!-- Bottom Threshold -->
 							<line sx="${sf}" sy=":tm${ch}" x="${ef}" y.id="tm${ch}" y.editable="true" z.id="kn${ch}" z.editable="true" width="2" smooth="true" color="${color}" hcolor="${color}" pointer="vsize" visibility="${vis}"/>
-
-							<!-- Separators -->
-							<marker v="1" ox="2" oy="0" color="graph_alt_4" visibility="false"/>
-
 						</ui:for>
 					</ui:for>
-
-
-
-					<!-- Boundaries -->
-					<marker v="1" ox="2" oy="0" color="graph_prim" visibility="false"/>
-					<marker v="24000" color="graph_prim" visibility="false"/>
 
 					<!-- Axis -->
 					<axis min="10" max="24000" angle="0.0" log="true" visibility="false"/>
@@ -430,55 +421,30 @@
 								<hsep pad.v="2" bg.color="bg" vreduce="true"/>
 							</cell>
 
-							<!-- остаемся темными: - нажато соло и соло не наше (это 4 кананал и не нажат ебе) - канал не активен и наше соло не нажато - нажат наш муте и наше соло не нажато - нажато соло и соло не наше -->
-
 							<ui:for id="i" first="1" count="4">
-								<ui:set id="ch" value="_${:i}${(:c ieq 0) ? 'm' : 's'}"/>
+								<ui:set id="ch" value="_${i}${(:c ieq 0) ? 'm' : 's'}"/>
+								<ui:set id="act_ch" value="(!:bm${ch} and ((${has_solo}) ? :bs${ch} : true) and (:ebe or (${i} ilt 4)))" />
 								<ui:with
-									bg.bright="(
-									(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-									((${has_solo}) and !:bs${ch}) or
-									(!:be${ch} and !:bs${ch}) or
-									(:bm${ch} and !:bs${ch})
-									) ? :const_bg_darken : 1.0"
-									bright="(
-									(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									(!:be${ch} and !:bs${ch}) or
-									(:bm${ch} and !:bs${ch})
-									) ? 0.75 : 1.0">
-									<hbox hfill="false" pad.h="6">
-										<ui:if test=":i ieq 1">
-											<align halign="-1" valign="-1">
-												<bevel size="34" ui:inject="Bevel_cycle" dir.deg="45"/>
-											</align>
-										</ui:if>
-										<ui:if test=":i ieq 2">
-											<knob
-												id="sf1"
-												scolor="(
-											(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-											(!:be${ch} and !:bs${ch}) or
-											(:bm${ch} and !:bs${ch})
-										) ? 'cycle_inactive' : 'graph_mesh_cycle'"
-												scolor.hue="0.25"/>
-										</ui:if>
-										<ui:if test=":i ieq 3">
-											<knob id="sf2" scolor="(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-										(!:be${ch} and !:bs${ch}) or
-										(:bm${ch} and !:bs${ch})
-										) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.5"/>
-										</ui:if>
-										<ui:if test=":i ieq 4">
-											<knob id="sf3" scolor="(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-										(!:be${ch} and !:bs${ch}) or
-										(:bm${ch} and !:bs${ch})
-										) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.75"/>
-										</ui:if>
-									</hbox>
+									bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
+									bright="(!${act_ch}) ? 0.75 : 1.0">
+									
+									<ui:if test=":i ieq 1">
+										<align halign="-1" valign="-1">
+											<bevel width.min="48" height.min="24" ui:inject="Bevel_cycle" dir.deg="30"/>
+										</align>
+									</ui:if>
+									<ui:if test=":i ieq 2">
+										<knob
+											id="sf1"
+											scolor="(!${act_ch}) ? 'cycle_inactive' : 'graph_mesh_cycle'"
+											scolor.hue="0.25"/>
+									</ui:if>
+									<ui:if test=":i ieq 3">
+										<knob id="sf2" scolor="(!${act_ch}) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.5"/>
+									</ui:if>
+									<ui:if test=":i ieq 4">
+										<knob id="sf3" scolor="(!${act_ch}) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.75"/>
+									</ui:if>
 
 									<void/>
 
@@ -490,6 +456,8 @@
 													<label text="0"/>
 													<label text=" - "/>
 													<value id="sf1" sline="true"/>
+													<label text=" @ "/>
+													<value id="_time_sr" />
 												</hbox>
 											</vbox>
 										</ui:if>
@@ -519,8 +487,8 @@
 												<hbox hfill="false" width.min="85">
 													<value id="sf3" detailed="false" sline="true"/>
 													<label text=" - "/>
-													<label text="20000 "/>
-													<label text="labels.units.hz"/>
+													<label text="---" visibility="!:ebe" />
+													<label text="labels.values.x_hz" text:value="_time_sr" visibility=":ebe" />
 												</hbox>
 											</vbox>
 										</ui:if>
@@ -530,25 +498,10 @@
 								<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 
 								<ui:with
-									bg.bright="(
-								(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-								(!:be${ch} and !:bs${ch}) or
-								(:bm${ch} and !:bs${ch})
-								) ? :const_bg_darken : 1.0"
-									bright="(
-								(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-								(!:be${ch} and !:bs${ch}) or
-								(:bm${ch} and !:bs${ch})
-									) ? 0.75 : 1.0">
+									bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
+									bright="(!${act_ch}) ? 0.75 : 1.0">
 									<hbox hfill="false" pad.h="6">
-										<knob id="tu${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : 'threshold'"/>
+										<knob id="tu${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'threshold'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.threshold"/>
 											<value id="tu${ch}" width.min="50" sline="true" halign="0"/>
@@ -558,12 +511,7 @@
 									<void/>
 
 									<hbox hfill="false" pad.h="6">
-										<knob id="td${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : 'threshold'"/>
+										<knob id="td${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'threshold'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.threshold"/>
 											<value id="td${ch}" width.min="50" sline="true" halign="0"/>
@@ -573,12 +521,7 @@
 									<void/>
 
 									<hbox hfill="false" pad.h="6">
-										<knob id="ta${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : 'attack'"/>
+										<knob id="ta${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'attack'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.attack"/>
 											<value id="ta${ch}" width.min="50" sline="true" halign="0"/>
@@ -586,12 +529,7 @@
 									</hbox>
 
 									<hbox hfill="false" pad.h="6">
-										<knob id="mk${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : '${ch_color}'"/>
+										<knob id="mk${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : '${ch_color}'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.makeup"/>
 											<value id="mk${ch}" width.min="50" sline="true" halign="0"/>
@@ -632,57 +570,39 @@
 												<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
 
 												<!-- Meshes -->
+												<ui:set id="act_cg_m" value="(!:bm_${i}m and ((${has_solo}) ? :bs_${i}m : true) and (:ebe or (${i} ilt 4)))" />
+												<ui:set id="act_cg_s" value="(!:bm_${i}s and ((${has_solo}) ? :bs_${i}s : true) and (:ebe or (${i} ilt 4)))" />
+												
 												<mesh
 													id="ccg_${i}m"
 													width="2"
-													color="(
-													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-												  (!:be${ch} and !:bs${ch}) or
-												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'mid'"
+													color="mid"
 													color.a="0.3"
-													smooth="true"/>
+													smooth="true"
+													visibility="${act_cg_m}" />
 												<mesh
 													id="ccg_${i}s"
 													width="2"
-													color="(
-													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-												  (!:be${ch} and !:bs${ch}) or
-												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'side'"
+													color="side"
 													color.a="0.3"
-													smooth="true"/>
+													smooth="true"
+													visibility="${act_cg_s}" />
 												<dot
 													x.id="elm_${i}m"
 													y.id="clm_${i}m"
-													color="(
-													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-												  (!:be${ch} and !:bs${ch}) or
-												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'mid'"
+													color="mid"
 													bcolor="mid"
 													size="3"
-													border.size="0"/>
+													border.size="0"
+													visibility="${act_cg_m}" />
 												<dot
 													x.id="elm_${i}s"
 													y.id="clm_${i}s"
-													color="(
-													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-												  (!:be${ch} and !:bs${ch}) or
-												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'side'"
+													color="side"
 													bcolor="side"
 													size="3"
-													border.size="0"/>
-
-												<!-- Markers -->
-												<!-- <marker id="td_${i}m" color="attack" visibility="${(:i ilt 4) ? 'true' : ':ebe'}"/> <marker id="td_${i}s" color="attack" visibility="${(:i ilt 4) ? 'true' : ':ebe'}"/> <marker id="tu_${i}m" color="attack" visibility="${(:i ilt 4) ? 'true' :
-												':ebe'}"/> <marker id="tu_${i}s" color="attack" visibility="${(:i ilt 4) ? 'true' : ':ebe'}"/> <marker id="tm_${i}m" color="attack" visibility="${(:i ilt 4) ? 'true' : ':ebe'}"/> <marker id="tm_${i}s" color="attack" visibility="${(:i ilt 4) ? 'true'
-												: ':ebe'}"/> -->
+													border.size="0"
+													visibility="${act_cg_s}" />
 
 												<!-- Text -->
 												<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
@@ -709,18 +629,8 @@
 											</graph>
 										</cell>
 										<ui:with
-											bg.bright="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-										(!:be${ch} and !:bs${ch}) or
-										(:bm${ch} and !:bs${ch})
-										) ? :const_bg_darken : 1.0"
-											bright="(
-											(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-											(!:be${ch} and !:bs${ch}) or
-											(:bm${ch} and !:bs${ch})
-											) ? 0.75 : 1.0">
+											bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
+											bright="(!${act_ch}) ? 0.75 : 1.0">
 											<void/>
 											<!-- <label text="labels.gain_" bg.color="bg_schema" pad.v="4"/> -->
 											<ledmeter vexpand="true" angle="1">
@@ -732,12 +642,7 @@
 													balance="0 db"
 													balance.visibility="true"
 													type="peak"
-													value.color="(
-													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-												  (!:be${ch} and !:bs${ch}) or
-												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'bright_blue'"/>
+													value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
 												<ledchannel
 													id="rlm_${i}s"
 													min="-48 db"
@@ -746,30 +651,15 @@
 													balance="0 db"
 													balance.visibility="true"
 													type="peak"
-													value.color="(
-													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-												  (!:be${ch} and !:bs${ch}) or
-												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'bright_blue'"/>
+													value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
 											</ledmeter>
 										</ui:with>
 									</grid>
 								</cell>
 
 								<ui:with
-									bg.bright="(
-								(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-								(!:be${ch} and !:bs${ch}) or
-								(:bm${ch} and !:bs${ch})
-								) ? :const_bg_darken : 1.0"
-									bright="(
-									(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									(!:be${ch} and !:bs${ch}) or
-									(:bm${ch} and !:bs${ch})
-									) ? 0.75 : 1.0">
+									bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
+									bright="(!${act_ch}) ? 0.75 : 1.0">
 									<cell rows="2" hexpand="false" hreduce="true">
 										<vbox>
 											<hbox pad.b="4">
@@ -821,8 +711,7 @@
 														border.down.color.hue="0.5"
 														border.down.hover.color.hue="0.5"/>
 												</ui:if>
-												<ui:if test=":i
-											ieq 4">
+												<ui:if test=":i ieq 4">
 													<button
 														id="be${ch}"
 														text="labels.bands.hi_e"
@@ -851,43 +740,18 @@
 
 								<cell
 									cols="6"
-									bg.bright="(
-								(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-								(!:be${ch} and !:bs${ch}) or
-								(:bm${ch} and !:bs${ch})
-								) ? :const_bg_darken : 1.0"
-									bright="(
-									(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									(!:be${ch} and !:bs${ch}) or
-									(:bm${ch} and !:bs${ch})
-									) ? 0.75 : 1.0">
+									bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
+									bright="(!${act_ch}) ? 0.75 : 1.0">
 									<void/>
 								</cell>
 
 								<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 
 								<ui:with
-									bg.bright="(
-								(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-								(!:be${ch} and !:bs${ch}) or
-								(:bm${ch} and !:bs${ch})
-								) ? :const_bg_darken : 1.0"
-									bright="(
-									(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									(!:be${ch} and !:bs${ch}) or
-									(:bm${ch} and !:bs${ch})
-									) ? 0.75 : 1.0">
+									bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
+									bright="(!${act_ch}) ? 0.75 : 1.0">
 									<hbox hfill="false" pad.h="6">
-										<knob id="tm${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : 'threshold'"/>
+										<knob id="tm${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'threshold'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.bottom"/>
 											<value id="tm${ch}" width.min="50" sline="true" halign="0"/>
@@ -896,12 +760,7 @@
 									<void/>
 
 									<hbox hfill="false" pad.h="6">
-										<knob id="ru${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : '${ch_color}'"/>
+										<knob id="ru${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : '${ch_color}'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.ratio"/>
 											<align width.min="50" hreduce="true">
@@ -915,12 +774,7 @@
 									</hbox>
 									<void/>
 									<hbox hfill="false" pad.h="6">
-										<knob id="rd${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : '${ch_color}'"/>
+										<knob id="rd${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : '${ch_color}'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.ratio"/>
 											<align width.min="50" hreduce="true">
@@ -934,24 +788,14 @@
 									</hbox>
 									<void/>
 									<hbox hfill="false" pad.h="6">
-										<knob id="tr${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : 'release'"/>
+										<knob id="tr${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'release'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.release"/>
 											<value id="tr${ch}" width.min="50" sline="true" halign="0"/>
 										</vbox>
 									</hbox>
 									<hbox hfill="false" pad.h="6">
-										<knob id="kn${ch}" scolor="(
-										(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
-((${has_solo}) and !:bs${ch}) or
-									  (!:be${ch} and !:bs${ch}) or
-									  (:bm${ch} and !:bs${ch})
-									) ? 'cycle_inactive' : '${ch_color}'"/>
+										<knob id="kn${ch}" scolor="(!${act_ch}) ? 'cycle_inactive' : '${ch_color}'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.knee"/>
 											<value id="kn${ch}" width.min="50" sline="true" halign="0"/>
