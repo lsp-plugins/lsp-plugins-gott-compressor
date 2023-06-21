@@ -127,6 +127,23 @@
 								sy=":td${ch}"
 								x="${ef}"
 								y.id="td${ch}"
+								y.editable="false"
+								z.id="rd${ch}"
+								z.editable="false"
+								width="0"
+								smooth="false"
+								color="${color}"
+								lborder="400"
+								lcolor="${color}"
+								lcolor.a="0.9"
+								pointer="none"
+								visibility="${vis}"/>
+
+							<line
+								sx="${sf}"
+								sy=":td${ch}"
+								x="${ef}"
+								y.id="td${ch}"
 								y.editable="true"
 								z.id="rd${ch}"
 								z.editable="true"
@@ -137,13 +154,30 @@
 								lborder="(2 - lg :rd${ch}) * 48"
 								hlborder="(2 - lg :rd${ch}) * 48"
 								lcolor="${color}"
-								lcolor.a="0.6"
-								hlcolor.a="0.5"
+								lcolor.a="0.5"
+								hlcolor.a="0.4"
 								hlcolor="${color}"
 								pointer="vsize"
 								visibility="${vis}"/>
 
 							<!-- Upward Threshold -->
+							<line
+								sx="${sf}"
+								sy=":tu${ch}"
+								x="${ef}"
+								y.id="tu${ch}"
+								y.editable="false"
+								z.id="rd${ch}"
+								z.editable="false"
+								width="0"
+								smooth="false"
+								color="${color}"
+								rborder="400"
+								rcolor="${color}"
+								rcolor.a="0.9"
+								pointer="none"
+								visibility="${vis}"/>
+
 							<line
 								sx="${sf}"
 								sy=":tu${ch}"
@@ -167,8 +201,14 @@
 
 							<!-- Bottom Threshold -->
 							<line sx="${sf}" sy=":tm${ch}" x="${ef}" y.id="tm${ch}" y.editable="true" z.id="kn${ch}" z.editable="true" width="2" smooth="true" color="${color}" hcolor="${color}" pointer="vsize" visibility="${vis}"/>
+
+							<!-- Separators -->
+							<marker v="1" ox="2" oy="0" color="graph_alt_4" visibility="false"/>
+
 						</ui:for>
 					</ui:for>
+
+
 
 					<!-- Boundaries -->
 					<marker v="1" ox="2" oy="0" color="graph_prim" visibility="false"/>
@@ -390,14 +430,7 @@
 								<hsep pad.v="2" bg.color="bg" vreduce="true"/>
 							</cell>
 
-							<!--
-							остаемся темными:
-							- нажато соло и соло не наше  (это 4 кананал и не нажат ебе)
-							- канал не активен и наше соло не нажато
-							- нажат наш муте и наше соло не нажато
-							- нажато соло и соло не наше
-
-							-->
+							<!-- остаемся темными: - нажато соло и соло не наше (это 4 кананал и не нажат ебе) - канал не активен и наше соло не нажато - нажат наш муте и наше соло не нажато - нажато соло и соло не наше -->
 
 							<ui:for id="i" first="1" count="4">
 								<ui:set id="ch" value="_${:i}${(:c ieq 0) ? 'm' : 's'}"/>
@@ -421,12 +454,15 @@
 											</align>
 										</ui:if>
 										<ui:if test=":i ieq 2">
-											<knob id="sf1" scolor="(
+											<knob
+												id="sf1"
+												scolor="(
 											(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
 ((${has_solo}) and !:bs${ch}) or
 											(!:be${ch} and !:bs${ch}) or
 											(:bm${ch} and !:bs${ch})
-										) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.25"/>
+										) ? 'cycle_inactive' : 'graph_mesh_cycle'"
+												scolor.hue="0.25"/>
 										</ui:if>
 										<ui:if test=":i ieq 3">
 											<knob id="sf2" scolor="(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
@@ -596,18 +632,28 @@
 												<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
 
 												<!-- Meshes -->
-												<mesh id="ccg_${i}m" width="2" color="(
+												<mesh
+													id="ccg_${i}m"
+													width="2"
+													color="(
 													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
 ((${has_solo}) and !:bs${ch}) or
 												  (!:be${ch} and !:bs${ch}) or
 												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'mid'" color.a="0.3" smooth="true"/>
-												<mesh id="ccg_${i}s" width="2" color="(
+												) ? 'cycle_inactive' : 'mid'"
+													color.a="0.3"
+													smooth="true"/>
+												<mesh
+													id="ccg_${i}s"
+													width="2"
+													color="(
 													(!:ebe and ${:i} ieq 4 and !:bs${ch}) or
 ((${has_solo}) and !:bs${ch}) or
 												  (!:be${ch} and !:bs${ch}) or
 												  (:bm${ch} and !:bs${ch})
-												) ? 'cycle_inactive' : 'side'" color.a="0.3" smooth="true"/>
+												) ? 'cycle_inactive' : 'side'"
+													color.a="0.3"
+													smooth="true"/>
 												<dot
 													x.id="elm_${i}m"
 													y.id="clm_${i}m"
