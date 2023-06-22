@@ -2,7 +2,7 @@
 	<ui:set id="has_solo" value="
 		(:bs_1m or :bs_2m or :bs_3m or (:ebe and :bs_4m)) or
 		(:bs_1s or :bs_2s or :bs_3s or (:ebe and :bs_4s))"/>
-	
+
 	<vbox spacing="4">
 		<grid rows="2" cols="6" vspacing="4" hspacing="4" expand="true">
 
@@ -83,8 +83,8 @@
 							fcolor.a="0.9"
 							visibility="${(:i lt 4) ? ':flt' : ':flt and :ebe'}"/>
 					</ui:for>
-					<mesh id="ifg_m" width="0" color="mid_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="mid" visibility=":ife_m"/>
-					<mesh id="ifg_s" width="0" color="side_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="side" visibility=":ife_s"/>
+					<mesh id="ifg_m" width="0" color="mid_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="mid_in" visibility=":ife_m"/>
+					<mesh id="ifg_s" width="0" color="side_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="side_in" visibility=":ife_s"/>
 					<mesh id="ofg_m" width="2" color="mid" visibility=":ofe_m"/>
 					<mesh id="ofg_s" width="2" color="side" visibility=":ofe_s"/>
 
@@ -148,7 +148,7 @@
 								y.editable="true"
 								z.id="rd${ch}"
 								z.editable="true"
-								width="2"
+								width="3"
 								smooth="true"
 								color="${color}"
 								hcolor="${color}"
@@ -156,7 +156,7 @@
 								hlborder="(2 - lg :rd${ch}) * 48"
 								lcolor="${color}"
 								lcolor.a="0.5"
-								hlcolor.a="0.4"
+								hlcolor.a="0.2"
 								hlcolor="${color}"
 								pointer="vsize"
 								visibility="${vis}"/>
@@ -168,7 +168,7 @@
 								x="${ef}"
 								y.id="tu${ch}"
 								y.editable="false"
-								z.id="rd${ch}"
+								z.id="ru${ch}"
 								z.editable="false"
 								width="0"
 								smooth="false"
@@ -187,22 +187,37 @@
 								y.editable="true"
 								z.id="ru${ch}"
 								z.editable="true"
-								width="2"
+								width="3"
 								smooth="true"
 								color="${color}"
 								hcolor="${color}"
 								rborder="(2 - lg :ru${ch}) * 48"
 								hrborder="(2 - lg :ru${ch}) * 48"
 								rcolor="${color}"
-								rcolor.a="0.6"
-								hrcolor.a="0.5"
+								rcolor.a="0.5"
+								hrcolor.a="0.2"
 								hrcolor="${color}"
 								pointer="vsize"
 								visibility="${vis}"/>
 
 							<!-- Bottom Threshold -->
-							<line sx="${sf}" sy=":tm${ch}" x="${ef}" y.id="tm${ch}" y.editable="true" z.id="kn${ch}" z.editable="true" width="2" smooth="true" color="${color}" hcolor="${color}" pointer="vsize" visibility="${vis}"/>
-						</ui:for>
+							<line
+								sx="${sf}"
+								sy=":tm${ch}"
+								x="${ef}"
+								y.id="tm${ch}"
+								y.editable="true"
+								z.id="kn${ch}"
+								z.editable="true"
+								width="3"
+								smooth="true"
+								color="${color}"
+								hcolor="${color}"
+								color.a="0.3"
+								hcolor.a="0"
+								pointer="vsize"
+								visibility="${vis}"/>
+							</ui:for>
 					</ui:for>
 
 					<!-- Axis -->
@@ -367,10 +382,10 @@
 			<group text="labels.sidechain" expand="true" width.min="90" ipadding="0">
 				<grid rows="16" cols="1" spacing="0" bg.color="bg_schema">
 					<label text="labels.setup" pad.h="6" pad.v="8" vreduce="true"/>
-					<vbox vreduce="true">
+					<vbox vreduce="true" pad.b="8">
 						<combo id="sc_mode" pad.h="6" pad.b="4"/>
 						<combo id="sc_src" pad.h="6" pad.b="4"/>
-						<button id="sc_ext" text="labels.chan.external_sc" fill="true" visibility="ex :sc_ext" pad.h="6" pad.b="8"/>
+						<button id="sc_ext" text="labels.chan.external_sc" fill="true" visibility="ex :sc_ext" pad.h="6"/>
 					</vbox>
 					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
 
@@ -427,11 +442,13 @@
 								<ui:with
 									bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
 									bright="(!${act_ch}) ? 0.75 : 1.0">
-									
+
 									<ui:if test=":i ieq 1">
+										<hbox vreduce="true" pad.b="4">
 										<align halign="-1" valign="-1">
-											<bevel width.min="48" height.min="24" ui:inject="Bevel_cycle" dir.deg="30"/>
+											<bevel width.min="72" height.min="46" ui:inject="Bevel_cycle" dir.deg="32"/>
 										</align>
+									</hbox>
 									</ui:if>
 									<ui:if test=":i ieq 2">
 										<knob
@@ -448,7 +465,7 @@
 
 									<void/>
 
-									<hbox hfill="false" pad.h="6">
+									<hbox hfill="false" pad.h="6" width.min="110">
 										<ui:if test=":i ieq 1">
 											<vbox vfill="false" pad.l="4">
 												<label text="labels.bands.frequency_low"/>
@@ -479,7 +496,7 @@
 										<ui:if test=":i ieq 4">
 											<vbox vfill="false" pad.l="4">
 												<label text="labels.bands.frequency_hi_e"/>
-												<label text="labels.gott_comp.freq_no_range" visibility="!:ebe" />
+												<label text="labels.gott_comp.band_is_off" visibility="!:ebe" />
 												<label text="labels.gott_comp.freq_range"
 													text:start=":sf3"
 													text:end=":_time_sr * 0.5"
@@ -567,7 +584,7 @@
 												<!-- Meshes -->
 												<ui:set id="act_cg_m" value="(!:bm_${i}m and ((${has_solo}) ? :bs_${i}m : true) and (:ebe or (${i} ilt 4)))" />
 												<ui:set id="act_cg_s" value="(!:bm_${i}s and ((${has_solo}) ? :bs_${i}s : true) and (:ebe or (${i} ilt 4)))" />
-												
+
 												<mesh
 													id="ccg_${i}m"
 													width="2"
@@ -627,7 +644,6 @@
 											bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
 											bright="(!${act_ch}) ? 0.75 : 1.0">
 											<void/>
-											<!-- <label text="labels.gain_" bg.color="bg_schema" pad.v="4"/> -->
 											<ledmeter vexpand="true" angle="1">
 												<ledchannel
 													id="rlm_${i}m"
@@ -637,7 +653,7 @@
 													balance="0 db"
 													balance.visibility="true"
 													type="peak"
-													value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
+													value.color="(!${act_ch}) ? 'cycle_inactive' : 'mid'"/>
 												<ledchannel
 													id="rlm_${i}s"
 													min="-48 db"
@@ -646,7 +662,7 @@
 													balance="0 db"
 													balance.visibility="true"
 													type="peak"
-													value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
+													value.color="(!${act_ch}) ? 'cycle_inactive' : 'side'"/>
 											</ledmeter>
 										</ui:with>
 									</grid>

@@ -122,10 +122,10 @@ namespace lsp
             static constexpr float  MAKEUP_DFL              = GAIN_AMP_0_DB;
             static constexpr float  MAKEUP_STEP             = 0.01f;
 
-            static constexpr float  SC_REACTIVITY_MIN       = 0.000;    // Sidechain: Minimum reactivity [ms]
-            static constexpr float  SC_REACTIVITY_MAX       = 250;      // Sidechain: Maximum reactivity [ms]
-            static constexpr float  SC_REACTIVITY_DFL       = 10;       // Sidechain: Default reactivity [ms]
-            static constexpr float  SC_REACTIVITY_STEP      = 0.025;    // Sidechain: Reactivity step
+            static constexpr float  SC_REACTIVITY_MIN       = 0.0f;    // Sidechain: Minimum reactivity [ms]
+            static constexpr float  SC_REACTIVITY_MAX       = 250.0f;      // Sidechain: Maximum reactivity [ms]
+            static constexpr float  SC_REACTIVITY_DFL       = 10.0f;       // Sidechain: Default reactivity [ms]
+            static constexpr float  SC_REACTIVITY_STEP      = 0.008f;    // Sidechain: Reactivity step
 
             static constexpr float  FREQ_BOOST_MIN          = 10.0f;
             static constexpr float  FREQ_BOOST_MAX          = 20000.0f;
