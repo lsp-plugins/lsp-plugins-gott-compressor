@@ -508,10 +508,17 @@ namespace lsp
                 c->pFftOutSw            = TRACE_PORT(ports[port_id++]);
                 c->pFftIn               = TRACE_PORT(ports[port_id++]);
                 c->pFftOut              = TRACE_PORT(ports[port_id++]);
-                c->pAmpGraph            = TRACE_PORT(ports[port_id++]);
                 c->pInLvl               = TRACE_PORT(ports[port_id++]);
                 c->pOutLvl              = TRACE_PORT(ports[port_id++]);
             }
+
+            if ((nMode == GOTT_LR) || (nMode == GOTT_MS))
+            {
+                vChannels[0].pAmpGraph  = TRACE_PORT(ports[port_id++]);
+                vChannels[1].pAmpGraph  = TRACE_PORT(ports[port_id++]);
+            }
+            else
+                vChannels[0].pAmpGraph  = TRACE_PORT(ports[port_id++]);
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
             float delta = (meta::gott_compressor::CURVE_DB_MAX - meta::gott_compressor::CURVE_DB_MIN) / (meta::gott_compressor::CURVE_MESH_SIZE-1);

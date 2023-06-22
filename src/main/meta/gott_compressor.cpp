@@ -121,7 +121,9 @@ namespace lsp
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
             MESH("ifg" id, "Input FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS + 2), \
-            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS), \
+            MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS)
+
+        #define GOTT_AMP_CURVE(id, label) \
             MESH("ag" id, "Compressor amplitude graph " label, 2, gott_compressor::FFT_MESH_POINTS)
 
         #define GOTT_METERS(id, label) \
@@ -159,6 +161,7 @@ namespace lsp
 
             GOTT_ANALYSIS("", ""),
             GOTT_METERS("", ""),
+            GOTT_AMP_CURVE("", ""),
             PORTS_END
         };
 
@@ -176,6 +179,7 @@ namespace lsp
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
+            GOTT_AMP_CURVE("", ""),
             PORTS_END
         };
 
@@ -198,6 +202,8 @@ namespace lsp
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
+            GOTT_AMP_CURVE("_l", " Left"),
+            GOTT_AMP_CURVE("_r", " Right"),
             PORTS_END
         };
 
@@ -220,6 +226,8 @@ namespace lsp
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_s", " Side"),
             GOTT_METERS("_r", " Right"),
+            GOTT_AMP_CURVE("_m", " Mid"),
+            GOTT_AMP_CURVE("_s", " Side"),
             PORTS_END
         };
 
@@ -237,6 +245,7 @@ namespace lsp
 
             GOTT_ANALYSIS("", ""),
             GOTT_METERS("", ""),
+            GOTT_AMP_CURVE("", ""),
             PORTS_END
         };
 
@@ -256,6 +265,7 @@ namespace lsp
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
+            GOTT_AMP_CURVE("", ""),
             PORTS_END
         };
 
@@ -280,6 +290,8 @@ namespace lsp
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
+            GOTT_AMP_CURVE("_l", " Left"),
+            GOTT_AMP_CURVE("_r", " Right"),
             PORTS_END
         };
 
@@ -304,6 +316,8 @@ namespace lsp
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_s", " Side"),
             GOTT_METERS("_r", " Right"),
+            GOTT_AMP_CURVE("_m", " Mid"),
+            GOTT_AMP_CURVE("_s", " Side"),
             PORTS_END
         };
 
