@@ -67,7 +67,7 @@ namespace lsp
                 virtual status_t    pre_destroy() override;
 
             public:
-                virtual void        notify(ui::IPort *port) override;
+                virtual void        notify(ui::IPort *port, size_t flags) override;
         };
     } /* namespace plugui */
 } /* namespace lsp */

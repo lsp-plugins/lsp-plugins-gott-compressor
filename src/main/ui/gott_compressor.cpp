@@ -127,11 +127,14 @@ namespace lsp
             }
         }
 
-        void gott_compressor::notify(ui::IPort *port)
+        void gott_compressor::notify(ui::IPort *port, size_t flags)
         {
-            band_t *b = find_band_by_port(port);
-            if (b!= NULL)
-                process_band_port(b, port);
+            if (flags & ui::PORT_USER_EDIT)
+            {
+                band_t *b = find_band_by_port(port);
+                if (b!= NULL)
+                    process_band_port(b, port);
+            }
         }
 
         void gott_compressor::process_band_port(band_t *b, ui::IPort *port)
@@ -164,7 +167,7 @@ namespace lsp
                 return;
 
             dst->set_value(v);
-            dst->notify_all();
+            dst->notify_all(ui::PORT_USER_EDIT);
         }
 
         void gott_compressor::make_value_less_eq(ui::IPort *dst, ui::IPort *src)
@@ -177,7 +180,7 @@ namespace lsp
                 return;
 
             dst->set_value(v);
-            dst->notify_all();
+            dst->notify_all(ui::PORT_USER_EDIT);
         }
 
         gott_compressor::band_t *gott_compressor::find_band_by_port(const ui::IPort *port)
