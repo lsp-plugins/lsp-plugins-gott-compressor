@@ -261,18 +261,14 @@
 			<cell rows="2">
 				<group text="groups.analysis" expand="false" ipadding="0">
 					<vbox>
-						<grid rows="4" cols="2">
+						<grid rows="2" cols="2">
 							<align halign="-1" pad.t="4" pad.l="6">
-								<label text="labels.fft.fft_in"/>
+								<label text="labels.fft.fft"/>
 							</align>
-								<button id="ife" text="labels.chan.on" height="19" hfill="true" pad.v="4" pad.h="6" ui:inject="Button_mono_8"/>
-
-							<cell cols="2"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
-
-							<align halign="-1" pad.t="4" pad.l="6">
-								<label text="labels.fft.fft_out" halign="0"/>
-							</align>
-							<button id="ofe" text="labels.chan.on" height="19" hfill="true" pad.v="4" pad.h="6" ui:inject="Button_mono_8"/>
+							<hbox spacing="4" pad.v="4" pad.h="6" hfill="false">
+								<button id="ife" text="labels.chan.in" height="19" width="30" ui:inject="Button_mono_8"/>
+								<button id="ofe" text="labels.chan.out" height="19" width="30" ui:inject="Button_mono_8"/>
+							</hbox>
 
 							<cell cols="2"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
 						</grid>
