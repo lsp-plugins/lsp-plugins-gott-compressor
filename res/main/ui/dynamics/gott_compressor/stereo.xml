@@ -530,7 +530,7 @@
 									</hbox>
 
 									<hbox hfill="false" pad.h="6">
-										<knob id="mk_${i}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'kscale"/>
+										<knob id="mk_${i}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'kscale'"/>
 										<vbox vfill="false" pad.l="4">
 											<label text="labels.makeup"/>
 											<value id="mk_${i}" width.min="50" sline="true" halign="0"/>
