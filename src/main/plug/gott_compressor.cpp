@@ -113,6 +113,7 @@ namespace lsp
                 bSidechain          = true;
             }
 
+            bProt               = true;
             bModern             = true;
             bEnvUpdate          = true;
             nBands              = meta::gott_compressor::BANDS_MAX;
@@ -145,6 +146,7 @@ namespace lsp
 
             pBypass             = NULL;
             pMode               = NULL;
+            pProt               = NULL;
             pInGain             = NULL;
             pOutGain            = NULL;
             pDryGain            = NULL;
@@ -285,6 +287,7 @@ namespace lsp
                     b->sEQ[0].construct();
                     b->sEQ[1].construct();
                     b->sProc.construct();
+                    b->sProt.construct();
                     b->sPassFilter.construct();
                     b->sRejFilter.construct();
                     b->sAllFilter.construct();
@@ -335,8 +338,8 @@ namespace lsp
 
                     b->nFilterID        = filter_cid++;
                     b->bEnabled         = true;
-                    b->bMute            = false;
                     b->bSolo            = false;
+                    b->bMute            = false;
 
                     b->pMinThresh       = NULL;
                     b->pUpThresh        = NULL;
@@ -415,6 +418,7 @@ namespace lsp
             lsp_trace("Binding common ports");
             pBypass                 = TRACE_PORT(ports[port_id++]);
             pMode                   = TRACE_PORT(ports[port_id++]);
+            pProt                   = TRACE_PORT(ports[port_id++]);
             pInGain                 = TRACE_PORT(ports[port_id++]);
             pOutGain                = TRACE_PORT(ports[port_id++]);
             pDryGain                = TRACE_PORT(ports[port_id++]);
@@ -647,6 +651,7 @@ namespace lsp
             dspu::filter_params_t fp;
             size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
             bool solo_on        = false;
+            bool prot_on        = pProt->value() >= 0.5f;
             bool rebuild_filters= false;
             int active_channels = 0;
             size_t env_boost    = pEnvBoost->value();
@@ -709,10 +714,11 @@ namespace lsp
                     bool enabled            = (j < nBands) && (b->pEnabled->value() >= 0.5f);
                     bool mute               = (b->pMute->value() >= 0.5f);
                     bool solo               = (b->pSolo->value() >= 0.5f);
+                    float sc_react          = pScReact->value();
 
                     // Update sidechain settings
                     b->sSC.set_mode(pScMode->value());
-                    b->sSC.set_reactivity(pScReact->value());
+                    b->sSC.set_reactivity(sc_react);
                     b->sSC.set_stereo_mode((nMode == GOTT_MS) ? dspu::SCSM_MIDSIDE : dspu::SCSM_STEREO);
                     b->sSC.set_source((pScSource != NULL) ? pScSource->value() : dspu::SCS_MIDDLE);
 
@@ -720,9 +726,7 @@ namespace lsp
                         b->nSync       |= S_EQ_CURVE;
 
                     // Update processor settings
-                    b->sProc.set_attack_time(0, b->pAttackTime->value());
-                    b->sProc.set_release_time(0, b->pReleaseTime->value());
-
+                    float attack            = b->pAttackTime->value();
                     float makeup            = b->pMakeup->value();
                     float up_ratio          = b->pUpRatio->value();
                     float down_ratio        = b->pDownRatio->value();
@@ -732,6 +736,17 @@ namespace lsp
                     float f_min_gain        = lsp_min(b->pMinThresh->value(), f_up_gain * 0.999f);
                     float f_min_value       = f_up_gain - (f_up_gain - f_min_gain) / up_ratio;
 
+                    // Update surge protection
+                    b->sProt.set_on_threshold(f_min_gain);
+                    b->sProt.set_off_threshold(meta::gott_compressor::THRESH_MIN_MIN * GAIN_AMP_M_12_DB);
+                    b->sProt.set_transition_time(dspu::millis_to_samples(fSampleRate, attack + sc_react) * meta::gott_compressor::PROT_ATTACK_MUL);
+                    b->sProt.set_shutdown_time(dspu::millis_to_samples(fSampleRate, meta::gott_compressor::PROT_SHUTDOWN_TIME));
+                    if (prot_on && (!bProt))
+                        b->sProt.reset();
+
+                    // Update dynamics processor
+                    b->sProc.set_attack_time(0, attack);
+                    b->sProc.set_release_time(0, b->pReleaseTime->value());
                     b->sProc.set_dot(0, f_down_gain, f_down_gain, knee);
                     b->sProc.set_dot(1, f_up_gain, f_up_gain, knee);
                     b->sProc.set_dot(2, f_min_gain, f_min_value, knee);
@@ -806,6 +821,7 @@ namespace lsp
             fScPreamp       = sc_preamp;
             nEnvBoost       = env_boost;
             bEnvUpdate      = false;
+            bProt           = prot_on;
 
             // Update analyzer parameters
             sAnalyzer.set_reactivity(pReactivity->value());
@@ -1067,14 +1083,11 @@ namespace lsp
                         if (b->bEnabled)
                         {
                             b->sProc.process(b->vVCA, vEnv, vBuffer, to_process); // Output
-                            if (bModern)
-                                dsp::limit1(b->vVCA, GAIN_AMP_M_72_DB, GAIN_AMP_P_72_DB, to_process);
-                            dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
                             // Output curve level
                             float lvl = dsp::abs_max(vEnv, to_process);
                             b->pEnvLvl->set_value(lvl);
-                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process));
+                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process) * b->fMakeup);
                             lvl = b->sProc.curve(lvl) * b->fMakeup;
                             b->pCurveLvl->set_value(lvl);
 
@@ -1082,11 +1095,20 @@ namespace lsp
                             b->fGainLevel   = b->vVCA[to_process-1];
 
                             // Check muting option
+                            dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
+                            if (bProt)
+                                b->sProt.process_mul(b->vVCA, vBuffer, to_process);
+
+                            // Patch the VCA signal
                             if (b->bMute)
                                 dsp::fill(b->vVCA, GAIN_AMP_M_36_DB, to_process);
+                            else if (bModern)
+                                dsp::limit1(b->vVCA, GAIN_AMP_M_72_DB * b->fMakeup, GAIN_AMP_P_72_DB * b->fMakeup, to_process);
                         }
                         else
                         {
+                            if (bProt)
+                                b->sProt.process(vBuffer, to_process);
                             dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
                             b->fGainLevel   = GAIN_AMP_0_DB;
                         }

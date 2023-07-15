@@ -95,6 +95,7 @@ namespace lsp
         #define GOTT_COMMON \
             BYPASS, \
             COMBO("mode", "Compressor mode", 1, gott_global_dyna_modes), \
+            SWITCH("prot", "Surge protection", 1.0f), \
             AMP_GAIN("g_in", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \

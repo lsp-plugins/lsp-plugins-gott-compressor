@@ -131,6 +131,8 @@ namespace lsp
             static constexpr float  FREQ_BOOST_MAX          = 20000.0f;
 
             static constexpr size_t REFRESH_RATE            = 20;
+            static constexpr float  PROT_SHUTDOWN_TIME      = 400.0f;
+            static constexpr float  PROT_ATTACK_MUL         = 2.0f;
 
             enum boost_t
             {

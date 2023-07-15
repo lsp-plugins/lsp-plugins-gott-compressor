@@ -24,6 +24,7 @@
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/dynamics/DynamicProcessor.h>
+#include <lsp-plug.in/dsp-units/dynamics/SurgeProtector.h>
 #include <lsp-plug.in/dsp-units/filters/DynamicFilters.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
 #include <lsp-plug.in/dsp-units/filters/Filter.h>
@@ -71,6 +72,7 @@ namespace lsp
                     dspu::Sidechain         sSC;                // Sidechain module
                     dspu::Equalizer         sEQ[2];             // Sidechain equalizers
                     dspu::DynamicProcessor  sProc;              // Dynamic Processor
+                    dspu::SurgeProtector    sProt;              // Surge protector
                     dspu::Filter            sPassFilter;        // Passing filter for 'classic' mode
                     dspu::Filter            sRejFilter;         // Rejection filter for 'classic' mode
                     dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
@@ -158,6 +160,7 @@ namespace lsp
 
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
+                bool                    bProt;                  // Surge protection enabled
                 bool                    bModern;                // Modern/Classic mode switch
                 bool                    bEnvUpdate;             // Envelope filter update
                 size_t                  nBands;                 // Number of bands
@@ -184,6 +187,7 @@ namespace lsp
 
                 plug::IPort            *pBypass;                // Bypass port
                 plug::IPort            *pMode;                  // Global mode
+                plug::IPort            *pProt;                  // Surge protection
                 plug::IPort            *pInGain;                // Input gain port
                 plug::IPort            *pOutGain;               // Output gain port
                 plug::IPort            *pDryGain;               // Dry gain port

@@ -365,6 +365,7 @@
 					<label text="labels.sc_boost:"/>
 					<combo id="envb" pad.r="8"/>
 					<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+					<button id="prot" text="labels.surge" size="22" ui:inject="Button_cyan"/>
 				</hbox>
 			</align>
 		</grid>
