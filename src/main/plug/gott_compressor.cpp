@@ -762,34 +762,37 @@ namespace lsp
                 {
                     fp.fFreq        = meta::gott_compressor::FREQ_BOOST_MIN;
                     fp.fFreq2       = 0.0f;
-                    fp.fGain        = 1.0f;
                     fp.fQuality     = 0.0f;
 
                     switch (env_boost)
                     {
                         case meta::gott_compressor::FB_BT_3DB:
                             fp.nType        = dspu::FLT_BT_RLC_ENVELOPE;
+                            fp.fGain        = GAIN_AMP_M_18_DB;
                             fp.nSlope       = 1;
                             break;
                         case meta::gott_compressor::FB_MT_3DB:
                             fp.nType        = dspu::FLT_MT_RLC_ENVELOPE;
+                            fp.fGain        = GAIN_AMP_M_18_DB;
                             fp.nSlope       = 1;
                             break;
                         case meta::gott_compressor::FB_BT_6DB:
                             fp.nType        = dspu::FLT_BT_RLC_ENVELOPE;
+                            fp.fGain        = GAIN_AMP_M_36_DB;
                             fp.nSlope       = 2;
                             break;
                         case meta::gott_compressor::FB_MT_6DB:
                             fp.nType        = dspu::FLT_MT_RLC_ENVELOPE;
+                            fp.fGain        = GAIN_AMP_M_36_DB;
                             fp.nSlope       = 2;
                             break;
                         case meta::gott_compressor::FB_OFF:
                         default:
                             fp.nType        = dspu::FLT_NONE;
+                            fp.fGain        = GAIN_AMP_0_DB;
                             fp.nSlope       = 1;
                             break;
                     }
-
                     c->sEnvBoost[0].update(fSampleRate, &fp);
                     if (bSidechain)
                         c->sEnvBoost[1].update(fSampleRate, &fp);
