@@ -135,8 +135,8 @@ namespace lsp
             LOG_CONTROL("tm" id, "Minimum threshold" label, U_GAIN_AMP, gott_compressor::THRESH_MIN), \
             LOG_CONTROL("tu" id, "Upward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_UP), \
             LOG_CONTROL("td" id, "Downward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_DOWN), \
-            LOG_CONTROL("ru" id, "Upward ratio" label, U_NONE, gott_compressor::RATIO), \
-            LOG_CONTROL("rd" id, "Downward ratio" label, U_NONE, gott_compressor::RATIO), \
+            LOG_CONTROL("ru" id, "Upward ratio" label, U_NONE, gott_compressor::RATIO_UP), \
+            LOG_CONTROL("rd" id, "Downward ratio" label, U_NONE, gott_compressor::RATIO_DOWN), \
             LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, gott_compressor::KNEE), \
             LOG_CONTROL("ta" id, "Attack time" label, U_MSEC, gott_compressor::ATTACK_TIME), \
             LOG_CONTROL("tr" id, "Release time" label, U_MSEC, gott_compressor::RELEASE_TIME), \

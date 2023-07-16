@@ -79,12 +79,12 @@ namespace lsp
 
             static constexpr float  THRESH_MIN_MIN          = GAIN_AMP_M_72_DB;
             static constexpr float  THRESH_MIN_MAX          = GAIN_AMP_0_DB;
-            static constexpr float  THRESH_MIN_DFL          = GAIN_AMP_M_60_DB;
+            static constexpr float  THRESH_MIN_DFL          = GAIN_AMP_M_30_DB;
             static constexpr float  THRESH_MIN_STEP         = 0.01f;
 
             static constexpr float  THRESH_UP_MIN           = GAIN_AMP_M_72_DB;
             static constexpr float  THRESH_UP_MAX           = GAIN_AMP_0_DB;
-            static constexpr float  THRESH_UP_DFL           = GAIN_AMP_M_36_DB;
+            static constexpr float  THRESH_UP_DFL           = GAIN_AMP_M_18_DB;
             static constexpr float  THRESH_UP_STEP          = 0.01f;
 
             static constexpr float  THRESH_DOWN_MIN         = GAIN_AMP_M_72_DB;
@@ -92,29 +92,34 @@ namespace lsp
             static constexpr float  THRESH_DOWN_DFL         = GAIN_AMP_M_12_DB;
             static constexpr float  THRESH_DOWN_STEP        = 0.01f;
 
-            static constexpr float  RATIO_MIN               = 1.0f;
-            static constexpr float  RATIO_MAX               = 100.0f;
-            static constexpr float  RATIO_DFL               = 50.0f;
-            static constexpr float  RATIO_STEP              = 0.0025f;
+            static constexpr float  RATIO_DOWN_MIN          = 1.0f;
+            static constexpr float  RATIO_DOWN_MAX          = 100.0f;
+            static constexpr float  RATIO_DOWN_DFL          = 6.0f;
+            static constexpr float  RATIO_DOWN_STEP         = 0.0025f;
+
+            static constexpr float  RATIO_UP_MIN            = 1.0f;
+            static constexpr float  RATIO_UP_MAX            = 100.0f;
+            static constexpr float  RATIO_UP_DFL            = 4.0f;
+            static constexpr float  RATIO_UP_STEP           = 0.0025f;
 
             static constexpr float  KNEE_MIN                = GAIN_AMP_M_24_DB;
             static constexpr float  KNEE_MAX                = GAIN_AMP_0_DB;
-            static constexpr float  KNEE_DFL                = GAIN_AMP_M_6_DB;
+            static constexpr float  KNEE_DFL                = GAIN_AMP_M_3_DB;
             static constexpr float  KNEE_STEP               = 0.01f;
 
             static constexpr float  ATTACK_TIME_MIN         = 0.0f;
-            static constexpr float  ATTACK_TIME_MAX         = 2000.0f;
-            static constexpr float  ATTACK_TIME_DFL         = 20.0f;
-            static constexpr float  ATTACK_TIME_STEP        = 0.0025f;
+            static constexpr float  ATTACK_TIME_MAX         = 200.0f;
+            static constexpr float  ATTACK_TIME_DFL         = 2.0f;
+            static constexpr float  ATTACK_TIME_STEP        = 0.00125f;
 
             static constexpr float  RELEASE_TIME_MIN        = 0.0f;
-            static constexpr float  RELEASE_TIME_MAX        = 5000.0f;
-            static constexpr float  RELEASE_TIME_DFL        = 100.0f;
-            static constexpr float  RELEASE_TIME_STEP       = 0.0025f;
+            static constexpr float  RELEASE_TIME_MAX        = 500.0f;
+            static constexpr float  RELEASE_TIME_DFL        = 3.5f;
+            static constexpr float  RELEASE_TIME_STEP       = 0.00125f;
 
             static constexpr float  LOOKAHEAD_MIN           = 0.0f;
             static constexpr float  LOOKAHEAD_MAX           = 20.0f;
-            static constexpr float  LOOKAHEAD_DFL           = 0.0f;
+            static constexpr float  LOOKAHEAD_DFL           = 5.0f;
             static constexpr float  LOOKAHEAD_STEP          = 0.01f;
 
             static constexpr float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;
@@ -142,7 +147,7 @@ namespace lsp
                 FB_BT_6DB,
                 FB_MT_6DB,
 
-                FB_DEFAULT              = FB_BT_3DB
+                FB_DEFAULT              = FB_OFF
             };
         } gott_compressor;
 
