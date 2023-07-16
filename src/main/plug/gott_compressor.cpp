@@ -66,11 +66,6 @@ namespace lsp
         static plug::Factory factory(plugin_factory, plugins, 8);
 
         //---------------------------------------------------------------------
-        static const float makeup_patch[] = {
-            1.0f, 0.63095734448f, 1.0f, 1.0f
-        };
-
-        //---------------------------------------------------------------------
         // Implementation
         gott_compressor::gott_compressor(const meta::plugin_t *meta):
             Module(meta)
@@ -732,7 +727,7 @@ namespace lsp
 
                     // Update processor settings
                     float attack            = b->pAttackTime->value();
-                    float makeup            = b->pMakeup->value() * makeup_patch[j];
+                    float makeup            = b->pMakeup->value();
                     float up_ratio          = b->pUpRatio->value();
                     float down_ratio        = b->pDownRatio->value();
                     float f_down_gain       = b->pDownThresh->value();
@@ -1092,7 +1087,8 @@ namespace lsp
                             // Output curve level
                             float lvl = dsp::abs_max(vEnv, to_process);
                             b->pEnvLvl->set_value(lvl);
-                            b->pMeterGain->set_value(dsp::abs_max(b->vVCA, to_process) * b->fMakeup);
+                            float vca = dsp::abs_max(b->vVCA, to_process) * b->fMakeup;
+                            b->pMeterGain->set_value(vca);
                             lvl = b->sProc.curve(lvl) * b->fMakeup;
                             b->pCurveLvl->set_value(lvl);
 
