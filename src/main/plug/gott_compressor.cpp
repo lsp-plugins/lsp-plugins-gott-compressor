@@ -1482,6 +1482,7 @@ namespace lsp
 
             v->write("nMode", nMode);
             v->write("bSidechain", bSidechain);
+            v->write("bProt", bProt);
             v->write("bModern", bModern);
             v->write("bEnvUpdate", bEnvUpdate);
             v->write("nBands", nBands);
@@ -1507,16 +1508,20 @@ namespace lsp
                     v->write_object("sDelay", &c->sBypass);
 
                     {
-                        v->begin_array("vChannels", vChannels, channels);
+                        v->begin_array("vBands", c->vBands, meta::gott_compressor::BANDS_MAX);
                         lsp_finally { v->end_array(); };
 
                         for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                         {
                             band_t *b       = &c->vBands[j];
 
+                            v->begin_object(b, sizeof(band_t));
+                            lsp_finally { v->end_object(); };
+
                             v->write_object("sSC", &b->sSC);
                             v->write_object_array("sEQ", b->sEQ, 2);
                             v->write_object("sProc", &b->sProc);
+                            v->write_object("sProt", &b->sProt);
                             v->write_object("sPassFilter", &b->sPassFilter);
                             v->write_object("sRejFilter", &b->sRejFilter);
                             v->write_object("sAllFilter", &b->sAllFilter);
