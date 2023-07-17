@@ -332,7 +332,7 @@ namespace lsp
             "GOTT Comressor",
             B_DYNAMICS,
             "", // TODO: provide ID of the video on YouTube
-            "" // TODO: write plugin description, should be the same to the english version in 'bundles.json'
+            "Performs Grand Over-The-Top multiband compression of audio signal"
         };
 
         const plugin_t gott_compressor_mono =
