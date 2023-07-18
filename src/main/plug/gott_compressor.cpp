@@ -681,6 +681,7 @@ namespace lsp
             fDryGain            = out_gain * pDryGain->value();
             fWetGain            = out_gain * pWetGain->value();
             fZoom               = pZoom->value();
+            bExtSidechain       = (pExtSidechain != NULL) ? pExtSidechain->value() > 0.5f : false;
 
             for (size_t i=0; i<channels; ++i)
             {
