@@ -1,0 +1,6 @@
+{
+	"gott_comp": {
+		"band_is_off": "Полоса выключена",
+		"freq_range": "{@start%.1f} - {@end%.1f} Гц"
+	}
+}
