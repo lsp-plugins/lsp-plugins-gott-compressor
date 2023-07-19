@@ -330,8 +330,8 @@ namespace lsp
         {
             "gott_compressor",
             "GOTT Comressor",
-            B_DYNAMICS,
-            "", // TODO: provide ID of the video on YouTube
+            B_MB_DYNAMICS,
+            "wb8QnU4yRF0",
             "Performs Grand Over-The-Top multiband compression of audio signal"
         };
 

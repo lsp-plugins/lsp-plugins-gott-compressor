@@ -1,7 +1,7 @@
 {
 	"gott_compressor": {
 		"name": "GOTT Compressor",
-		"description": "TODO: write description"
+		"description": "Performs Grand Over-The-Top multiband compression of audio signal"
 	}
 }
 
