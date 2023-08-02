@@ -134,6 +134,9 @@ namespace lsp
             vAnalyze[2]         = NULL;
             vAnalyze[3]         = NULL;
             vBuffer             = NULL;
+            vProtBuffer         = NULL;
+            vSCIn[0]            = NULL;
+            vSCIn[1]            = NULL;
             vSC[0]              = NULL;
             vSC[1]              = NULL;
             vEnv                = NULL;
@@ -200,6 +203,10 @@ namespace lsp
             if (sFilters.init(meta::gott_compressor::BANDS_MAX * channels) != STATUS_OK)
                 return;
 
+            // Initialize surge protection module
+            if (!sProtSC.init(channels, meta::gott_compressor::SC_REACTIVITY_MAX))
+                return;
+
             // Compute amount of memory
             size_t szof_channels    = align_size(sizeof(channel_t) * channels, OPTIMAL_ALIGN);
             size_t szof_buffer      = align_size(sizeof(float) * GOTT_BUFFER_SIZE, OPTIMAL_ALIGN);
@@ -210,6 +217,7 @@ namespace lsp
             size_t to_alloc         =
                 szof_channels +
                 szof_buffer +       // vBuffer
+                szof_buffer +       // vProtBuffer
                 szof_buffer*2 +     // vSC[2]
                 szof_buffer +       // vEnv
                 szof_freq*2 +       // vTr
@@ -242,6 +250,8 @@ namespace lsp
             ptr                    += szof_channels;
 
             vBuffer                 = reinterpret_cast<float *>(ptr);
+            ptr                    += szof_buffer;
+            vProtBuffer             = reinterpret_cast<float *>(ptr);
             ptr                    += szof_buffer;
             vSC[0]                  = reinterpret_cast<float *>(ptr);
             ptr                    += szof_buffer;
@@ -290,7 +300,6 @@ namespace lsp
                     b->sEQ[0].construct();
                     b->sEQ[1].construct();
                     b->sProc.construct();
-                    b->sProt.construct();
                     b->sPassFilter.construct();
                     b->sRejFilter.construct();
                     b->sAllFilter.construct();
@@ -381,6 +390,8 @@ namespace lsp
                 ptr                    += szof_freq * 2;
                 c->vFilterBuffer        = reinterpret_cast<float *>(ptr);
                 ptr                    += szof_freq;
+
+                vSCIn[i]                = c->vScBuffer;
 
                 c->nAnInChannel         = an_cid++;
                 c->nAnOutChannel        = an_cid++;
@@ -555,6 +566,10 @@ namespace lsp
             // Destroy dynamic filters
             sFilters.destroy();
 
+            // Destroy surge protection
+            sProtSC.destroy();
+            sProt.destroy();
+
             // Destroy channels
             if (vChannels != NULL)
             {
@@ -574,9 +589,9 @@ namespace lsp
                     {
                         band_t *b               = &c->vBands[j];
 
+                        b->sSC.destroy();
                         b->sEQ[0].destroy();
                         b->sEQ[1].destroy();
-                        b->sSC.destroy();
 
                         b->sPassFilter.destroy();
                         b->sRejFilter.destroy();
@@ -628,6 +643,7 @@ namespace lsp
             // Update analyzer's sample rate
             sAnalyzer.set_sample_rate(sr);
             sFilters.set_sample_rate(sr);
+            sProtSC.set_sample_rate(sr);
             bEnvUpdate          = true;
 
             // Update channels
@@ -747,6 +763,9 @@ namespace lsp
             plug::IPort *sc     = (bStereoSplit) ? pScSpSource : pScSource;
             size_t sc_src       = (sc != NULL) ? sc->value() : dspu::SCS_MIDDLE;
 
+            float max_attack    = meta::gott_compressor::ATTACK_TIME_MIN;
+            float sc_react      = pScReact->value();
+
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c = &vChannels[i];
@@ -759,8 +778,8 @@ namespace lsp
                 c->sBypass.set_bypass(pBypass->value());
 
                 // Update analyzer settings
-                c->bInFft           = c->pFftInSw->value() >= 0.5f;
-                c->bOutFft          = c->pFftOutSw->value() >= 0.5f;
+                c->bInFft               = c->pFftInSw->value() >= 0.5f;
+                c->bOutFft              = c->pFftOutSw->value() >= 0.5f;
 
                 sAnalyzer.enable_channel(c->nAnInChannel, c->bInFft);
                 sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->value()  >= 0.5f);
@@ -779,7 +798,6 @@ namespace lsp
                     bool enabled            = (j < nBands) && (b->pEnabled->value() >= 0.5f);
                     bool mute               = (b->pMute->value() >= 0.5f);
                     bool solo               = (b->pSolo->value() >= 0.5f);
-                    float sc_react          = pScReact->value();
 
                     // Update sidechain settings
                     b->sSC.set_mode(pScMode->value());
@@ -801,13 +819,7 @@ namespace lsp
                     float f_min_gain        = lsp_min(b->pMinThresh->value(), f_up_gain * 0.999f);
                     float f_min_value       = f_up_gain - (f_up_gain - f_min_gain) / up_ratio;
 
-                    // Update surge protection
-                    b->sProt.set_on_threshold(f_min_gain);
-                    b->sProt.set_off_threshold(meta::gott_compressor::THRESH_MIN_MIN * GAIN_AMP_M_12_DB);
-                    b->sProt.set_transition_time(dspu::millis_to_samples(fSampleRate, attack + sc_react) * meta::gott_compressor::PROT_ATTACK_MUL);
-                    b->sProt.set_shutdown_time(dspu::millis_to_samples(fSampleRate, meta::gott_compressor::PROT_SHUTDOWN_TIME));
-                    if (prot_on && (!bProt))
-                        b->sProt.reset();
+                    max_attack              = lsp_max(max_attack, attack);
 
                     // Update dynamics processor
                     b->sProc.set_attack_time(0, attack);
@@ -881,6 +893,20 @@ namespace lsp
                 // Update lookahead delay
                 c->sDelay.set_delay(lookahead);
             }
+
+            // Update surge protection sidechain settings
+            sProtSC.set_mode(pScMode->value());
+            sProtSC.set_reactivity(sc_react);
+            sProtSC.set_stereo_mode((nMode == GOTT_MS) ? dspu::SCSM_MIDSIDE : dspu::SCSM_STEREO);
+            sProtSC.set_source(dspu::SCS_AMAX);
+
+            // Update surge protection
+            sProt.set_on_threshold(GAIN_AMP_M_96_DB);
+            sProt.set_off_threshold(meta::gott_compressor::THRESH_MIN_MIN * GAIN_AMP_M_12_DB);
+            sProt.set_transition_time(dspu::millis_to_samples(fSampleRate, max_attack + sc_react) * meta::gott_compressor::PROT_ATTACK_MUL);
+            sProt.set_shutdown_time(dspu::millis_to_samples(fSampleRate, meta::gott_compressor::PROT_SHUTDOWN_TIME));
+            if (prot_on && (!bProt))
+                sProt.reset();
 
             // Commit the envelope state
             fScPreamp       = sc_preamp;
@@ -1127,6 +1153,10 @@ namespace lsp
                     dsp::copy(c->vInAnalyze, c->vBuffer, to_process);
                 }
 
+                // Surge protection
+                sProtSC.process(vProtBuffer, vSCIn, to_process);
+                sProt.process(vProtBuffer, vProtBuffer, to_process);
+
                 // MAIN PLUGIN STUFF
                 for (size_t i=0; i<channels; ++i)
                 {
@@ -1161,9 +1191,10 @@ namespace lsp
                             b->fGainLevel   = b->vVCA[to_process-1];
 
                             // Check muting option
-                            dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
                             if (bProt)
-                                b->sProt.process_mul(b->vVCA, vBuffer, to_process);
+                                dsp::fmmul_k3(b->vVCA, vProtBuffer, b->fMakeup, to_process);
+                            else
+                                dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
                             // Patch the VCA signal
                             if (b->bMute)
@@ -1173,8 +1204,6 @@ namespace lsp
                         }
                         else
                         {
-                            if (bProt)
-                                b->sProt.process(vBuffer, to_process);
                             dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
                             b->fGainLevel   = GAIN_AMP_0_DB;
                         }
@@ -1543,6 +1572,8 @@ namespace lsp
 
             v->write_object("sAnalyzer", &sAnalyzer);
             v->write_object("sFilters", &sFilters);
+            v->write_object("sProtSC", &sProtSC);
+            v->write_object("sProt", &sProt);
 
             v->write("nMode", nMode);
             v->write("bSidechain", bSidechain);
@@ -1586,7 +1617,6 @@ namespace lsp
                             v->write_object("sSC", &b->sSC);
                             v->write_object_array("sEQ", b->sEQ, 2);
                             v->write_object("sProc", &b->sProc);
-                            v->write_object("sProt", &b->sProt);
                             v->write_object("sPassFilter", &b->sPassFilter);
                             v->write_object("sRejFilter", &b->sRejFilter);
                             v->write_object("sAllFilter", &b->sAllFilter);

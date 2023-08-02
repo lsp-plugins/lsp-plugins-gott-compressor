@@ -72,7 +72,6 @@ namespace lsp
                     dspu::Sidechain         sSC;                // Sidechain module
                     dspu::Equalizer         sEQ[2];             // Sidechain equalizers
                     dspu::DynamicProcessor  sProc;              // Dynamic Processor
-                    dspu::SurgeProtector    sProt;              // Surge protector
                     dspu::Filter            sPassFilter;        // Passing filter for 'classic' mode
                     dspu::Filter            sRejFilter;         // Rejection filter for 'classic' mode
                     dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
@@ -157,6 +156,8 @@ namespace lsp
             protected:
                 dspu::Analyzer          sAnalyzer;              // Analyzer
                 dspu::DynamicFilters    sFilters;               // Dynamic filters for each band in 'modern' mode
+                dspu::Sidechain         sProtSC;                // Surge protector sidechain module
+                dspu::SurgeProtector    sProt;                  // Surge protector
 
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
@@ -176,6 +177,8 @@ namespace lsp
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
                 float                  *vBuffer;                // Temporary buffer
+                float                  *vProtBuffer;            // Surge protection buffer
+                const float            *vSCIn[2];               // Sidechain input buffers
                 float                  *vSC[2];                 // Sidechain pre-processing
                 float                  *vEnv;                   // Envelope buffer
                 float                  *vTr;                    // Transfer buffer
