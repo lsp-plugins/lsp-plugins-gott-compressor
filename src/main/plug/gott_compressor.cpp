@@ -118,6 +118,7 @@ namespace lsp
             bEnvUpdate          = true;
             nBands              = meta::gott_compressor::BANDS_MAX;
             bExtSidechain       = false;
+            bStereoSplit        = false;
             fInGain             = GAIN_AMP_0_DB;
             fDryGain            = GAIN_AMP_M_INF_DB;
             fWetGain            = GAIN_AMP_0_DB;
@@ -153,6 +154,7 @@ namespace lsp
             pWetGain            = NULL;
             pScMode             = NULL;
             pScSource           = NULL;
+            pScSpSource         = NULL;
             pScPreamp           = NULL;
             pScReact            = NULL;
             pLookahead          = NULL;
@@ -165,6 +167,7 @@ namespace lsp
             pSplits[2]          = NULL;
             pExtraBand          = NULL;
             pExtSidechain       = NULL;
+            pStereoSplit        = NULL;
 
             pData               = NULL;
         }
@@ -439,6 +442,11 @@ namespace lsp
             pExtraBand              = TRACE_PORT(ports[port_id++]);
             if (bSidechain)
                 pExtSidechain           = TRACE_PORT(ports[port_id++]);
+            if (nMode == GOTT_STEREO)
+            {
+                pStereoSplit            = TRACE_PORT(ports[port_id++]);
+                pScSpSource             = TRACE_PORT(ports[port_id++]);
+            }
             if ((nMode == GOTT_LR) || (nMode == GOTT_MS))
                 TRACE_PORT(ports[port_id++]); // Skip channel selector
 
@@ -470,9 +478,6 @@ namespace lsp
 
                         b->pCurveMesh           = sb->pCurveMesh;
                         b->pFreqMesh            = sb->pFreqMesh;
-                        b->pEnvLvl              = sb->pEnvLvl;
-                        b->pCurveLvl            = sb->pCurveLvl;
-                        b->pMeterGain           = sb->pMeterGain;
                     }
                 }
                 else
@@ -497,10 +502,21 @@ namespace lsp
 
                         b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
                         b->pFreqMesh            = TRACE_PORT(ports[port_id++]);
-                        b->pEnvLvl              = TRACE_PORT(ports[port_id++]);
-                        b->pCurveLvl            = TRACE_PORT(ports[port_id++]);
-                        b->pMeterGain           = TRACE_PORT(ports[port_id++]);
                     }
+                }
+            }
+
+            lsp_trace("Binding band meter ports");
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+                for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+
+                    b->pEnvLvl              = TRACE_PORT(ports[port_id++]);
+                    b->pCurveLvl            = TRACE_PORT(ports[port_id++]);
+                    b->pMeterGain           = TRACE_PORT(ports[port_id++]);
                 }
             }
 
@@ -516,13 +532,12 @@ namespace lsp
                 c->pOutLvl              = TRACE_PORT(ports[port_id++]);
             }
 
-            if ((nMode == GOTT_LR) || (nMode == GOTT_MS))
+            lsp_trace("Binding aplification curve ports");
+            for (size_t i=0; i<channels; ++i)
             {
-                vChannels[0].pAmpGraph  = TRACE_PORT(ports[port_id++]);
-                vChannels[1].pAmpGraph  = TRACE_PORT(ports[port_id++]);
+                channel_t *c            = &vChannels[i];
+                c->pAmpGraph            = TRACE_PORT(ports[port_id++]);
             }
-            else
-                vChannels[0].pAmpGraph  = TRACE_PORT(ports[port_id++]);
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
             float delta = (meta::gott_compressor::CURVE_DB_MAX - meta::gott_compressor::CURVE_DB_MIN) / (meta::gott_compressor::CURVE_MESH_SIZE-1);
@@ -646,6 +661,52 @@ namespace lsp
             }
         }
 
+        dspu::sidechain_source_t gott_compressor::decode_sidechain_source(int source, bool split, size_t channel)
+        {
+            if (!split)
+            {
+                switch (source)
+                {
+                    case 0: return dspu::SCS_MIDDLE;
+                    case 1: return dspu::SCS_SIDE;
+                    case 2: return dspu::SCS_LEFT;
+                    case 3: return dspu::SCS_RIGHT;
+                    case 4: return dspu::SCS_AMIN;
+                    case 5: return dspu::SCS_AMAX;
+                    default: break;
+                }
+            }
+
+            if (channel == 0)
+            {
+                switch (source)
+                {
+                    case 0: return dspu::SCS_LEFT;
+                    case 1: return dspu::SCS_RIGHT;
+                    case 2: return dspu::SCS_MIDDLE;
+                    case 3: return dspu::SCS_SIDE;
+                    case 4: return dspu::SCS_AMIN;
+                    case 5: return dspu::SCS_AMAX;
+                    default: break;
+                }
+            }
+            else
+            {
+                switch (source)
+                {
+                    case 0: return dspu::SCS_RIGHT;
+                    case 1: return dspu::SCS_LEFT;
+                    case 2: return dspu::SCS_SIDE;
+                    case 3: return dspu::SCS_MIDDLE;
+                    case 4: return dspu::SCS_AMIN;
+                    case 5: return dspu::SCS_AMAX;
+                    default: break;
+                }
+            }
+
+            return dspu::SCS_MIDDLE;
+        }
+
         void gott_compressor::update_settings()
         {
             dspu::filter_params_t fp;
@@ -674,6 +735,7 @@ namespace lsp
                     vSplits[i]          = freq;
                 }
             }
+            bStereoSplit        = (pStereoSplit != NULL) ? pStereoSplit->value() >= 0.5f : false;
 
             // Store gain
             float out_gain      = pOutGain->value();
@@ -682,6 +744,8 @@ namespace lsp
             fWetGain            = out_gain * pWetGain->value();
             fZoom               = pZoom->value();
             bExtSidechain       = (pExtSidechain != NULL) ? pExtSidechain->value() > 0.5f : false;
+            plug::IPort *sc     = (bStereoSplit) ? pScSpSource : pScSource;
+            size_t sc_src       = (sc != NULL) ? sc->value() : dspu::SCS_MIDDLE;
 
             for (size_t i=0; i<channels; ++i)
             {
@@ -721,7 +785,7 @@ namespace lsp
                     b->sSC.set_mode(pScMode->value());
                     b->sSC.set_reactivity(sc_react);
                     b->sSC.set_stereo_mode((nMode == GOTT_MS) ? dspu::SCSM_MIDSIDE : dspu::SCSM_STEREO);
-                    b->sSC.set_source((pScSource != NULL) ? pScSource->value() : dspu::SCS_MIDDLE);
+                    b->sSC.set_source(decode_sidechain_source(sc_src, bStereoSplit, i));
 
                     if (sc_preamp != fScPreamp)
                         b->nSync       |= S_EQ_CURVE;
@@ -1433,15 +1497,19 @@ namespace lsp
             b->v[3][0]          = 1.0f;
             b->v[3][width+1]    = 1.0f;
 
-            size_t channels = ((nMode == GOTT_MONO) || (nMode == GOTT_STEREO)) ? 1 : 2;
-            static uint32_t c_colors[] = {
-                    CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
-                    CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
-                    CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL,
-                    CV_MIDDLE_CHANNEL, CV_SIDE_CHANNEL
-                   };
+            static const uint32_t c_colors[] = {
+                CV_MIDDLE_CHANNEL,
+                CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL,
+                CV_MIDDLE_CHANNEL, CV_SIDE_CHANNEL
+            };
+
+            size_t channels     = ((nMode == GOTT_MONO) || ((nMode == GOTT_STEREO) && (!bStereoSplit))) ? 1 : 2;
+            const uint32_t *vc  = (channels == 1) ? &c_colors[0] :
+                                  (nMode == GOTT_MS) ? &c_colors[3] :
+                                  &c_colors[1];
 
             bool aa = cv->set_anti_aliasing(true);
+            lsp_finally { cv->set_anti_aliasing(aa); };
             cv->set_line_width(2);
 
             for (size_t i=0; i<channels; ++i)
@@ -1461,11 +1529,10 @@ namespace lsp
                 dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, width+2);
 
                 // Draw mesh
-                uint32_t color = (bypassing || !(active())) ? CV_SILVER : c_colors[nMode*2 + i];
+                uint32_t color = (bypassing || !(active())) ? CV_SILVER : vc[i];
                 Color stroke(color), fill(color, 0.5f);
                 cv->draw_poly(b->v[1], b->v[2], width+2, stroke, fill);
             }
-            cv->set_anti_aliasing(aa);
 
             return true;
         }
@@ -1484,6 +1551,7 @@ namespace lsp
             v->write("bEnvUpdate", bEnvUpdate);
             v->write("nBands", nBands);
             v->write("bExtSidechain", bExtSidechain);
+            v->write("bStereoSplit", bStereoSplit);
             v->write("fInGain", fInGain);
             v->write("fDryGain", fDryGain);
             v->write("fWetGain", fWetGain);
@@ -1612,6 +1680,7 @@ namespace lsp
             v->write("pWetGain", pWetGain);
             v->write("pScMode", pScMode);
             v->write("pScSource", pScSource);
+            v->write("pScSpSource", pScSpSource);
             v->write("pScPreamp", pScPreamp);
             v->write("pScReact", pScReact);
             v->write("pLookahead", pLookahead);
@@ -1622,6 +1691,7 @@ namespace lsp
             v->writev("pSplits", pSplits, meta::gott_compressor::BANDS_MAX - 1);
             v->write("pExtraBand", pExtraBand);
             v->write("pExtSidechain", pExtSidechain);
+            v->write("pStereoSplit", pStereoSplit);
 
             v->write("pData", pData);
         }

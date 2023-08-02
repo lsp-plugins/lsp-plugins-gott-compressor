@@ -87,7 +87,9 @@
 					<mesh id="ofg_l" width="2" color="left" visibility=":ofe_l"/>
 					<mesh id="ofg_r" width="2" color="right" visibility=":ofe_r"/>
 
-					<mesh id="ag" width="3" color="bright_cyan" smooth="true"/>
+					<mesh id="ag_l" width="3" color="bright_cyan" smooth="true" visibility="!:ssplit"/>
+					<mesh id="ag_l" width="3" color="left" smooth="true" visibility=":ssplit"/>
+					<mesh id="ag_r" width="3" color="right" smooth="true" visibility=":ssplit"/>
 
 					<!-- Threshold segments -->
 					<ui:for id="b" first="1" count="4">
@@ -358,15 +360,21 @@
 			</cell>
 
 			<!-- bottom line -->
-			<align halign="-1" vreduce="true">
-				<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
-					<label text="labels.mode:"/>
-					<combo id="mode" pad.r="8" pad.v="4"/>
-					<label text="labels.sc_boost:"/>
-					<combo id="envb" pad.r="8"/>
-					<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+			<hbox vreduce="true">
+				<align halign="-1" vreduce="true">
+					<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
+						<label text="labels.mode:"/>
+						<combo id="mode" pad.r="8" pad.v="4"/>
+						<label text="labels.sc_boost:"/>
+						<combo id="envb" pad.r="8"/>
+						<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+					</hbox>
+				</align>
+				<vsep pad.h="2" bg.color="bg" reduce="true" />
+				<hbox bg.color="bg_schema" hreduce="true" pad.h="6">
+					<button id="ssplit" text="labels.stereo_split" size="22" ui:inject="Button_blue"/>
 				</hbox>
-			</align>
+			</hbox>
 		</grid>
 
 		<!-- down part -->
@@ -378,7 +386,8 @@
 					<vbox vreduce="true" pad.b="8">
 						<button id="prot" text="labels.surge" fill="true" pad.h="6" pad.b="4"/>
 						<combo id="sc_mode" pad.h="6" pad.b="4"/>
-						<combo id="sc_src" pad.h="6" />
+						<combo id="sc_src" pad.h="6" visibility="!:ssplit" />
+						<combo id="sp_src" pad.h="6" visibility=":ssplit" />
 						<button id="sc_ext" text="labels.chan.external_sc" fill="true" visibility="ex :sc_ext" ui:inject="Button_orange" pad.t="4" pad.h="6"/>
 					</vbox>
 					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
@@ -582,13 +591,29 @@
 													smooth="true"
 													visibility="${act_cg}" />
 												<dot
-													x.id="elm_${i}"
-													y.id="clm_${i}"
+													x.id="elm_${i}l"
+													y.id="clm_${i}l"
 													color="graph_mesh"
 													bcolor="graph_mesh"
 													size="3"
 													border.size="0"
-													visibility="${act_cg}" />
+													visibility="(!:ssplit) and (${act_cg})" />
+												<dot
+													x.id="elm_${i}l"
+													y.id="clm_${i}l"
+													color="left"
+													bcolor="left"
+													size="3"
+													border.size="0"
+													visibility="(:ssplit) and (${act_cg})" />
+												<dot
+													x.id="elm_${i}r"
+													y.id="clm_${i}r"
+													color="right"
+													bcolor="right"
+													size="3"
+													border.size="0"
+													visibility="(:ssplit) and (${act_cg})" />
 
 												<!-- Text -->
 												<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
@@ -620,7 +645,16 @@
 											<void/>
 											<ledmeter vexpand="true" angle="1">
 												<ledchannel
-													id="rlm_${i}"
+													id="rlm_${i}l"
+													min="-48 db"
+													max="48 db"
+													log="true"
+													balance="0 db"
+													balance.visibility="true"
+													type="peak"
+													value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
+												<ledchannel
+													id="rlm_${i}r"
 													min="-48 db"
 													max="48 db"
 													log="true"

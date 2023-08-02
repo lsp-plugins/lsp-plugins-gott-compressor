@@ -165,6 +165,7 @@ namespace lsp
                 bool                    bEnvUpdate;             // Envelope filter update
                 size_t                  nBands;                 // Number of bands
                 bool                    bExtSidechain;          // External sidechain
+                bool                    bStereoSplit;           // Stereo split mode
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
@@ -194,6 +195,7 @@ namespace lsp
                 plug::IPort            *pWetGain;               // Wet gain port
                 plug::IPort            *pScMode;                // Sidechain mode
                 plug::IPort            *pScSource;              // Sidechain source
+                plug::IPort            *pScSpSource;            // Sidechain split source
                 plug::IPort            *pScPreamp;              // Sidechain preamp
                 plug::IPort            *pScReact;               // Sidechain reactivity
                 plug::IPort            *pLookahead;             // Lookahead time
@@ -204,8 +206,12 @@ namespace lsp
                 plug::IPort            *pSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 plug::IPort            *pExtraBand;             // Extra band enable
                 plug::IPort            *pExtSidechain;          // External sidechain enable
+                plug::IPort            *pStereoSplit;           // Stereo split mode
 
                 uint8_t                *pData;                  // Aligned data pointer
+
+            protected:
+                static dspu::sidechain_source_t     decode_sidechain_source(int source, bool split, size_t channel);
 
             public:
                 explicit gott_compressor(const meta::plugin_t *meta);

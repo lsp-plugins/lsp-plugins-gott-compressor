@@ -42,6 +42,9 @@
 	<li><b>Surge protection</b> - provides surge protection mechanism aimed to avoid extra loud first pop when compressor starts working
 	after a long period of silence.
 	</li>
+	<?php if ($m == 's') { ?>
+	<li><b>Stereo split mode</b> allows to apply compression to the left and right channels independently.</li>
+	<?php } ?>
 </ul>
 
 <p><b>Controls:</b></p>
@@ -59,6 +62,9 @@
 		<li><b>Brown MT</b> - a +6db/octave sidechain boost using matched-transformed shelving filter.</li>
 	</ul>
 	<li><b>Zoom</b> - zoom fader, allows to adjust zoom on the frequency chart.</li>
+	<?php if ($m == 's') { ?>
+	<li><b>Stereo Split</b> - enables independent compression of left and right channels.</li>
+	<?php } ?>
 </ul>
 <p><b>'Analysis' section:</b></p>
 <ul>
@@ -93,6 +99,12 @@
 			<li><b>Right</b> - only right channel is used for sidechain processing.</li>
 			<li><b>Min</b> - the absolute minimum value is taken from stereo input.</li>
 			<li><b>Max</b> - the absolute maximum value is taken from stereo input.</li>
+		<?php } ?>
+		<?php if ($m == 's') { ?>
+			<li><b>Left/Right</b> - left and right channels are being compressed using respectively the left and right sidechain channels in stereo split mode.</li>
+			<li><b>Right/Left</b> - left and right channels are being compressed using respectively the right and left sidechain channels in stereo split mode.</li>
+			<li><b>Mid/Side</b> - left and right channels are being compressed using respectively the middle and side parts of sidechain signal in stereo split mode.</li>
+			<li><b>Side/Mid</b> - left and right channels are being compressed using respectively the side and middle parts of sidechain signal in stereo split mode.</li>
 		<?php } ?>
 	</ul>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>

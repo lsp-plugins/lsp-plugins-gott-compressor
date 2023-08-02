@@ -78,6 +78,17 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t gott_sc_split_source[] =
+        {
+            { "Left/Right",     "sidechain.left_right"      },
+            { "Right/Left",     "sidechain.right_left"      },
+            { "Mid/Side",       "sidechain.mid_side"        },
+            { "Side/Mid",       "sidechain.side_mid"        },
+            { "Min",            "sidechain.min"             },
+            { "Max",            "sidechain.max"             },
+            { NULL, NULL }
+        };
+
         static const port_item_t gott_lr_selectors[] =
         {
             { "Left",           "gott_comp.selectors.left"  },
@@ -118,6 +129,10 @@ namespace lsp
         #define GOTT_SC_COMMON \
             SWITCH("sc_ext", "Enable external sidechain", 0)
 
+        #define GOTT_SPLIT_COMMON \
+            SWITCH("ssplit", "Stereo split", 0.0f), \
+            COMBO("sp_src", "Split sidechain source", 0, gott_sc_split_source)
+
         #define GOTT_ANALYSIS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
@@ -145,7 +160,9 @@ namespace lsp
             SWITCH("bs" id, "Solo band" label, 0.0f), \
             SWITCH("bm" id, "Mute band" label, 0.0f), \
             MESH("ccg" id, "Compression curve graph" label, 2, gott_compressor::CURVE_MESH_SIZE), \
-            MESH("bfc" id, "Band frequency chart" label, 2, gott_compressor::FILTER_MESH_POINTS), \
+            MESH("bfc" id, "Band frequency chart" label, 2, gott_compressor::FILTER_MESH_POINTS)
+
+        #define GOTT_BAND_METERS(id, label) \
             METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_36_DB), \
             METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_36_DB), \
             METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_72_DB)
@@ -160,6 +177,11 @@ namespace lsp
             GOTT_BAND("_3", ""),
             GOTT_BAND("_4", ""),
 
+            GOTT_BAND_METERS("_1", ""),
+            GOTT_BAND_METERS("_2", ""),
+            GOTT_BAND_METERS("_3", ""),
+            GOTT_BAND_METERS("_4", ""),
+
             GOTT_ANALYSIS("", ""),
             GOTT_METERS("", ""),
             GOTT_AMP_CURVE("", ""),
@@ -170,17 +192,28 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_COMMON,
+            GOTT_SPLIT_COMMON,
 
             GOTT_BAND("_1", ""),
             GOTT_BAND("_2", ""),
             GOTT_BAND("_3", ""),
             GOTT_BAND("_4", ""),
 
+            GOTT_BAND_METERS("_1l", " Left"),
+            GOTT_BAND_METERS("_2l", " Left"),
+            GOTT_BAND_METERS("_3l", " Left"),
+            GOTT_BAND_METERS("_4l", " Left"),
+            GOTT_BAND_METERS("_1r", " Right"),
+            GOTT_BAND_METERS("_2r", " Right"),
+            GOTT_BAND_METERS("_3r", " Right"),
+            GOTT_BAND_METERS("_4r", " Right"),
+
             GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
-            GOTT_AMP_CURVE("", ""),
+            GOTT_AMP_CURVE("_l", " Left"),
+            GOTT_AMP_CURVE("_r", " Right"),
             PORTS_END
         };
 
@@ -190,14 +223,23 @@ namespace lsp
             GOTT_COMMON,
             COMBO("csel", "Channel selector", 0, gott_lr_selectors),
 
-            GOTT_BAND("_1l", "left"),
-            GOTT_BAND("_2l", "left"),
-            GOTT_BAND("_3l", "left"),
-            GOTT_BAND("_4l", "left"),
-            GOTT_BAND("_1r", "right"),
-            GOTT_BAND("_2r", "right"),
-            GOTT_BAND("_3r", "right"),
-            GOTT_BAND("_4r", "right"),
+            GOTT_BAND("_1l", " Left"),
+            GOTT_BAND("_2l", " Left"),
+            GOTT_BAND("_3l", " Left"),
+            GOTT_BAND("_4l", " Left"),
+            GOTT_BAND("_1r", " Right"),
+            GOTT_BAND("_2r", " Right"),
+            GOTT_BAND("_3r", " Right"),
+            GOTT_BAND("_4r", " Right"),
+
+            GOTT_BAND_METERS("_1l", " Left"),
+            GOTT_BAND_METERS("_2l", " Left"),
+            GOTT_BAND_METERS("_3l", " Left"),
+            GOTT_BAND_METERS("_4l", " Left"),
+            GOTT_BAND_METERS("_1r", " Right"),
+            GOTT_BAND_METERS("_2r", " Right"),
+            GOTT_BAND_METERS("_3r", " Right"),
+            GOTT_BAND_METERS("_4r", " Right"),
 
             GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
@@ -214,14 +256,23 @@ namespace lsp
             GOTT_COMMON,
             COMBO("csel", "Channel selector", 0, gott_ms_selectors),
 
-            GOTT_BAND("_1m", "mid"),
-            GOTT_BAND("_2m", "mid"),
-            GOTT_BAND("_3m", "mid"),
-            GOTT_BAND("_4m", "mid"),
-            GOTT_BAND("_1s", "side"),
-            GOTT_BAND("_2s", "side"),
-            GOTT_BAND("_3s", "side"),
-            GOTT_BAND("_4s", "side"),
+            GOTT_BAND("_1m", " Mid"),
+            GOTT_BAND("_2m", " Mid"),
+            GOTT_BAND("_3m", " Mid"),
+            GOTT_BAND("_4m", " Mid"),
+            GOTT_BAND("_1s", " Side"),
+            GOTT_BAND("_2s", " Side"),
+            GOTT_BAND("_3s", " Side"),
+            GOTT_BAND("_4s", " Side"),
+
+            GOTT_BAND_METERS("_1m", " Mid"),
+            GOTT_BAND_METERS("_2m", " Mid"),
+            GOTT_BAND_METERS("_3m", " Mid"),
+            GOTT_BAND_METERS("_4m", " Mid"),
+            GOTT_BAND_METERS("_1s", " Side"),
+            GOTT_BAND_METERS("_2s", " Side"),
+            GOTT_BAND_METERS("_3s", " Side"),
+            GOTT_BAND_METERS("_4s", " Side"),
 
             GOTT_ANALYSIS("_m", " Mid"),
             GOTT_METERS("_l", " Left"),
@@ -244,6 +295,11 @@ namespace lsp
             GOTT_BAND("_3", ""),
             GOTT_BAND("_4", ""),
 
+            GOTT_BAND_METERS("_1", ""),
+            GOTT_BAND_METERS("_2", ""),
+            GOTT_BAND_METERS("_3", ""),
+            GOTT_BAND_METERS("_4", ""),
+
             GOTT_ANALYSIS("", ""),
             GOTT_METERS("", ""),
             GOTT_AMP_CURVE("", ""),
@@ -256,17 +312,28 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_COMMON,
             GOTT_SC_COMMON,
+            GOTT_SPLIT_COMMON,
 
             GOTT_BAND("_1", ""),
             GOTT_BAND("_2", ""),
             GOTT_BAND("_3", ""),
             GOTT_BAND("_4", ""),
 
+            GOTT_BAND_METERS("_1l", " Left"),
+            GOTT_BAND_METERS("_2l", " Left"),
+            GOTT_BAND_METERS("_3l", " Left"),
+            GOTT_BAND_METERS("_4l", " Left"),
+            GOTT_BAND_METERS("_1r", " Right"),
+            GOTT_BAND_METERS("_2r", " Right"),
+            GOTT_BAND_METERS("_3r", " Right"),
+            GOTT_BAND_METERS("_4r", " Right"),
+
             GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
             GOTT_ANALYSIS("_r", " Right"),
             GOTT_METERS("_r", " Right"),
-            GOTT_AMP_CURVE("", ""),
+            GOTT_AMP_CURVE("_l", " Left"),
+            GOTT_AMP_CURVE("_r", " Right"),
             PORTS_END
         };
 
@@ -278,14 +345,23 @@ namespace lsp
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", 0, gott_lr_selectors),
 
-            GOTT_BAND("_1l", "left"),
-            GOTT_BAND("_2l", "left"),
-            GOTT_BAND("_3l", "left"),
-            GOTT_BAND("_4l", "left"),
-            GOTT_BAND("_1r", "right"),
-            GOTT_BAND("_2r", "right"),
-            GOTT_BAND("_3r", "right"),
-            GOTT_BAND("_4r", "right"),
+            GOTT_BAND("_1l", " Left"),
+            GOTT_BAND("_2l", " Left"),
+            GOTT_BAND("_3l", " Left"),
+            GOTT_BAND("_4l", " Left"),
+            GOTT_BAND("_1r", " Right"),
+            GOTT_BAND("_2r", " Right"),
+            GOTT_BAND("_3r", " Right"),
+            GOTT_BAND("_4r", " Right"),
+
+            GOTT_BAND_METERS("_1l", " Left"),
+            GOTT_BAND_METERS("_2l", " Left"),
+            GOTT_BAND_METERS("_3l", " Left"),
+            GOTT_BAND_METERS("_4l", " Left"),
+            GOTT_BAND_METERS("_1r", " Right"),
+            GOTT_BAND_METERS("_2r", " Right"),
+            GOTT_BAND_METERS("_3r", " Right"),
+            GOTT_BAND_METERS("_4r", " Right"),
 
             GOTT_ANALYSIS("_l", " Left"),
             GOTT_METERS("_l", " Left"),
@@ -304,14 +380,23 @@ namespace lsp
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", 0, gott_ms_selectors),
 
-            GOTT_BAND("_1m", "mid"),
-            GOTT_BAND("_2m", "mid"),
-            GOTT_BAND("_3m", "mid"),
-            GOTT_BAND("_4m", "mid"),
-            GOTT_BAND("_1s", "side"),
-            GOTT_BAND("_2s", "side"),
-            GOTT_BAND("_3s", "side"),
-            GOTT_BAND("_4s", "side"),
+            GOTT_BAND("_1m", " Mid"),
+            GOTT_BAND("_2m", " Mid"),
+            GOTT_BAND("_3m", " Mid"),
+            GOTT_BAND("_4m", " Mid"),
+            GOTT_BAND("_1s", " Side"),
+            GOTT_BAND("_2s", " Side"),
+            GOTT_BAND("_3s", " Side"),
+            GOTT_BAND("_4s", " Side"),
+
+            GOTT_BAND_METERS("_1m", " Mid"),
+            GOTT_BAND_METERS("_2m", " Mid"),
+            GOTT_BAND_METERS("_3m", " Mid"),
+            GOTT_BAND_METERS("_4m", " Mid"),
+            GOTT_BAND_METERS("_1s", " Side"),
+            GOTT_BAND_METERS("_2s", " Side"),
+            GOTT_BAND_METERS("_3s", " Side"),
+            GOTT_BAND_METERS("_4s", " Side"),
 
             GOTT_ANALYSIS("_m", " Mid"),
             GOTT_METERS("_l", " Left"),
