@@ -1568,6 +1568,8 @@ namespace lsp
 
         void gott_compressor::dump(dspu::IStateDumper *v) const
         {
+            plug::Module::dump(v);
+
             size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
 
             v->write_object("sAnalyzer", &sAnalyzer);
