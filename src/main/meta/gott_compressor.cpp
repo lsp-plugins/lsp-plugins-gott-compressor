@@ -43,18 +43,19 @@ namespace lsp
 
         static const port_item_t gott_dyna_sc_boost[] =
         {
-            { "None",           "sidechain.boost.none" },
-            { "Pink BT",        "sidechain.boost.pink_bt" },
-            { "Pink MT",        "sidechain.boost.pink_mt" },
-            { "Brown BT",       "sidechain.boost.brown_bt" },
-            { "Brown MT",       "sidechain.boost.brown_mt" },
+            { "None",           "sidechain.boost.none"      },
+            { "Pink BT",        "sidechain.boost.pink_bt"   },
+            { "Pink MT",        "sidechain.boost.pink_mt"   },
+            { "Brown BT",       "sidechain.boost.brown_bt"  },
+            { "Brown MT",       "sidechain.boost.brown_mt"  },
             { NULL, NULL }
         };
 
         static const port_item_t gott_global_dyna_modes[] =
         {
-            { "Classic",        "gott_comp.classic" },
-            { "Modern",         "gott_comp.modern" },
+            { "Classic",        "multiband.classic"         },
+            { "Modern",         "multiband.modern"          },
+            { "Linear Phase",   "multiband.linear_phase"    },
             { NULL, NULL }
         };
 
@@ -105,7 +106,7 @@ namespace lsp
 
         #define GOTT_COMMON \
             BYPASS, \
-            COMBO("mode", "Compressor mode", 1, gott_global_dyna_modes), \
+            COMBO("mode", "Operating mode", 1, gott_global_dyna_modes), \
             SWITCH("prot", "Surge protection", 1.0f), \
             AMP_GAIN("g_in", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \

@@ -20,6 +20,7 @@
  */
 
 #include <lsp-plug.in/common/alloc.h>
+#include <lsp-plug.in/common/bits.h>
 #include <lsp-plug.in/common/debug.h>
 #include <lsp-plug.in/dsp/dsp.h>
 #include <lsp-plug.in/dsp-units/units.h>
@@ -31,11 +32,10 @@
 #include <private/plugins/gott_compressor.h>
 
 /* The size of temporary buffer for audio processing */
-#define GOTT_BUFFER_SIZE        0x1000U
+#define GOTT_BUFFER_SIZE        0x400U
 
 namespace lsp
 {
-    [[maybe_unused]]
     static plug::IPort *TRACE_PORT(plug::IPort *p)
     {
         lsp_trace("  port id=%s", (p)->metadata()->id);
@@ -114,7 +114,7 @@ namespace lsp
             }
 
             bProt               = true;
-            bModern             = true;
+            enXOver             = XOVER_MODERN;
             bEnvUpdate          = true;
             nBands              = meta::gott_compressor::BANDS_MAX;
             bExtSidechain       = false;
@@ -235,6 +235,7 @@ namespace lsp
                     szof_freq*2 +   // vTmpFilterBuffer
                     szof_freq +     // vFilterBuffer
                     (
+                        szof_buffer +   // vBuffer
                         szof_buffer +   // vVCA
                         szof_freq*2 +   // vFilterBuffer
                         szof_curve      // vCurveBuffer
@@ -288,6 +289,11 @@ namespace lsp
                 c->sDryEq.construct();
                 c->sDryEq.init(meta::gott_compressor::BANDS_MAX - 1, 0);
                 c->sDryEq.set_mode(dspu::EQM_IIR);
+                c->sFFTXOver.construct();
+                c->sDryDelay.construct();
+                c->sAnDelay.construct();
+                c->sScDelay.construct();
+                c->sXOverDelay.construct();
 
                 c->sDelay.construct();
 
@@ -330,6 +336,8 @@ namespace lsp
                     }
 
                     // Initialize oteher fields
+                    b->vBuffer          = reinterpret_cast<float *>(ptr);
+                    ptr                += szof_buffer;
                     b->vVCA             = reinterpret_cast<float *>(ptr);
                     ptr                += szof_buffer;
                     b->vCurveBuffer     = reinterpret_cast<float *>(ptr);
@@ -583,7 +591,12 @@ namespace lsp
                     c->sEnvBoost[0].destroy();
                     c->sEnvBoost[1].destroy();
                     c->sDryEq.destroy();
+                    c->sFFTXOver.destroy();
                     c->sDelay.destroy();
+                    c->sDryDelay.destroy();
+                    c->sAnDelay.destroy();
+                    c->sScDelay.destroy();
+                    c->sXOverDelay.destroy();
 
                     for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                     {
@@ -634,11 +647,20 @@ namespace lsp
             }
         }
 
+        size_t gott_compressor::select_fft_rank(size_t sample_rate)
+        {
+            const size_t k = (sample_rate + meta::gott_compressor::FFT_XOVER_FREQ_MIN/2) / meta::gott_compressor::FFT_XOVER_FREQ_MIN;
+            const size_t n = int_log2(k);
+            return meta::gott_compressor::FFT_XOVER_RANK_MIN << n;
+        }
+
         void gott_compressor::update_sample_rate(long sr)
         {
             // Determine number of channels
             size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
-            size_t max_delay    = dspu::millis_to_samples(sr, meta::gott_compressor::LOOKAHEAD_MAX);
+            size_t fft_rank     = select_fft_rank(sr);
+            size_t bins         = 1 << fft_rank;
+            size_t max_delay    = bins + dspu::millis_to_samples(sr, meta::gott_compressor::LOOKAHEAD_MAX);
 
             // Update analyzer's sample rate
             sAnalyzer.set_sample_rate(sr);
@@ -652,8 +674,23 @@ namespace lsp
                 channel_t *c = &vChannels[i];
 
                 c->sBypass.init(sr);
-                c->sDelay.init(max_delay);
                 c->sDryEq.set_sample_rate(sr);
+                c->sDelay.init(max_delay);
+                c->sDryDelay.init(max_delay);
+                c->sAnDelay.init(bins);
+                c->sScDelay.init(bins);
+                c->sXOverDelay.init(max_delay);
+
+                // Need to re-initialize FFT crossover?
+                if (fft_rank != c->sFFTXOver.rank())
+                {
+                    c->sFFTXOver.init(fft_rank, meta::gott_compressor::BANDS_MAX);
+                    for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                        c->sFFTXOver.set_handler(j, process_band, this, c);
+                    c->sFFTXOver.set_rank(fft_rank);
+                    c->sFFTXOver.set_phase(float(i) / float(channels));
+                }
+                c->sFFTXOver.set_sample_rate(sr);
 
                 // Update bands
                 for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
@@ -735,6 +772,16 @@ namespace lsp
             size_t num_bands    = (pExtraBand->value() >= 0.5f) ? meta::gott_compressor::BANDS_MAX : meta::gott_compressor::BANDS_MAX - 1;
             float sc_preamp     = pScPreamp->value();
             size_t lookahead    = dspu::millis_to_samples(fSampleRate, pLookahead->value());
+
+            // Determine work mode: classic, modern or linear phase
+            xover_mode_t xover  = xover_mode_t(pMode->value());
+            if (xover != enXOver)
+            {
+                enXOver             = xover;
+                rebuild_filters     = true;
+                for (size_t i=0; i<channels; ++i)
+                    vChannels[i].sXOverDelay.clear();
+            }
 
             // Check band and split configuration
             if (nBands != num_bands)
@@ -889,9 +936,6 @@ namespace lsp
                     if (bSidechain)
                         c->sEnvBoost[1].update(fSampleRate, &fp);
                 }
-
-                // Update lookahead delay
-                c->sDelay.set_delay(lookahead);
             }
 
             // Update surge protection sidechain settings
@@ -951,7 +995,8 @@ namespace lsp
                     // Configure equalizers
                     for (size_t j=0; j<nBands; ++j)
                     {
-                        band_t *b   = &c->vBands[j];
+                        band_t *b           = &c->vBands[j];
+                        size_t band         = b - c->vBands;
 
                         float freq_start    = (j > 0) ? vSplits[j-1] : 0.0f;
                         float freq_end      = (j < (nBands - 1)) ? vSplits[j] : fSampleRate * 0.5f;
@@ -991,7 +1036,7 @@ namespace lsp
                         dsp::pcomplex_mod(b->vFilterBuffer, b->vFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
 
                         // Update filter parameters, depending on operating mode
-                        if (bModern)
+                        if (enXOver == XOVER_MODERN)
                         {
                             // Configure filter for band
                             if (j <= 0)
@@ -1022,7 +1067,7 @@ namespace lsp
                             sFilters.set_params(b->nFilterID, &fp);
                             sFilters.set_filter_active(b->nFilterID, j < nBands);
                         }
-                        else
+                        else if (enXOver == XOVER_CLASSIC)
                         {
                             fp.fGain        = 1.0f;
                             fp.nSlope       = 2;
@@ -1048,6 +1093,34 @@ namespace lsp
                                 b->sAllFilter.update(fSampleRate, &fp);
                             }
                         }
+                        else // enXOver == XOVER_LINEAR_PHASE
+                        {
+                            if (j > 0)
+                            {
+                                c->sFFTXOver.enable_hpf(band, true);
+                                c->sFFTXOver.set_hpf_frequency(band, freq_start);
+                                c->sFFTXOver.set_hpf_slope(band, -48.0f);
+                            }
+                            else
+                                c->sFFTXOver.disable_hpf(band);
+
+                            if (j < (nBands-1))
+                            {
+                                c->sFFTXOver.enable_lpf(band, true);
+                                c->sFFTXOver.set_lpf_frequency(band, freq_end);
+                                c->sFFTXOver.set_lpf_slope(band, -48.0f);
+                            }
+                            else
+                                c->sFFTXOver.disable_lpf(band);
+                        }
+                    }
+
+                    // Enable/disable bands in FFT crossover
+                    for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
+                    {
+                        band_t *b       = &c->vBands[j];
+                        size_t band     = b - c->vBands;
+                        c->sFFTXOver.enable_band(band, j < nBands);
                     }
 
                     // Set-up all-pass filters for the 'dry' chain which can be mixed with the 'wet' chain.
@@ -1071,7 +1144,28 @@ namespace lsp
             }
 
             // Report latency
-            set_latency(lookahead);
+            size_t xover_latency = (enXOver == XOVER_LINEAR_PHASE) ? vChannels[0].sFFTXOver.latency() : 0;
+
+            set_latency(lookahead + xover_latency);
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c    = &vChannels[i];
+
+                c->sDelay.set_delay(lookahead);
+                c->sDryDelay.set_delay(lookahead + xover_latency);
+                c->sAnDelay.set_delay(xover_latency);
+                c->sScDelay.set_delay(xover_latency);
+                c->sXOverDelay.set_delay(lookahead + xover_latency);
+            }
+        }
+
+        void gott_compressor::process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count)
+        {
+            channel_t *c            = static_cast<channel_t *>(subject);
+            band_t *b               = &c->vBands[band];
+
+            // Store data to band's buffer
+            dsp::copy(&b->vBuffer[sample], data, count);
         }
 
         void gott_compressor::process(size_t samples)
@@ -1150,7 +1244,8 @@ namespace lsp
                 {
                     channel_t *c        = &vChannels[i];
                     c->sEnvBoost[0].process(c->vScBuffer, c->vScBuffer, to_process);
-                    dsp::copy(c->vInAnalyze, c->vBuffer, to_process);
+                    c->sAnDelay.process(c->vInAnalyze, c->vBuffer, to_process);
+                    c->sScDelay.process(c->vScBuffer, c->vScBuffer, to_process);
                 }
 
                 // Surge protection
@@ -1172,7 +1267,7 @@ namespace lsp
                             b->sEQ[1].process(vSC[1], vChannels[1].vScBuffer, to_process);
 
                         // Preprocess VCA signal
-                        b->sSC.process(vBuffer, const_cast<const float **>(vSC), to_process); // Band now contains processed by sidechain signal
+                        b->sSC.process(vBuffer, const_cast<const float **>(vSC), to_process);   // Band now contains processed by sidechain signal
                         dsp::mul_k2(vBuffer, fScPreamp, to_process);
 
                         if (b->bEnabled)
@@ -1199,7 +1294,7 @@ namespace lsp
                             // Patch the VCA signal
                             if (b->bMute)
                                 dsp::fill(b->vVCA, GAIN_AMP_M_36_DB, to_process);
-                            else if (bModern)
+                            else if (enXOver == XOVER_MODERN) // 'Modern' mode
                                 dsp::limit1(b->vVCA, GAIN_AMP_M_72_DB * b->fMakeup, GAIN_AMP_P_72_DB * b->fMakeup, to_process);
                         }
                         else
@@ -1223,7 +1318,7 @@ namespace lsp
                 }
 
                 // Here, we apply VCA to input signal dependent on the input
-                if (bModern) // 'Modern' mode
+                if (enXOver == XOVER_MODERN) // 'Modern' mode
                 {
                     // Apply VCA control
                     for (size_t i=0; i<channels; ++i)
@@ -1239,7 +1334,7 @@ namespace lsp
                         }
                     }
                 }
-                else // 'Classic' mode
+                else if (enXOver == XOVER_CLASSIC) // 'Classic' mode
                 {
                     // Apply VCA control
                     for (size_t i=0; i<channels; ++i)
@@ -1255,11 +1350,35 @@ namespace lsp
                         {
                             band_t *b       = &c->vBands[j];
 
-                            b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process); // Process the signal with all-pass
-                            b->sPassFilter.process(vEnv, vBuffer, to_process); // Filter frequencies from input
-                            dsp::mul2(vEnv, b->vVCA, to_process); // Apply VCA gain
-                            dsp::add2(c->vBuffer, vEnv, to_process); // Add signal to the channel buffer
-                            b->sRejFilter.process(vBuffer, vBuffer, to_process); // Filter frequencies from input
+                            // Process the signal with all-pass
+                            b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process);
+                            // Filter frequencies from input
+                            b->sPassFilter.process(vEnv, vBuffer, to_process);
+                            // Apply VCA gain and add to the channel buffer
+                            dsp::fmadd3(c->vBuffer, vEnv, b->vVCA, to_process);
+                            // Filter frequencies from input
+                            b->sRejFilter.process(vBuffer, vBuffer, to_process);
+                        }
+                    }
+                }
+                else // enXOver == XOVER_LINEAR_PHASE
+                {
+                    // Apply VCA control
+                    for (size_t i=0; i<channels; ++i)
+                    {
+                        channel_t *c        = &vChannels[i];
+
+                        // Apply delay to compensate lookahead feature
+                        c->sDelay.process(c->vBuffer, c->vBuffer, to_process);
+                        // Apply delay to unprocessed signal to compensate lookahead + crossover delay
+                        c->sXOverDelay.process(c->vInBuffer, c->vBuffer, to_process);
+                        c->sFFTXOver.process(c->vBuffer, to_process);
+                        dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
+
+                        for (size_t j=0; j<nBands; ++j)
+                        {
+                            band_t *b           = &c->vBands[j];
+                            dsp::fmadd3(c->vBuffer, b->vVCA, b->vBuffer, to_process);
                         }
                     }
                 }
@@ -1288,20 +1407,23 @@ namespace lsp
                     channel_t *c        = &vChannels[i];
 
                     // Apply dry/wet balance
-                    if (bModern)
+                    if (enXOver == XOVER_MODERN)
                         dsp::mix2(c->vBuffer, c->vInBuffer, fWetGain, fDryGain, to_process);
-                    else
+                    else if (enXOver == XOVER_CLASSIC)
                     {
                         c->sDryEq.process(vBuffer, c->vInBuffer, to_process);
                         dsp::mix2(c->vBuffer, vBuffer, fWetGain, fDryGain, to_process);
                     }
+                    else // enXOver == XOVER_LINEAR_PHASE
+                        dsp::mix2(c->vBuffer, c->vInBuffer, fWetGain, fDryGain, to_process);
 
                     // Compute output level
                     float level         = dsp::abs_max(c->vBuffer, to_process);
                     c->pOutLvl->set_value(level);
 
                     // Apply bypass
-                    c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
+                    c->sDryDelay.process(vBuffer, c->vIn, to_process);
+                    c->sBypass.process(c->vOut, vBuffer, c->vBuffer, to_process);
 
                     // Update pointers
                     c->vIn             += to_process;
@@ -1321,7 +1443,7 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
 
                 // Calculate transfer function for the compressor
-                if (bModern)
+                if (enXOver == XOVER_MODERN)
                 {
                     dsp::pcomplex_fill_ri(c->vTmpFilterBuffer, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
 
@@ -1332,8 +1454,9 @@ namespace lsp
                         sFilters.freq_chart(b->nFilterID, vTr, vFreqBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
                         dsp::pcomplex_mul2(c->vTmpFilterBuffer, vTr, meta::gott_compressor::FFT_MESH_POINTS);
                     }
+                    dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                 }
-                else
+                else if (enXOver == XOVER_CLASSIC)
                 {
                     dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
                     dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS*2);
@@ -1356,8 +1479,21 @@ namespace lsp
                         b->sRejFilter.freq_chart(vRFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                         dsp::pcomplex_mul2(vTr, vRFc, meta::gott_compressor::FFT_MESH_POINTS);
                     }
+                    dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                 }
-                dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                else // enXOver == XOVER_LINEAR_PHASE
+                {
+                    dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                    // Calculate transfer function
+                    for (size_t j=0; j<nBands; ++j)
+                    {
+                        band_t *b           = &c->vBands[j];
+                        size_t band         = b - c->vBands;
+                        c->sFFTXOver.freq_chart(band, vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::fmadd_k3(c->vTmpFilterBuffer, vPFc, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                    }
+                    dsp::copy(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                }
 
                 // Output Channel curve
                 mesh            = (c->pAmpGraph != NULL) ? c->pAmpGraph->buffer<plug::mesh_t>() : NULL;
@@ -1580,7 +1716,7 @@ namespace lsp
             v->write("nMode", nMode);
             v->write("bSidechain", bSidechain);
             v->write("bProt", bProt);
-            v->write("bModern", bModern);
+            v->write("enXOver", enXOver);
             v->write("bEnvUpdate", bEnvUpdate);
             v->write("nBands", nBands);
             v->write("bExtSidechain", bExtSidechain);
@@ -1603,7 +1739,12 @@ namespace lsp
                     v->write_object("sBypass", &c->sBypass);
                     v->write_object_array("sEnvBoost", c->sEnvBoost, 2);
                     v->write_object("sDryEq", &c->sBypass);
+                    v->write_object("sFFTXOver", &c->sFFTXOver);
                     v->write_object("sDelay", &c->sBypass);
+                    v->write_object("sDryDelay", &c->sDryDelay);
+                    v->write_object("sAnDelay", &c->sAnDelay);
+                    v->write_object("sScDelay", &c->sScDelay);
+                    v->write_object("sXOverDelay", &c->sXOverDelay);
 
                     {
                         v->begin_array("vBands", c->vBands, meta::gott_compressor::BANDS_MAX);

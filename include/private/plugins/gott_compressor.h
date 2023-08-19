@@ -30,6 +30,7 @@
 #include <lsp-plug.in/dsp-units/filters/Filter.h>
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
+#include <lsp-plug.in/dsp-units/util/FFTCrossover.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/core/IDBuffer.h>
 #include <lsp-plug.in/plug-fw/plug.h>
@@ -67,6 +68,13 @@ namespace lsp
                     S_ALL           = S_COMP_CURVE | S_EQ_CURVE
                 };
 
+                enum xover_mode_t
+                {
+                    XOVER_CLASSIC,                              // Classic mode
+                    XOVER_MODERN,                               // Modern mode
+                    XOVER_LINEAR_PHASE                          // Linear phase mode
+                };
+
                 typedef struct band_t
                 {
                     dspu::Sidechain         sSC;                // Sidechain module
@@ -76,6 +84,7 @@ namespace lsp
                     dspu::Filter            sRejFilter;         // Rejection filter for 'classic' mode
                     dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
 
+                    float                  *vBuffer;            // Crossover band data
                     float                  *vVCA;               // Voltage-controlled amplification value for each band
                     float                  *vCurveBuffer;       // Compression curve
                     float                  *vFilterBuffer;      // Band Filter buffer
@@ -120,7 +129,12 @@ namespace lsp
                     dspu::Bypass            sBypass;            // Bypass
                     dspu::Filter            sEnvBoost[2];       // Envelope boost filter
                     dspu::Equalizer         sDryEq;             // Dry equalizer
+                    dspu::FFTCrossover      sFFTXOver;          // FFT crossover for linear phase
                     dspu::Delay             sDelay;             // Lookahead Delay
+                    dspu::Delay             sDryDelay;          // Delay for dry signal
+                    dspu::Delay             sAnDelay;           // Delay for analyzer
+                    dspu::Delay             sScDelay;           // Delay for sidechain
+                    dspu::Delay             sXOverDelay;        // Delay for crossover
 
                     band_t                  vBands[meta::gott_compressor::BANDS_MAX];
 
@@ -162,7 +176,7 @@ namespace lsp
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
                 bool                    bProt;                  // Surge protection enabled
-                bool                    bModern;                // Modern/Classic mode switch
+                xover_mode_t            enXOver;                // Crossover mode
                 bool                    bEnvUpdate;             // Envelope filter update
                 size_t                  nBands;                 // Number of bands
                 bool                    bExtSidechain;          // External sidechain
@@ -215,6 +229,8 @@ namespace lsp
 
             protected:
                 static dspu::sidechain_source_t     decode_sidechain_source(int source, bool split, size_t channel);
+                static size_t                       select_fft_rank(size_t sample_rate);
+                static void                         process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
 
             public:
                 explicit gott_compressor(const meta::plugin_t *meta);
