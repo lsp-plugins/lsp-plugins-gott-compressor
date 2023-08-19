@@ -651,7 +651,7 @@ namespace lsp
         {
             const size_t k = (sample_rate + meta::gott_compressor::FFT_XOVER_FREQ_MIN/2) / meta::gott_compressor::FFT_XOVER_FREQ_MIN;
             const size_t n = int_log2(k);
-            return meta::gott_compressor::FFT_XOVER_RANK_MIN << n;
+            return meta::gott_compressor::FFT_XOVER_RANK_MIN + n;
         }
 
         void gott_compressor::update_sample_rate(long sr)
