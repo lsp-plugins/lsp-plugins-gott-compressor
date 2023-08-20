@@ -28,6 +28,15 @@
 	summarized, so the output signal is formed.
 	In <b>Modern</b> mode, each band is processed by pair of dynamic shelving filters. This allows the better control the gain of each band.
 	</li>
+	<li><b>Linear Phase</b> mode allows to split audio signal into multiple frequency bands with linear phase shift.
+	This introduces additional latency but gives several benefits:</li>
+	<ul>
+		<li>Unlike classic crossovers which use IIR (Infinite Impulse Response) filters to split signal into multiple bands and shift the phase
+		of the audio signal at band split points, the <b>Linear Phase</b> allows to use FIR (Finite Impulse Response) filters which are deprived of this.
+		<li>Unlike most IIR filters which are designed using bilinear transform, linear phase filters allow to simulate their tranfer function
+		to look like the transfer function of analog filters, without deforming it's magnitude envelope near the nyquist frequency.</li>
+		<li>Unlike design of classic Linkwitz-Riley filters, the design of IIR filters provides shorter transition zone of the filter.</li>
+	</ul>
 	<li><b>Sidechain boost</b> - special mode for assigning the same weight for higher frequencies opposite to lower frequencies.
 	In usual case, the frequency band is processed by compressor 'as is'. By the other side, the usual audio signal has 3 db/octave
 	falloff in the frequency domain and could be compared with the pink noise. So the lower frequencies take more
@@ -42,6 +51,9 @@
 	<li><b>Surge protection</b> - provides surge protection mechanism aimed to avoid extra loud first pop when compressor starts working
 	after a long period of silence.
 	</li>
+	<?php if ($m == 's') { ?>
+	<li><b>Stereo split mode</b> allows to apply compression to the left and right channels independently.</li>
+	<?php } ?>
 </ul>
 
 <p><b>Controls:</b></p>
@@ -49,7 +61,12 @@
 	<li>
 		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin bypasses signal.
 	</li>
-	<li><b>Mode</b> - combo box that allows to switch between <b>Modern</b> and <b>Classic</b> operating modes.</li>
+	<li><b>Mode</b> - combo box that allows to switch between the following modes:</li>
+	<ul>
+		<li><b>Classic</b> - classic operating mode using IIR filters and allpass filters to compensate phase shifts.</li>
+		<li><b>Modern</b> - modern operating mode using IIR shelving filters to adjust the gain of each frequency band.</li>
+		<li><b>Linear Phase</b> - linear phase operating mode using FFT transform (FIR filters) to split signal into multiple bands, introduces additional latency.</li>
+	</ul>
 	<li><b>SC Boost</b> - enables addidional boost of the sidechain signal:</li>
 	<ul>
 		<li><b>None</b> - no sidechain boost is applied.</li>
@@ -59,6 +76,9 @@
 		<li><b>Brown MT</b> - a +6db/octave sidechain boost using matched-transformed shelving filter.</li>
 	</ul>
 	<li><b>Zoom</b> - zoom fader, allows to adjust zoom on the frequency chart.</li>
+	<?php if ($m == 's') { ?>
+	<li><b>Stereo Split</b> - enables independent compression of left and right channels.</li>
+	<?php } ?>
 </ul>
 <p><b>'Analysis' section:</b></p>
 <ul>
@@ -93,6 +113,12 @@
 			<li><b>Right</b> - only right channel is used for sidechain processing.</li>
 			<li><b>Min</b> - the absolute minimum value is taken from stereo input.</li>
 			<li><b>Max</b> - the absolute maximum value is taken from stereo input.</li>
+		<?php } ?>
+		<?php if ($m == 's') { ?>
+			<li><b>Left/Right</b> - left and right channels are being compressed using respectively the left and right sidechain channels in stereo split mode.</li>
+			<li><b>Right/Left</b> - left and right channels are being compressed using respectively the right and left sidechain channels in stereo split mode.</li>
+			<li><b>Mid/Side</b> - left and right channels are being compressed using respectively the middle and side parts of sidechain signal in stereo split mode.</li>
+			<li><b>Side/Mid</b> - left and right channels are being compressed using respectively the side and middle parts of sidechain signal in stereo split mode.</li>
 		<?php } ?>
 	</ul>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>

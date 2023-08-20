@@ -139,6 +139,9 @@ namespace lsp
             static constexpr float  PROT_SHUTDOWN_TIME      = 400.0f;
             static constexpr float  PROT_ATTACK_MUL         = 2.0f;
 
+            static constexpr size_t FFT_XOVER_RANK_MIN      = 12;
+            static constexpr size_t FFT_XOVER_FREQ_MIN      = 44100;
+
             enum boost_t
             {
                 FB_OFF,

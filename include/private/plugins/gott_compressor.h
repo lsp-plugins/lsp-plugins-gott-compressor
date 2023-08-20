@@ -30,6 +30,7 @@
 #include <lsp-plug.in/dsp-units/filters/Filter.h>
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
+#include <lsp-plug.in/dsp-units/util/FFTCrossover.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/core/IDBuffer.h>
 #include <lsp-plug.in/plug-fw/plug.h>
@@ -67,16 +68,23 @@ namespace lsp
                     S_ALL           = S_COMP_CURVE | S_EQ_CURVE
                 };
 
+                enum xover_mode_t
+                {
+                    XOVER_CLASSIC,                              // Classic mode
+                    XOVER_MODERN,                               // Modern mode
+                    XOVER_LINEAR_PHASE                          // Linear phase mode
+                };
+
                 typedef struct band_t
                 {
                     dspu::Sidechain         sSC;                // Sidechain module
                     dspu::Equalizer         sEQ[2];             // Sidechain equalizers
                     dspu::DynamicProcessor  sProc;              // Dynamic Processor
-                    dspu::SurgeProtector    sProt;              // Surge protector
                     dspu::Filter            sPassFilter;        // Passing filter for 'classic' mode
                     dspu::Filter            sRejFilter;         // Rejection filter for 'classic' mode
                     dspu::Filter            sAllFilter;         // All-pass filter for phase compensation
 
+                    float                  *vBuffer;            // Crossover band data
                     float                  *vVCA;               // Voltage-controlled amplification value for each band
                     float                  *vCurveBuffer;       // Compression curve
                     float                  *vFilterBuffer;      // Band Filter buffer
@@ -121,7 +129,12 @@ namespace lsp
                     dspu::Bypass            sBypass;            // Bypass
                     dspu::Filter            sEnvBoost[2];       // Envelope boost filter
                     dspu::Equalizer         sDryEq;             // Dry equalizer
+                    dspu::FFTCrossover      sFFTXOver;          // FFT crossover for linear phase
                     dspu::Delay             sDelay;             // Lookahead Delay
+                    dspu::Delay             sDryDelay;          // Delay for dry signal
+                    dspu::Delay             sAnDelay;           // Delay for analyzer
+                    dspu::Delay             sScDelay;           // Delay for sidechain
+                    dspu::Delay             sXOverDelay;        // Delay for crossover
 
                     band_t                  vBands[meta::gott_compressor::BANDS_MAX];
 
@@ -157,14 +170,17 @@ namespace lsp
             protected:
                 dspu::Analyzer          sAnalyzer;              // Analyzer
                 dspu::DynamicFilters    sFilters;               // Dynamic filters for each band in 'modern' mode
+                dspu::Sidechain         sProtSC;                // Surge protector sidechain module
+                dspu::SurgeProtector    sProt;                  // Surge protector
 
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
                 bool                    bProt;                  // Surge protection enabled
-                bool                    bModern;                // Modern/Classic mode switch
+                xover_mode_t            enXOver;                // Crossover mode
                 bool                    bEnvUpdate;             // Envelope filter update
                 size_t                  nBands;                 // Number of bands
                 bool                    bExtSidechain;          // External sidechain
+                bool                    bStereoSplit;           // Stereo split mode
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
@@ -175,6 +191,8 @@ namespace lsp
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
                 float                  *vBuffer;                // Temporary buffer
+                float                  *vProtBuffer;            // Surge protection buffer
+                const float            *vSCIn[2];               // Sidechain input buffers
                 float                  *vSC[2];                 // Sidechain pre-processing
                 float                  *vEnv;                   // Envelope buffer
                 float                  *vTr;                    // Transfer buffer
@@ -194,6 +212,7 @@ namespace lsp
                 plug::IPort            *pWetGain;               // Wet gain port
                 plug::IPort            *pScMode;                // Sidechain mode
                 plug::IPort            *pScSource;              // Sidechain source
+                plug::IPort            *pScSpSource;            // Sidechain split source
                 plug::IPort            *pScPreamp;              // Sidechain preamp
                 plug::IPort            *pScReact;               // Sidechain reactivity
                 plug::IPort            *pLookahead;             // Lookahead time
@@ -204,8 +223,14 @@ namespace lsp
                 plug::IPort            *pSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 plug::IPort            *pExtraBand;             // Extra band enable
                 plug::IPort            *pExtSidechain;          // External sidechain enable
+                plug::IPort            *pStereoSplit;           // Stereo split mode
 
                 uint8_t                *pData;                  // Aligned data pointer
+
+            protected:
+                static dspu::sidechain_source_t     decode_sidechain_source(int source, bool split, size_t channel);
+                static size_t                       select_fft_rank(size_t sample_rate);
+                static void                         process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
 
             public:
                 explicit gott_compressor(const meta::plugin_t *meta);
