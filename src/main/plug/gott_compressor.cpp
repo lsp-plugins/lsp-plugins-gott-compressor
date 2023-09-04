@@ -177,7 +177,7 @@ namespace lsp
 
         gott_compressor::~gott_compressor()
         {
-            destroy();
+            do_destroy();
         }
 
         void gott_compressor::init(plug::IWrapper *wrapper, plug::IPort **ports)
@@ -567,7 +567,11 @@ namespace lsp
         void gott_compressor::destroy()
         {
             plug::Module::destroy();
+            do_destroy();
+        }
 
+        void gott_compressor::do_destroy()
+        {
             // Destroy analyzer
             sAnalyzer.destroy();
 
@@ -1130,10 +1134,9 @@ namespace lsp
                         fp.nType        = (b != NULL) ? dspu::FLT_BT_LRX_ALLPASS : dspu::FLT_NONE;
                         fp.fFreq        = (b != NULL) ? vSplits[j] : 0.0f;
                         fp.fFreq2       = fp.fFreq;
-                        fp.fQuality     = 0.0f;
                         fp.fGain        = 1.0f;
-                        fp.fQuality     = 0.0f;
                         fp.nSlope       = 2;
+                        fp.fQuality     = 0.0f;
 
                         c->sDryEq.set_params(j, &fp);
                     }
