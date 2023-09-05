@@ -49,7 +49,7 @@
 	of the input signal is reported to the host by the plugin as a latency.
 	</li>
 	<li><b>Surge protection</b> - provides surge protection mechanism aimed to avoid extra loud first pop when compressor starts working
-	after a long period of silence.
+	after a long period of silence.<?php if ($sc) { ?> Does not work when external sidechain is turned on.<?php } ?>
 	</li>
 	<?php if ($m == 's') { ?>
 	<li><b>Stereo split mode</b> allows to apply compression to the left and right channels independently.</li>
@@ -76,7 +76,7 @@
 		<li><b>Brown MT</b> - a +6db/octave sidechain boost using matched-transformed shelving filter.</li>
 	</ul>
 	<li><b>Zoom</b> - zoom fader, allows to adjust zoom on the frequency chart.</li>
-	<?php if ($m == 's') { ?>
+	<?php if ($sc) { ?>
 	<li><b>Stereo Split</b> - enables independent compression of left and right channels.</li>
 	<?php } ?>
 </ul>
@@ -121,7 +121,7 @@
 			<li><b>Side/Mid</b> - left and right channels are being compressed using respectively the side and middle parts of sidechain signal in stereo split mode.</li>
 		<?php } ?>
 	</ul>
-	<?php if ($m == 's') { ?>
+	<?php if ($sc) { ?>
 		<li><b>External</b> - enables the compressor to use sidechain signal from the additional external sidechain inputs instead of main ones.</li>
 	<?php } ?>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
