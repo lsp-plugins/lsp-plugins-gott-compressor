@@ -121,6 +121,9 @@
 			<li><b>Side/Mid</b> - left and right channels are being compressed using respectively the side and middle parts of sidechain signal in stereo split mode.</li>
 		<?php } ?>
 	</ul>
+	<?php if ($m == 's') { ?>
+		<li><b>External</b> - enables the compressor to use sidechain signal from the additional external sidechain inputs instead of main ones.</li>
+	<?php } ?>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
 	<li><b>Reactivity</b> - reactivity of the sidechain signal.</li>
 	<li><b>Lookahead</b> - look-ahead time of the sidechain relative to the input signal.</li>
