@@ -2,6 +2,10 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.2 ===
+* More fixes related to the surge protection mechanism.
+* Updated build scripts and dependencies.
+
 === 1.0.1 ===
 * Implemented Steereo Split mode for stereo versions of plugin.
 * Surge protection is now gloal, not local for each band.

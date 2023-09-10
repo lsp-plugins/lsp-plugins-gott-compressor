@@ -177,7 +177,7 @@ namespace lsp
 
         gott_compressor::~gott_compressor()
         {
-            destroy();
+            do_destroy();
         }
 
         void gott_compressor::init(plug::IWrapper *wrapper, plug::IPort **ports)
@@ -567,7 +567,11 @@ namespace lsp
         void gott_compressor::destroy()
         {
             plug::Module::destroy();
+            do_destroy();
+        }
 
+        void gott_compressor::do_destroy()
+        {
             // Destroy analyzer
             sAnalyzer.destroy();
 
@@ -941,7 +945,7 @@ namespace lsp
             // Update surge protection sidechain settings
             sProtSC.set_mode(pScMode->value());
             sProtSC.set_reactivity(sc_react);
-            sProtSC.set_stereo_mode((nMode == GOTT_MS) ? dspu::SCSM_MIDSIDE : dspu::SCSM_STEREO);
+            sProtSC.set_stereo_mode(dspu::SCSM_STEREO);
             sProtSC.set_source(dspu::SCS_AMAX);
 
             // Update surge protection
@@ -949,8 +953,6 @@ namespace lsp
             sProt.set_off_threshold(meta::gott_compressor::THRESH_MIN_MIN * GAIN_AMP_M_12_DB);
             sProt.set_transition_time(dspu::millis_to_samples(fSampleRate, max_attack + sc_react) * meta::gott_compressor::PROT_ATTACK_MUL);
             sProt.set_shutdown_time(dspu::millis_to_samples(fSampleRate, meta::gott_compressor::PROT_SHUTDOWN_TIME));
-            if (prot_on && (!bProt))
-                sProt.reset();
 
             // Commit the envelope state
             fScPreamp       = sc_preamp;
@@ -1130,10 +1132,9 @@ namespace lsp
                         fp.nType        = (b != NULL) ? dspu::FLT_BT_LRX_ALLPASS : dspu::FLT_NONE;
                         fp.fFreq        = (b != NULL) ? vSplits[j] : 0.0f;
                         fp.fFreq2       = fp.fFreq;
-                        fp.fQuality     = 0.0f;
                         fp.fGain        = 1.0f;
-                        fp.fQuality     = 0.0f;
                         fp.nSlope       = 2;
+                        fp.fQuality     = 0.0f;
 
                         c->sDryEq.set_params(j, &fp);
                     }
@@ -1249,8 +1250,13 @@ namespace lsp
                 }
 
                 // Surge protection
-                sProtSC.process(vProtBuffer, vSCIn, to_process);
-                sProt.process(vProtBuffer, vProtBuffer, to_process);
+                {
+                    const float * in[2];
+                    for (size_t i=0; i<channels; ++i)
+                        in[i]           = vChannels[i].vIn;
+                    sProtSC.process(vProtBuffer, in, to_process);
+                    sProt.process(vProtBuffer, vProtBuffer, to_process);
+                }
 
                 // MAIN PLUGIN STUFF
                 for (size_t i=0; i<channels; ++i)
@@ -1286,7 +1292,7 @@ namespace lsp
                             b->fGainLevel   = b->vVCA[to_process-1];
 
                             // Check muting option
-                            if (bProt)
+                            if ((bProt) && (!bExtSidechain))
                                 dsp::fmmul_k3(b->vVCA, vProtBuffer, b->fMakeup, to_process);
                             else
                                 dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
