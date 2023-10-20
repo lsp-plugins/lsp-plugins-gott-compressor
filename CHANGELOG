@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.0.4 ===
+* Fixed Makeup button not affecting gain curve.
 * Reduced CPU consumption for Linear Phase and Modern modes.
 
 === 1.0.3 ===

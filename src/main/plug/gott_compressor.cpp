@@ -1295,7 +1295,7 @@ namespace lsp
                             b->pCurveLvl->set_value(lvl);
 
                             // Remember last envelope level and buffer level
-                            b->fGainLevel   = b->vVCA[to_process-1];
+                            b->fGainLevel   = b->vVCA[to_process-1] * b->fMakeup;
 
                             // Check muting option
                             if ((bProt) && (!bExtSidechain))
