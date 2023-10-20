@@ -60,9 +60,10 @@ namespace lsp
                 enum sync_t
                 {
                     S_COMP_CURVE    = 1 << 0,
-                    S_EQ_CURVE      = 1 << 2,
+                    S_EQ_CURVE      = 1 << 1,
+                    S_BAND_CURVE    = 1 << 2,
 
-                    S_ALL           = S_COMP_CURVE | S_EQ_CURVE
+                    S_ALL           = S_COMP_CURVE | S_EQ_CURVE | S_BAND_CURVE
                 };
 
                 enum xover_mode_t
@@ -84,7 +85,8 @@ namespace lsp
                     float                  *vBuffer;            // Crossover band data
                     float                  *vVCA;               // Voltage-controlled amplification value for each band
                     float                  *vCurveBuffer;       // Compression curve
-                    float                  *vFilterBuffer;      // Band Filter buffer
+                    float                  *vFilterBuffer;      // Bandpass Filter Buffer
+                    float                  *vSidechainBuffer;   // Band Sidechain Filter buffer
 
                     float                   fMinThresh;         // Minimum threshold
                     float                   fUpThresh;          // Upward threshold

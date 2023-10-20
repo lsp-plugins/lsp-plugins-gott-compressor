@@ -239,8 +239,9 @@ namespace lsp
                     (
                         szof_buffer +   // vBuffer
                         szof_buffer +   // vVCA
+                        szof_curve +    // vCurveBuffer
                         szof_freq*2 +   // vFilterBuffer
-                        szof_curve      // vCurveBuffer
+                        szof_freq*2     // vSidechainBuffer
                     ) * meta::gott_compressor::BANDS_MAX
                 ) * channels;
 
@@ -345,6 +346,8 @@ namespace lsp
                     b->vCurveBuffer     = reinterpret_cast<float *>(ptr);
                     ptr                += szof_curve;
                     b->vFilterBuffer    = reinterpret_cast<float *>(ptr);
+                    ptr                += szof_freq * 2;
+                    b->vSidechainBuffer = reinterpret_cast<float *>(ptr);
                     ptr                += szof_freq * 2;
 
                     b->fMinThresh       = GAIN_AMP_M_72_DB;
@@ -1006,7 +1009,7 @@ namespace lsp
                         float freq_start    = (j > 0) ? vSplits[j-1] : 0.0f;
                         float freq_end      = (j < (nBands - 1)) ? vSplits[j] : fSampleRate * 0.5f;
 
-                        b->nSync           |= S_EQ_CURVE;
+                        b->nSync           |= S_EQ_CURVE | S_BAND_CURVE;
 
                         lsp_trace("band[%d] start=%f, end=%f", int(j), freq_start, freq_end);
 
@@ -1037,8 +1040,8 @@ namespace lsp
                         }
 
                         // Update transfer function for equalizer
-                        b->sEQ[0].freq_chart(b->vFilterBuffer, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::pcomplex_mod(b->vFilterBuffer, b->vFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        b->sEQ[0].freq_chart(b->vSidechainBuffer, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::pcomplex_mod(b->vSidechainBuffer, b->vSidechainBuffer, meta::gott_compressor::FFT_MESH_POINTS);
 
                         // Update filter parameters, depending on operating mode
                         if (enXOver == XOVER_MODERN)
@@ -1492,6 +1495,33 @@ namespace lsp
                             dsp::pcomplex_mul2(vTr, vRFc, meta::gott_compressor::FFT_MESH_POINTS);
                         }
                         dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+
+                        // Calculate transfer function
+                        for (size_t j=0; j<nBands; ++j)
+                        {
+                            band_t *bp      = (j > 0) ? &c->vBands[j-1] : NULL;
+                            band_t *b       = &c->vBands[j];
+
+                            if (b->nSync & S_BAND_CURVE)
+                            {
+                                if (bp)
+                                {
+                                    bp->sRejFilter.freq_chart(vRFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                                    b->sPassFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                                    dsp::pcomplex_mul2(vPFc, vRFc, meta::gott_compressor::FFT_MESH_POINTS);
+                                }
+                                else
+                                    b->sPassFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+
+                                dsp::pcomplex_mod(b->vFilterBuffer, vPFc, meta::gott_compressor::FFT_MESH_POINTS);
+                                b->nSync           &= ~size_t(S_BAND_CURVE);
+                            }
+                            if (j == 0)
+                                dsp::mul_k3(c->vTmpFilterBuffer, b->vFilterBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                            else
+                                dsp::fmadd_k3(c->vTmpFilterBuffer, b->vFilterBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                        }
+                        dsp::copy(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                     }
                     else // enXOver == XOVER_LINEAR_PHASE
                     {
@@ -1501,8 +1531,15 @@ namespace lsp
                         {
                             band_t *b           = &c->vBands[j];
                             size_t band         = b - c->vBands;
-                            c->sFFTXOver.freq_chart(band, vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                            dsp::fmadd_k3(c->vTmpFilterBuffer, vPFc, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                            if (b->nSync & S_BAND_CURVE)
+                            {
+                                c->sFFTXOver.freq_chart(band, b->vFilterBuffer, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                                b->nSync           &= ~size_t(S_BAND_CURVE);
+                            }
+                            if (j == 0)
+                                dsp::mul_k3(c->vTmpFilterBuffer, b->vFilterBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                            else
+                                dsp::fmadd_k3(c->vTmpFilterBuffer, b->vFilterBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
                         }
                         dsp::copy(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                     }
@@ -1577,11 +1614,11 @@ namespace lsp
 
                             // Fill mesh
                             dsp::copy(&mesh->pvData[0][1], vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                            dsp::copy(&mesh->pvData[1][1], b->vFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::copy(&mesh->pvData[1][1], b->vSidechainBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                             mesh->data(2, meta::gott_compressor::FILTER_MESH_POINTS);
 
                             // Mark mesh as synchronized
-                            b->nSync           &= ~S_EQ_CURVE;
+                            b->nSync           &= ~size_t(S_EQ_CURVE);
                         }
                     }
 
@@ -1606,7 +1643,7 @@ namespace lsp
                                 mesh->data(2, 0);
 
                             // Mark mesh as synchronized
-                            b->nSync           &= ~S_COMP_CURVE;
+                            b->nSync           &= ~size_t(S_COMP_CURVE);
                         }
                     }
                 }
@@ -1783,6 +1820,7 @@ namespace lsp
                             v->write("vVCA", b->vVCA);
                             v->write("vCurveBuffer", b->vCurveBuffer);
                             v->write("vFilterBuffer", b->vFilterBuffer);
+                            v->write("vSidechainBuffer", b->vSidechainBuffer);
 
                             v->write("fMinThresh", b->fMinThresh);
                             v->write("fUpThresh", b->fUpThresh);
