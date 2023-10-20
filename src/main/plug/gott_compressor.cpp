@@ -32,7 +32,7 @@
 #include <private/plugins/gott_compressor.h>
 
 /* The size of temporary buffer for audio processing */
-#define GOTT_BUFFER_SIZE        0x400U
+#define GOTT_BUFFER_SIZE        0x1000U
 
 namespace lsp
 {
@@ -198,6 +198,8 @@ namespace lsp
             sAnalyzer.set_envelope(dspu::envelope::WHITE_NOISE);
             sAnalyzer.set_window(meta::gott_compressor::FFT_WINDOW);
             sAnalyzer.set_rate(meta::gott_compressor::REFRESH_RATE);
+
+            sCounter.set_frequency(meta::gott_compressor::REFRESH_RATE, true);
 
             // Initialize filters according to number of bands
             if (sFilters.init(meta::gott_compressor::BANDS_MAX * channels) != STATUS_OK)
@@ -670,6 +672,7 @@ namespace lsp
             sAnalyzer.set_sample_rate(sr);
             sFilters.set_sample_rate(sr);
             sProtSC.set_sample_rate(sr);
+            sCounter.set_sample_rate(sr, true);
             bEnvUpdate          = true;
 
             // Update channels
@@ -1184,10 +1187,10 @@ namespace lsp
             }
 
             // Do processing
-            while (samples > 0)
+            for (size_t offset = 0; offset < samples;)
             {
                 // Determine buffer size for processing
-                size_t to_process   = lsp_min(samples, GOTT_BUFFER_SIZE);
+                size_t to_process   = lsp_min(GOTT_BUFFER_SIZE, samples-offset);
 
                 // Measure input signal level
                 for (size_t i=0; i<channels; ++i)
@@ -1437,9 +1440,10 @@ namespace lsp
                     if (c->vScIn != NULL)
                         c->vScIn           += to_process;
                 }
-                samples    -= to_process;
-            } // while (samples > 0)
+                offset     += to_process;
+            }
 
+            sCounter.submit(samples);
 
             // Synchronize meshes with the UI
             plug::mesh_t *mesh = NULL;
@@ -1449,56 +1453,59 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
 
                 // Calculate transfer function for the compressor
-                if (enXOver == XOVER_MODERN)
+                if (sCounter.fired())
                 {
-                    dsp::pcomplex_fill_ri(c->vTmpFilterBuffer, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
-
-                    // Calculate transfer function
-                    for (size_t j=0; j<nBands; ++j)
+                    if (enXOver == XOVER_MODERN)
                     {
-                        band_t *b       = &c->vBands[j];
-                        sFilters.freq_chart(b->nFilterID, vTr, vFreqBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::pcomplex_mul2(c->vTmpFilterBuffer, vTr, meta::gott_compressor::FFT_MESH_POINTS);
-                    }
-                    dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                }
-                else if (enXOver == XOVER_CLASSIC)
-                {
-                    dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
-                    dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS*2);
+                        dsp::pcomplex_fill_ri(c->vTmpFilterBuffer, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
 
-                    // Calculate transfer function
-                    for (size_t j=0; j<nBands; ++j)
+                        // Calculate transfer function
+                        for (size_t j=0; j<nBands; ++j)
+                        {
+                            band_t *b       = &c->vBands[j];
+                            sFilters.freq_chart(b->nFilterID, vTr, vFreqBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::pcomplex_mul2(c->vTmpFilterBuffer, vTr, meta::gott_compressor::FFT_MESH_POINTS);
+                        }
+                        dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                    }
+                    else if (enXOver == XOVER_CLASSIC)
                     {
-                        band_t *b           = &c->vBands[j];
+                        dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS*2);
 
-                        // Apply all-pass characteristics
-                        b->sAllFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::pcomplex_mul2(c->vTmpFilterBuffer, vPFc, meta::gott_compressor::FFT_MESH_POINTS);
+                        // Calculate transfer function
+                        for (size_t j=0; j<nBands; ++j)
+                        {
+                            band_t *b           = &c->vBands[j];
 
-                        // Apply lo-pass filter characteristics
-                        b->sPassFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::pcomplex_mul2(vPFc, vTr, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::fmadd_k3(c->vTmpFilterBuffer, vPFc, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS*2);
+                            // Apply all-pass characteristics
+                            b->sAllFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::pcomplex_mul2(c->vTmpFilterBuffer, vPFc, meta::gott_compressor::FFT_MESH_POINTS);
 
-                        // Apply hi-pass filter characteristics
-                        b->sRejFilter.freq_chart(vRFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::pcomplex_mul2(vTr, vRFc, meta::gott_compressor::FFT_MESH_POINTS);
+                            // Apply lo-pass filter characteristics
+                            b->sPassFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::pcomplex_mul2(vPFc, vTr, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::fmadd_k3(c->vTmpFilterBuffer, vPFc, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS*2);
+
+                            // Apply hi-pass filter characteristics
+                            b->sRejFilter.freq_chart(vRFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::pcomplex_mul2(vTr, vRFc, meta::gott_compressor::FFT_MESH_POINTS);
+                        }
+                        dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                     }
-                    dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                }
-                else // enXOver == XOVER_LINEAR_PHASE
-                {
-                    dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                    // Calculate transfer function
-                    for (size_t j=0; j<nBands; ++j)
+                    else // enXOver == XOVER_LINEAR_PHASE
                     {
-                        band_t *b           = &c->vBands[j];
-                        size_t band         = b - c->vBands;
-                        c->sFFTXOver.freq_chart(band, vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::fmadd_k3(c->vTmpFilterBuffer, vPFc, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        // Calculate transfer function
+                        for (size_t j=0; j<nBands; ++j)
+                        {
+                            band_t *b           = &c->vBands[j];
+                            size_t band         = b - c->vBands;
+                            c->sFFTXOver.freq_chart(band, vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                            dsp::fmadd_k3(c->vTmpFilterBuffer, vPFc, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                        }
+                        dsp::copy(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                     }
-                    dsp::copy(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                 }
 
                 // Output Channel curve
@@ -1606,8 +1613,10 @@ namespace lsp
             }
 
             // Request for redraw
-            if (pWrapper != NULL)
+            if ((pWrapper != NULL) && (sCounter.fired()))
                 pWrapper->query_display_draw();
+
+            sCounter.commit();
         }
 
         bool gott_compressor::inline_display(plug::ICanvas *cv, size_t width, size_t height)
@@ -1718,6 +1727,7 @@ namespace lsp
             v->write_object("sFilters", &sFilters);
             v->write_object("sProtSC", &sProtSC);
             v->write_object("sProt", &sProt);
+            v->write_object("sCounter", &sCounter);
 
             v->write("nMode", nMode);
             v->write("bSidechain", bSidechain);
