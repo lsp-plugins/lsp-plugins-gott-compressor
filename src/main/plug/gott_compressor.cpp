@@ -32,7 +32,7 @@
 #include <private/plugins/gott_compressor.h>
 
 /* The size of temporary buffer for audio processing */
-#define GOTT_BUFFER_SIZE        0x1000U
+#define GOTT_BUFFER_SIZE        0x400U
 
 namespace lsp
 {
