@@ -23,6 +23,7 @@
 #define PRIVATE_PLUGINS_GOTT_COMPRESSOR_H_
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
+#include <lsp-plug.in/dsp-units/ctl/Counter.h>
 #include <lsp-plug.in/dsp-units/dynamics/DynamicProcessor.h>
 #include <lsp-plug.in/dsp-units/dynamics/SurgeProtector.h>
 #include <lsp-plug.in/dsp-units/filters/DynamicFilters.h>
@@ -46,10 +47,6 @@ namespace lsp
          */
         class gott_compressor: public plug::Module
         {
-            private:
-                gott_compressor & operator = (const gott_compressor &);
-                gott_compressor (const gott_compressor &);
-
             public:
                 enum gott_mode_t
                 {
@@ -63,9 +60,10 @@ namespace lsp
                 enum sync_t
                 {
                     S_COMP_CURVE    = 1 << 0,
-                    S_EQ_CURVE      = 1 << 2,
+                    S_EQ_CURVE      = 1 << 1,
+                    S_BAND_CURVE    = 1 << 2,
 
-                    S_ALL           = S_COMP_CURVE | S_EQ_CURVE
+                    S_ALL           = S_COMP_CURVE | S_EQ_CURVE | S_BAND_CURVE
                 };
 
                 enum xover_mode_t
@@ -87,7 +85,8 @@ namespace lsp
                     float                  *vBuffer;            // Crossover band data
                     float                  *vVCA;               // Voltage-controlled amplification value for each band
                     float                  *vCurveBuffer;       // Compression curve
-                    float                  *vFilterBuffer;      // Band Filter buffer
+                    float                  *vFilterBuffer;      // Bandpass Filter Buffer
+                    float                  *vSidechainBuffer;   // Band Sidechain Filter buffer
 
                     float                   fMinThresh;         // Minimum threshold
                     float                   fUpThresh;          // Upward threshold
@@ -172,6 +171,7 @@ namespace lsp
                 dspu::DynamicFilters    sFilters;               // Dynamic filters for each band in 'modern' mode
                 dspu::Sidechain         sProtSC;                // Surge protector sidechain module
                 dspu::SurgeProtector    sProt;                  // Surge protector
+                dspu::Counter           sCounter;               // Sync counter
 
                 size_t                  nMode;                  // Processor mode
                 bool                    bSidechain;             // External side chain
@@ -237,7 +237,12 @@ namespace lsp
 
             public:
                 explicit gott_compressor(const meta::plugin_t *meta);
+                gott_compressor(const gott_compressor &) = delete;
+                gott_compressor(gott_compressor &&) = delete;
                 virtual ~gott_compressor() override;
+
+                gott_compressor & operator = (const gott_compressor &) = delete;
+                gott_compressor & operator = (gott_compressor &&) = delete;
 
                 virtual void        init(plug::IWrapper *wrapper, plug::IPort **ports) override;
                 virtual void        destroy() override;
