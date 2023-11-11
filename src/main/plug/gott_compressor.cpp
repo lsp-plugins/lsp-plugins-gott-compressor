@@ -233,7 +233,6 @@ namespace lsp
                     szof_buffer +   // vBuffer for each channel
                     szof_buffer +   // vScBuffer for each channel
                     szof_buffer +   // vInAnalyze each channel
-                    szof_buffer +   // vOutAnalyze each channel
                     szof_freq*2 +   // vTmpFilterBuffer
                     szof_freq +     // vFilterBuffer
                     (
@@ -397,8 +396,6 @@ namespace lsp
                 ptr                    += szof_buffer;
                 c->vInAnalyze           = reinterpret_cast<float *>(ptr);
                 ptr                    += szof_buffer;
-                c->vOutAnalyze          = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_buffer;
                 c->vTmpFilterBuffer     = reinterpret_cast<float *>(ptr);
                 ptr                    += szof_freq * 2;
                 c->vFilterBuffer        = reinterpret_cast<float *>(ptr);
@@ -408,8 +405,8 @@ namespace lsp
 
                 c->nAnInChannel         = an_cid++;
                 c->nAnOutChannel        = an_cid++;
-                vAnalyze[c->nAnInChannel]   = c->vInAnalyze;
-                vAnalyze[c->nAnOutChannel]  = c->vOutAnalyze;
+                vAnalyze[c->nAnInChannel]   = NULL;
+                vAnalyze[c->nAnOutChannel]  = NULL;
 
                 c->bInFft               = false;
                 c->bOutFft              = false;
@@ -1253,6 +1250,7 @@ namespace lsp
                     c->sEnvBoost[0].process(c->vScBuffer, c->vScBuffer, to_process);
                     c->sAnDelay.process(c->vInAnalyze, c->vBuffer, to_process);
                     c->sScDelay.process(c->vScBuffer, c->vScBuffer, to_process);
+                    vAnalyze[c->nAnInChannel] = c->vInAnalyze;
                 }
 
                 // Surge protection
@@ -1419,7 +1417,7 @@ namespace lsp
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
-                    dsp::copy(c->vOutAnalyze, c->vBuffer, to_process);
+                    vAnalyze[c->nAnOutChannel]  = c->vBuffer;
                 }
 
                 sAnalyzer.process(vAnalyze, to_process);
@@ -1893,7 +1891,6 @@ namespace lsp
                     v->write("vBuffer", c->vBuffer);
                     v->write("vScBuffer", c->vScBuffer);
                     v->write("vInAnalyze", c->vInAnalyze);
-                    v->write("vOutAnalyze", c->vOutAnalyze);
                     v->write("vTmpFilterBuffer", c->vTmpFilterBuffer);
                     v->write("vFilterBuffer", c->vFilterBuffer);
 
