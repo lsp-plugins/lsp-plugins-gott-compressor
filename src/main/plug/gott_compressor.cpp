@@ -1356,11 +1356,22 @@ namespace lsp
                         // Originally, there is no signal
                         c->sDelay.process(c->vInBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature, store into vBuffer
                         dsp::copy(vBuffer, c->vInBuffer, to_process);
-                        dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
 
-                        for (size_t j=0; j<nBands; ++j)
+                        // First band
+                        band_t *b       = &c->vBands[0];
+                        // Process the signal with all-pass
+                        b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process);
+                        // Filter frequencies from input
+                        b->sPassFilter.process(vEnv, vBuffer, to_process);
+                        // Apply VCA gain and add to the channel buffer
+                        dsp::mul3(c->vBuffer, vEnv, b->vVCA, to_process);
+                        // Filter frequencies from input
+                        b->sRejFilter.process(vBuffer, vBuffer, to_process);
+
+                        // Other bands
+                        for (size_t j=1; j<nBands; ++j)
                         {
-                            band_t *b       = &c->vBands[j];
+                            b               = &c->vBands[j];
 
                             // Process the signal with all-pass
                             b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process);
@@ -1385,11 +1396,15 @@ namespace lsp
                         // Apply delay to unprocessed signal to compensate lookahead + crossover delay
                         c->sXOverDelay.process(c->vInBuffer, c->vBuffer, to_process);
                         c->sFFTXOver.process(c->vBuffer, to_process);
-                        dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
 
-                        for (size_t j=0; j<nBands; ++j)
+                        // First band
+                        band_t *b           = &c->vBands[0];
+                        dsp::mul3(c->vBuffer, b->vVCA, b->vBuffer, to_process);
+
+                        // Other bands
+                        for (size_t j=1; j<nBands; ++j)
                         {
-                            band_t *b           = &c->vBands[j];
+                            b                   = &c->vBands[j];
                             dsp::fmadd3(c->vBuffer, b->vVCA, b->vBuffer, to_process);
                         }
                     }
@@ -1460,26 +1475,39 @@ namespace lsp
                 {
                     if (enXOver == XOVER_MODERN)
                     {
-                        dsp::pcomplex_fill_ri(c->vTmpFilterBuffer, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
-
                         // Calculate transfer function
                         for (size_t j=0; j<nBands; ++j)
                         {
                             band_t *b       = &c->vBands[j];
-                            sFilters.freq_chart(b->nFilterID, vTr, vFreqBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
-                            dsp::pcomplex_mul2(c->vTmpFilterBuffer, vTr, meta::gott_compressor::FFT_MESH_POINTS);
+                            if (j == 0)
+                            {
+                                sFilters.freq_chart(b->nFilterID, c->vTmpFilterBuffer, vFreqBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                            }
+                            else
+                            {
+                                sFilters.freq_chart(b->nFilterID, vTr, vFreqBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
+                                dsp::pcomplex_mul2(c->vTmpFilterBuffer, vTr, meta::gott_compressor::FFT_MESH_POINTS);
+                            }
                         }
                         dsp::pcomplex_mod(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                     }
                     else if (enXOver == XOVER_CLASSIC)
                     {
-                        dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, meta::gott_compressor::FFT_MESH_POINTS);
-                        dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS*2);
+                        // Calculate transfer function for first band
+                        band_t *b           = &c->vBands[0];
 
-                        // Calculate transfer function
-                        for (size_t j=0; j<nBands; ++j)
+                        // Apply lo-pass filter characteristics
+                        b->sPassFilter.freq_chart(vTr, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::mul_k3(c->vTmpFilterBuffer, vTr, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS*2);
+
+                        // Apply hi-pass filter characteristics
+                        b->sRejFilter.freq_chart(vRFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                        dsp::pcomplex_mul2(vTr, vRFc, meta::gott_compressor::FFT_MESH_POINTS);
+
+                        // Calculate transfer function for other bands
+                        for (size_t j=1; j<nBands; ++j)
                         {
-                            band_t *b           = &c->vBands[j];
+                            b                   = &c->vBands[j];
 
                             // Apply all-pass characteristics
                             b->sAllFilter.freq_chart(vPFc, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
@@ -1525,7 +1553,6 @@ namespace lsp
                     }
                     else // enXOver == XOVER_LINEAR_PHASE
                     {
-                        dsp::fill_zero(c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                         // Calculate transfer function
                         for (size_t j=0; j<nBands; ++j)
                         {
@@ -1541,6 +1568,8 @@ namespace lsp
                             else
                                 dsp::fmadd_k3(c->vTmpFilterBuffer, b->vFilterBuffer, b->fGainLevel, meta::gott_compressor::FFT_MESH_POINTS);
                         }
+
+                        // Copy the result to the output buffer
                         dsp::copy(c->vFilterBuffer, c->vTmpFilterBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                     }
                 }
