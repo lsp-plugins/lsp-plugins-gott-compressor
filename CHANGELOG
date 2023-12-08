@@ -5,6 +5,7 @@
 === 1.0.5 ===
 * Added possibility to change frequency values by double click.
 * Implemented automatic scale of spectrum graph switch.
+* Implemented split frequency display.
 
 
 === 1.0.4 ===
