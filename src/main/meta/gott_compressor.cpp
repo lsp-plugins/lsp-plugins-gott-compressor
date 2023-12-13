@@ -425,6 +425,7 @@ namespace lsp
         {
             "GOTT Kompressor Mono",
             "GOTT Compressor Mono",
+            "GOTT Compressor Mono",
             "GC1M",
             &developers::v_sadovnikov,
             "gott_compressor_mono",
@@ -448,6 +449,7 @@ namespace lsp
         const plugin_t gott_compressor_stereo =
         {
             "GOTT Kompressor Stereo",
+            "GOTT Compressor Stereo",
             "GOTT Compressor Stereo",
             "GC1S",
             &developers::v_sadovnikov,
@@ -473,6 +475,7 @@ namespace lsp
         {
             "GOTT Kompressor LeftRight",
             "GOTT Compressor LeftRight",
+            "GOTT Compressor L/R",
             "GC1LR",
             &developers::v_sadovnikov,
             "gott_compressor_lr",
@@ -497,6 +500,7 @@ namespace lsp
         {
             "GOTT Kompressor MidSide",
             "GOTT Compressor MidSide",
+            "GOTT Compressor M/S",
             "GC1MS",
             &developers::v_sadovnikov,
             "gott_compressor_ms",
@@ -521,6 +525,7 @@ namespace lsp
         {
             "Sidechain GOTT Kompressor Mono",
             "Sidechain GOTT Compressor Mono",
+            "SC GOTT Compressor Mono",
             "SCGC1M",
             &developers::v_sadovnikov,
             "sc_gott_compressor_mono",
@@ -545,6 +550,7 @@ namespace lsp
         {
             "Sidechain GOTT Kompressor Stereo",
             "Sidechain GOTT Compressor Stereo",
+            "SC GOTT Compressor Stereo",
             "SCGC1S",
             &developers::v_sadovnikov,
             "sc_gott_compressor_stereo",
@@ -569,6 +575,7 @@ namespace lsp
         {
             "Sidechain GOTT Kompressor LeftRight",
             "Sidechain GOTT Compressor LeftRight",
+            "SC GOTT Compressor L/R",
             "SCGC1LR",
             &developers::v_sadovnikov,
             "sc_gott_compressor_lr",
@@ -593,6 +600,7 @@ namespace lsp
         {
             "Sidechain GOTT Kompressor MidSide",
             "Sidechain GOTT Compressor MidSide",
+            "SC GOTT Compressor M/S",
             "SCGC1MS",
             &developers::v_sadovnikov,
             "sc_gott_compressor_ms",
