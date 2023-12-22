@@ -5,6 +5,10 @@
 			"middle": "Middle channel",
 			"right": "Right channel",
 			"side": "Side channel"
+		},
+		"notes": {
+			"full": "{@frequency} Hz, {@note}{@octave}{@cents}",
+			"unknown": "{@frequency} Hz"
 		}
 	}
 }

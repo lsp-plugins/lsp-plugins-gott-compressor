@@ -5,6 +5,10 @@
 			"middle": "Канал середины",
 			"right": "Правый канал",
 			"side": "Канал стороны"
+		},
+		"notes": {
+			"full": "{@frequency} Гц, {@note}{@octave}{@cents}",
+			"unknown": "{@frequency} Гц"
 		}
 	}
 }

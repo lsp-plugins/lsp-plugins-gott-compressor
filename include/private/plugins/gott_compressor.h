@@ -144,7 +144,6 @@ namespace lsp
                     float                  *vBuffer;            // Temporary buffer
                     float                  *vScBuffer;          // Sidechain buffer
                     float                  *vInAnalyze;         // Input signal analysis
-                    float                  *vOutAnalyze;        // Output signal analysis
                     float                  *vTmpFilterBuffer;   // Filter transfer function of the channel (temporary)
                     float                  *vFilterBuffer;      // Filter transfer function of the channel
 

@@ -2,6 +2,12 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.5 ===
+* Added possibility to change frequency values by double click.
+* Implemented automatic scale of spectrum graph switch.
+* Implemented split frequency display.
+* Updated build scripts and dependencies.
+
 === 1.0.4 ===
 * Fixed Makeup button not affecting gain curve.
 * Reduced CPU consumption for Linear Phase and Modern modes.

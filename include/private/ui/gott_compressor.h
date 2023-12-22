@@ -42,15 +42,30 @@ namespace lsp
                     ui::IPort          *pLoThresh;
                     ui::IPort          *pUpThresh;
                     ui::IPort          *pDownThresh;
-                } filter_t;
+                } band_t;
+
+                typedef struct split_t
+                {
+                    gott_compressor    *pUI;
+                    ui::IPort          *pFreq;
+
+                    tk::GraphMarker    *wMarker;        // Graph marker for editing
+                    tk::GraphText      *wNote;          // Text with note and frequency
+                } split_t;
 
             protected:
                 const char * const     *fmtStrings;
-                lltl::darray<filter_t>  vBands;
+                lltl::darray<band_t>  vBands;
+
+                lltl::darray<split_t> vSplits;          // List of split widgets and ports
 
             protected:
                 static void         make_value_greater_eq(ui::IPort *dst, ui::IPort *src);
                 static void         make_value_less_eq(ui::IPort *dst, ui::IPort *src);
+
+            protected:
+                static status_t slot_split_mouse_in(tk::Widget *sender, void *ptr, void *data);
+                static status_t slot_split_mouse_out(tk::Widget *sender, void *ptr, void *data);
 
             protected:
                 band_t             *find_band_by_port(const ui::IPort *port);
@@ -59,12 +74,24 @@ namespace lsp
                 ui::IPort          *bind_port(const char *fmt, const char *base, size_t id);
                 void                process_band_port(band_t *band, ui::IPort *port);
 
+            protected:
+                template <class T>
+                T              *find_split_widget(const char *fmt, const char *base, size_t id);
+                split_t        *find_split_by_widget(tk::Widget *widget);
+
             public:
                 explicit            gott_compressor(const meta::plugin_t *meta);
                 virtual            ~gott_compressor() override;
 
                 virtual status_t    post_init() override;
                 virtual status_t    pre_destroy() override;
+
+            protected:
+                void            on_split_mouse_in(split_t *s);
+                void            on_split_mouse_out();
+
+                void            add_splits();
+                void            update_split_note_text(split_t *s);
 
             public:
                 virtual void        notify(ui::IPort *port, size_t flags) override;
