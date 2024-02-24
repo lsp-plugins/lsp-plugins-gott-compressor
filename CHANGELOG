@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.0.6 ===
+* Added Dry/Wet balance control.
+* Fixed Dry/Wet phasing issue for Linear Phase mode.
 * Updated build scripts and dependencies.
 
 === 1.0.5 ===

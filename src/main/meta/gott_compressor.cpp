@@ -112,6 +112,7 @@ namespace lsp
             AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
             AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
+            PERCENTS("drywet", "Dry/Wet balance", 100.0f, 0.1f), \
             COMBO("sc_mode", "Sidechain mode", gott_compressor::SC_MODE_DFL, gott_sc_modes), \
             COMBO("sc_src", "Sidechain source", 0, gott_sc_sources), \
             AMP_GAIN("sc_pamp", "Sidechain pre-amplification", 1.0f, 10.0f), \
