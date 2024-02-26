@@ -69,18 +69,7 @@
 
 					<!-- Meshes -->
 					<ui:for id="i" first="1" count="4">
-						<mesh
-							id="bfc_${i}"
-							width="2"
-							fill="false"
-							smooth="true"
-							color="graph_mesh_cycle"
-							color.hue="${(:i-1) * 0.25}"
-							fcolor="graph_mesh_cycle"
-							fcolor.hue="${(:i-1) * 0.25}"
-							color.a="0.6"
-							fcolor.a="0.9"
-							visibility="${(:i lt 4) ? ':flt' : ':flt and :ebe'}"/>
+						<mesh id="bfc_${i}" width="2" fill="false" smooth="true" color="graph_mesh_cycle" color.hue="${(:i-1) * 0.25}" fcolor="graph_mesh_cycle" fcolor.hue="${(:i-1) * 0.25}" color.a="0.6" fcolor.a="0.9" visibility="${(:i lt 4) ? ':flt' : ':flt and :ebe'}"/>
 					</ui:for>
 					<mesh id="ifg_l" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="0" color="left_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="left_in" visibility=":ife_l"/>
 					<mesh id="ifg_r" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="0" color="right_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="right_in" visibility=":ife_r"/>
@@ -93,126 +82,81 @@
 
 					<!-- Threshold segments -->
 					<ui:for id="b" first="1" count="4">
-							<ui:if test=":b ieq 1">
-								<!-- Band 1 -->
-								<ui:eval id="sf" value="'10'"/>
-								<ui:eval id="ef" value="':sf1'"/>
-								<ui:set id="vis" value="true"/>
-							</ui:if>
-							<ui:if test=":b ieq 2">
-								<!-- Band 2 -->
-								<ui:eval id="sf" value="':sf1'"/>
-								<ui:eval id="ef" value="':sf2'"/>
-								<ui:set id="vis" value="true"/>
-							</ui:if>
-							<ui:if test=":b ieq 3">
-								<!-- Band 3 -->
-								<ui:eval id="sf" value="':sf2'"/>
-								<ui:eval id="ef" value="'(:ebe ? :sf3 : 24000)'"/>
-								<ui:set id="vis" value="true"/>
-							</ui:if>
-							<ui:if test=":b ieq 4">
-								<!-- Band 4 -->
-								<ui:eval id="sf" value="':sf3'"/>
-								<ui:eval id="ef" value="'24000'"/>
-								<ui:set id="vis" value=":ebe"/>
-							</ui:if>
+						<ui:if test=":b ieq 1">
+							<!-- Band 1 -->
+							<ui:eval id="sf" value="'10'"/>
+							<ui:eval id="ef" value="':sf1'"/>
+							<ui:set id="vis" value="true"/>
+						</ui:if>
+						<ui:if test=":b ieq 2">
+							<!-- Band 2 -->
+							<ui:eval id="sf" value="':sf1'"/>
+							<ui:eval id="ef" value="':sf2'"/>
+							<ui:set id="vis" value="true"/>
+						</ui:if>
+						<ui:if test=":b ieq 3">
+							<!-- Band 3 -->
+							<ui:eval id="sf" value="':sf2'"/>
+							<ui:eval id="ef" value="'(:ebe ? :sf3 : 24000)'"/>
+							<ui:set id="vis" value="true"/>
+						</ui:if>
+						<ui:if test=":b ieq 4">
+							<!-- Band 4 -->
+							<ui:eval id="sf" value="':sf3'"/>
+							<ui:eval id="ef" value="'24000'"/>
+							<ui:set id="vis" value=":ebe"/>
+						</ui:if>
 
-							<!-- Downward Threshold -->
-							<line
-								sx="${sf}"
-								sy=":td_${b}"
-								x="${ef}"
-								y.id="td_${b}"
-								y.editable="false"
-								z.id="rd_${b}"
-								z.editable="false"
-								width="0"
-								smooth="false"
-								color="cyan"
-								lborder="400"
-								lcolor="cyan"
-								lcolor.a="0.9"
-								pointer="none"
-								visibility="${vis}"/>
+						<!-- Downward Threshold -->
+						<line sx="${sf}" sy=":td_${b}" x="${ef}" y.id="td_${b}" y.editable="false" z.id="rd_${b}" z.editable="false" width="0" smooth="false" color="cyan" lborder="400" lcolor="cyan" lcolor.a="0.9" pointer="none" visibility="${vis}"/>
 
-							<line
-								sx="${sf}"
-								sy=":td_${b}"
-								x="${ef}"
-								y.id="td_${b}"
-								y.editable="true"
-								z.id="rd_${b}"
-								z.editable="true"
-								width="3"
-								smooth="true"
-								color="cyan"
-								hcolor="cyan"
-								lborder="(2 - lg :rd_${b}) * 48"
-								hlborder="(2 - lg :rd_${b}) * 48"
-								lcolor="cyan"
-								lcolor.a="0.5"
-								hlcolor.a="0.2"
-								hlcolor="cyan"
-								pointer="vsize"
-								visibility="${vis}"/>
+						<line
+							sx="${sf}"
+							sy=":td_${b}"
+							x="${ef}"
+							y.id="td_${b}"
+							y.editable="true"
+							z.id="rd_${b}"
+							z.editable="true"
+							width="3"
+							smooth="true"
+							color="cyan"
+							hcolor="cyan"
+							lborder="(2 - lg :rd_${b}) * 48"
+							hlborder="(2 - lg :rd_${b}) * 48"
+							lcolor="cyan"
+							lcolor.a="0.5"
+							hlcolor.a="0.2"
+							hlcolor="cyan"
+							pointer="vsize"
+							visibility="${vis}"/>
 
-							<!-- Upward Threshold -->
-							<line
-								sx="${sf}"
-								sy=":tu_${b}"
-								x="${ef}"
-								y.id="tu_${b}"
-								y.editable="false"
-								z.id="ru_${b}"
-								z.editable="false"
-								width="0"
-								smooth="false"
-								color="cyan"
-								rborder="400"
-								rcolor="cyan"
-								rcolor.a="0.9"
-								pointer="none"
-								visibility="${vis}"/>
+						<!-- Upward Threshold -->
+						<line sx="${sf}" sy=":tu_${b}" x="${ef}" y.id="tu_${b}" y.editable="false" z.id="ru_${b}" z.editable="false" width="0" smooth="false" color="cyan" rborder="400" rcolor="cyan" rcolor.a="0.9" pointer="none" visibility="${vis}"/>
 
-							<line
-								sx="${sf}"
-								sy=":tu_${b}"
-								x="${ef}"
-								y.id="tu_${b}"
-								y.editable="true"
-								z.id="ru_${b}"
-								z.editable="true"
-								width="3"
-								smooth="true"
-								color="cyan"
-								hcolor="cyan"
-								rborder="(2 - lg :ru_${b}) * 48"
-								hrborder="(2 - lg :ru_${b}) * 48"
-								rcolor="cyan"
-								rcolor.a="0.5"
-								hrcolor.a="0.2"
-								hrcolor="cyan"
-								pointer="vsize"
-								visibility="${vis}"/>
+						<line
+							sx="${sf}"
+							sy=":tu_${b}"
+							x="${ef}"
+							y.id="tu_${b}"
+							y.editable="true"
+							z.id="ru_${b}"
+							z.editable="true"
+							width="3"
+							smooth="true"
+							color="cyan"
+							hcolor="cyan"
+							rborder="(2 - lg :ru_${b}) * 48"
+							hrborder="(2 - lg :ru_${b}) * 48"
+							rcolor="cyan"
+							rcolor.a="0.5"
+							hrcolor.a="0.2"
+							hrcolor="cyan"
+							pointer="vsize"
+							visibility="${vis}"/>
 
-							<!-- Bottom Threshold -->
-							<line
-								sx="${sf}"
-								sy=":tm_${b}"
-								x="${ef}"
-								y.id="tm_${b}"
-								y.editable="true"
-								z.id="kn_${b}"
-								z.editable="true"
-								width="3"
-								smooth="true"
-								color="cyan"
-								hcolor="cyan"
-								color.a="0.3"
-								hcolor.a="0"
-								pointer="vsize"
-								visibility="${vis}"/>
+						<!-- Bottom Threshold -->
+						<line sx="${sf}" sy=":tm_${b}" x="${ef}" y.id="tm_${b}" y.editable="true" z.id="kn_${b}" z.editable="true" width="3" smooth="true" color="cyan" hcolor="cyan" color.a="0.3" hcolor.a="0" pointer="vsize" visibility="${vis}"/>
 					</ui:for>
 
 					<!-- Axis -->
@@ -334,41 +278,42 @@
 			<!-- signal -->
 			<cell rows="2">
 				<group text="groups.signal" ipadding="0" vexpand="false">
-					<vbox>
-						<grid rows="5" cols="2" height.min="154" pad.v="4" pad.h="6">
-							<knob id="g_in" pad.r="4"/>
-							<vbox vfill="false">
-								<label text="labels.input" halign="0"/>
-								<value id="g_in" sline="true" halign="0"/>
-							</vbox>
+					<grid rows="7" cols="2" height.min="154">
 
-							<knob id="g_out" pad.r="4"/>
-							<vbox vfill="false">
-								<label text="labels.output" expand="true" halign="0"/>
-								<value id="g_out" width.min="50" sline="true" halign="0"/>
-							</vbox>
+						<knob id="g_in" pad.r="4" pad.v="4" pad.l="6"/>
+						<vbox vfill="false" pad.v="4" pad.r="6">
+							<label text="labels.input" halign="0"/>
+							<value id="g_in" sline="true" halign="0"/>
+						</vbox>
 
-							<knob id="g_dry" scolor="dry" pad.r="4"/>
-							<vbox vfill="false">
-								<label text="labels.signal.dry" halign="0"/>
-								<value id="g_dry" width.min="50" sline="true" halign="0"/>
-							</vbox>
+						<knob id="g_out" pad.r="4" pad.v="4" pad.l="6"/>
+						<vbox vfill="false" pad.v="4" pad.r="6">
+							<label text="labels.output" expand="true" halign="0"/>
+							<value id="g_out" width.min="50" sline="true" halign="0"/>
+						</vbox>
 
-							<knob id="g_wet" scolor="wet" pad.r="4"/>
-							<vbox vfill="false">
-								<label text="labels.signal.wet" halign="0"/>
-								<value id="g_wet" width.min="50" sline="true" halign="0"/>
-							</vbox>
-							
-							<knob id="drywet" scolor="drywet" pad.r="4"/>
-							<vbox vfill="false">
-								<label text="labels.signal.drywet" halign="0"/>
-								<value id="drywet" width.min="50" sline="true" halign="0"/>
-							</vbox>
-						</grid>
-						<hsep pad.v="2" bg.color="bg" vreduce="true"/>
-						<void vexpand="true" bg.color="bg_schema"/>
-					</vbox>
+						<cell cols="2"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+
+						<knob id="g_dry" scolor="dry" pad.r="4" pad.v="4" pad.l="6"/>
+						<vbox vfill="false" pad.v="4" pad.r="6">
+							<label text="labels.signal.dry" halign="0"/>
+							<value id="g_dry" width.min="50" sline="true" halign="0"/>
+						</vbox>
+
+						<knob id="g_wet" scolor="wet" pad.r="4" pad.v="4" pad.l="6"/>
+						<vbox vfill="false" pad.v="4" pad.r="6">
+							<label text="labels.signal.wet" halign="0"/>
+							<value id="g_wet" width.min="50" sline="true" halign="0"/>
+						</vbox>
+
+						<cell cols="2"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+
+						<knob id="drywet" scolor="drywet" pad.r="4" pad.v="4" pad.l="6"/>
+						<vbox vfill="false" pad.v="4" pad.r="6">
+							<label text="labels.signal.drywet" halign="0"/>
+							<value id="drywet" width.min="50" sline="true" halign="0"/>
+						</vbox>
+					</grid>
 				</group>
 			</cell>
 
@@ -383,7 +328,7 @@
 						<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
 					</hbox>
 				</align>
-				<vsep pad.h="2" bg.color="bg" reduce="true" />
+				<vsep pad.h="2" bg.color="bg" reduce="true"/>
 				<hbox bg.color="bg_schema" hreduce="true" pad.h="6">
 					<button id="ssplit" text="labels.stereo_split" size="22" ui:inject="Button_blue"/>
 				</hbox>
@@ -399,8 +344,8 @@
 					<vbox vreduce="true" pad.b="8">
 						<button id="prot" text="labels.surge" fill="true" pad.h="6" pad.b="4"/>
 						<combo id="sc_mode" pad.h="6" pad.b="4"/>
-						<combo id="sc_src" pad.h="6" visibility="!:ssplit" />
-						<combo id="sp_src" pad.h="6" visibility=":ssplit" />
+						<combo id="sc_src" pad.h="6" visibility="!:ssplit"/>
+						<combo id="sp_src" pad.h="6" visibility=":ssplit"/>
 						<button id="sc_ext" text="labels.chan.external_sc" fill="true" visibility="ex :sc_ext" ui:inject="Button_orange" pad.t="4" pad.h="6"/>
 					</vbox>
 					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
@@ -450,23 +395,18 @@
 						</cell>
 
 						<ui:for id="i" first="1" count="4">
-							<ui:set id="act_ch" value="(!:bm_${i} and ((${has_solo}) ? :bs_${i} : true) and (:ebe or (${i} ilt 4)))" />
-							<ui:with
-								bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
-								bright="(!${act_ch}) ? 0.75 : 1.0">
+							<ui:set id="act_ch" value="(!:bm_${i} and ((${has_solo}) ? :bs_${i} : true) and (:ebe or (${i} ilt 4)))"/>
+							<ui:with bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0" bright="(!${act_ch}) ? 0.75 : 1.0">
 
 								<ui:if test=":i ieq 1">
 									<hbox vreduce="true" pad.b="4">
-									<align halign="-1" valign="-1">
-										<bevel width.min="72" height.min="46" ui:inject="Bevel_cycle" dir.deg="32"/>
-									</align>
-								</hbox>
+										<align halign="-1" valign="-1">
+											<bevel width.min="72" height.min="46" ui:inject="Bevel_cycle" dir.deg="32"/>
+										</align>
+									</hbox>
 								</ui:if>
 								<ui:if test=":i ieq 2">
-									<knob
-										id="sf1"
-										scolor="(!${act_ch}) ? 'cycle_inactive' : 'graph_mesh_cycle'"
-										scolor.hue="0.25"/>
+									<knob id="sf1" scolor="(!${act_ch}) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.25"/>
 								</ui:if>
 								<ui:if test=":i ieq 3">
 									<knob id="sf2" scolor="(!${act_ch}) ? 'cycle_inactive' : 'graph_mesh_cycle'" scolor.hue="0.5"/>
@@ -525,9 +465,7 @@
 
 							<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 
-							<ui:with
-								bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
-								bright="(!${act_ch}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0" bright="(!${act_ch}) ? 0.75 : 1.0">
 								<hbox hfill="false" pad.h="6">
 									<knob id="tu_${i}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'threshold'"/>
 									<vbox vfill="false" pad.l="4">
@@ -598,39 +536,12 @@
 											<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
 
 											<!-- Meshes -->
-											<ui:set id="act_cg" value="(!:bm_${i} and ((${has_solo}) ? :bs_${i} : true) and (:ebe or (${i} ilt 4)))" />
+											<ui:set id="act_cg" value="(!:bm_${i} and ((${has_solo}) ? :bs_${i} : true) and (:ebe or (${i} ilt 4)))"/>
 
-											<mesh
-												id="ccg_${i}"
-												width="2"
-												color="graph_mesh"
-												color.a="0.3"
-												smooth="true"
-												visibility="${act_cg}" />
-											<dot
-												x.id="elm_${i}l"
-												y.id="clm_${i}l"
-												color="graph_mesh"
-												bcolor="graph_mesh"
-												size="3"
-												border.size="0"
-												visibility="(!:ssplit) and (${act_cg})" />
-											<dot
-												x.id="elm_${i}l"
-												y.id="clm_${i}l"
-												color="left"
-												bcolor="left"
-												size="3"
-												border.size="0"
-												visibility="(:ssplit) and (${act_cg})" />
-											<dot
-												x.id="elm_${i}r"
-												y.id="clm_${i}r"
-												color="right"
-												bcolor="right"
-												size="3"
-												border.size="0"
-												visibility="(:ssplit) and (${act_cg})" />
+											<mesh id="ccg_${i}" width="2" color="graph_mesh" color.a="0.3" smooth="true" visibility="${act_cg}"/>
+											<dot x.id="elm_${i}l" y.id="clm_${i}l" color="graph_mesh" bcolor="graph_mesh" size="3" border.size="0" visibility="(!:ssplit) and (${act_cg})"/>
+											<dot x.id="elm_${i}l" y.id="clm_${i}l" color="left" bcolor="left" size="3" border.size="0" visibility="(:ssplit) and (${act_cg})"/>
+											<dot x.id="elm_${i}r" y.id="clm_${i}r" color="right" bcolor="right" size="3" border.size="0" visibility="(:ssplit) and (${act_cg})"/>
 
 											<!-- Text -->
 											<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
@@ -656,37 +567,17 @@
 											</ui:attributes>
 										</graph>
 									</cell>
-									<ui:with
-										bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
-										bright="(!${act_ch}) ? 0.75 : 1.0">
+									<ui:with bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0" bright="(!${act_ch}) ? 0.75 : 1.0">
 										<void/>
 										<ledmeter vexpand="true" angle="1">
-											<ledchannel
-												id="rlm_${i}l"
-												min="-48 db"
-												max="48 db"
-												log="true"
-												balance="0 db"
-												balance.visibility="true"
-												type="peak"
-												value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
-											<ledchannel
-												id="rlm_${i}r"
-												min="-48 db"
-												max="48 db"
-												log="true"
-												balance="0 db"
-												balance.visibility="true"
-												type="peak"
-												value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
+											<ledchannel id="rlm_${i}l" min="-48 db" max="48 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
+											<ledchannel id="rlm_${i}r" min="-48 db" max="48 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="(!${act_ch}) ? 'cycle_inactive' : 'bright_blue'"/>
 										</ledmeter>
 									</ui:with>
 								</grid>
 							</cell>
 
-							<ui:with
-								bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
-								bright="(!${act_ch}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0" bright="(!${act_ch}) ? 0.75 : 1.0">
 								<cell rows="2" hexpand="false" hreduce="true">
 									<vbox>
 										<hbox pad.b="4">
@@ -765,18 +656,13 @@
 								<hsep pad.v="2" bg.color="bg" vreduce="true"/>
 							</cell>
 
-							<cell
-								cols="6"
-								bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
-								bright="(!${act_ch}) ? 0.75 : 1.0">
+							<cell cols="6" bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0" bright="(!${act_ch}) ? 0.75 : 1.0">
 								<void/>
 							</cell>
 
 							<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 
-							<ui:with
-								bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0"
-								bright="(!${act_ch}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_ch}) ? :const_bg_darken : 1.0" bright="(!${act_ch}) ? 0.75 : 1.0">
 								<hbox hfill="false" pad.h="6">
 									<knob id="tm_${i}" scolor="(!${act_ch}) ? 'cycle_inactive' : 'threshold'"/>
 									<vbox vfill="false" pad.l="4">
