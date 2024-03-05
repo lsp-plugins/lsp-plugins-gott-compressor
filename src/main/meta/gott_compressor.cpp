@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -25,7 +25,7 @@
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MAJOR       1
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MINOR       0
-#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       5
+#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       6
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION  \
     LSP_MODULE_VERSION( \
@@ -112,6 +112,7 @@ namespace lsp
             AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
             AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
+            PERCENTS("drywet", "Dry/Wet balance", 100.0f, 0.1f), \
             COMBO("sc_mode", "Sidechain mode", gott_compressor::SC_MODE_DFL, gott_sc_modes), \
             COMBO("sc_src", "Sidechain source", 0, gott_sc_sources), \
             AMP_GAIN("sc_pamp", "Sidechain pre-amplification", 1.0f, 10.0f), \
@@ -432,6 +433,8 @@ namespace lsp
             LSP_LV2_URI("gott_compressor_mono"),
             LSP_LV2UI_URI("gott_compressor_mono"),
             "ngcm",
+            LSP_VST3_UID("gc1m    ngcm"),
+            LSP_VST3UI_UID("gc1m    ngcm"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 0,
             LSP_LADSPA_URI("gott_compressor_mono"),
             LSP_CLAP_URI("gott_compressor_mono"),
@@ -457,6 +460,8 @@ namespace lsp
             LSP_LV2_URI("gott_compressor_stereo"),
             LSP_LV2UI_URI("gott_compressor_stereo"),
             "ngcs",
+            LSP_VST3_UID("gc1s    ngcs"),
+            LSP_VST3UI_UID("gc1s    ngcs"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 1,
             LSP_LADSPA_URI("gott_compressor_stereo"),
             LSP_CLAP_URI("gott_compressor_stereo"),
@@ -482,6 +487,8 @@ namespace lsp
             LSP_LV2_URI("gott_compressor_lr"),
             LSP_LV2UI_URI("gott_compressor_lr"),
             "ngcl",
+            LSP_VST3_UID("gc1lr   ngcl"),
+            LSP_VST3UI_UID("gc1lr   ngcl"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 2,
             LSP_LADSPA_URI("gott_compressor_lr"),
             LSP_CLAP_URI("gott_compressor_lr"),
@@ -507,6 +514,8 @@ namespace lsp
             LSP_LV2_URI("gott_compressor_ms"),
             LSP_LV2UI_URI("gott_compressor_ms"),
             "ngcM",
+            LSP_VST3_UID("gc1ms   ngcM"),
+            LSP_VST3UI_UID("gc1ms   ngcM"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 3,
             LSP_LADSPA_URI("gott_compressor_ms"),
             LSP_CLAP_URI("gott_compressor_ms"),
@@ -532,6 +541,8 @@ namespace lsp
             LSP_LV2_URI("sc_gott_compressor_mono"),
             LSP_LV2UI_URI("sc_gott_compressor_mono"),
             "sgcm",
+            LSP_VST3_UID("scgc1m  sgcm"),
+            LSP_VST3UI_UID("scgc1m  sgcm"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 4,
             LSP_LADSPA_URI("sc_gott_compressor_mono"),
             LSP_CLAP_URI("sc_gott_compressor_mono"),
@@ -557,6 +568,8 @@ namespace lsp
             LSP_LV2_URI("sc_gott_compressor_stereo"),
             LSP_LV2UI_URI("sc_gott_compressor_stereo"),
             "sgcs",
+            LSP_VST3_UID("scgc1s  sgcs"),
+            LSP_VST3UI_UID("scgc1s  sgcs"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 5,
             LSP_LADSPA_URI("sc_gott_compressor_stereo"),
             LSP_CLAP_URI("sc_gott_compressor_stereo"),
@@ -582,6 +595,8 @@ namespace lsp
             LSP_LV2_URI("sc_gott_compressor_lr"),
             LSP_LV2UI_URI("sc_gott_compressor_lr"),
             "sgcl",
+            LSP_VST3_UID("scgc1lr sgcl"),
+            LSP_VST3UI_UID("scgc1lr sgcl"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 6,
             LSP_LADSPA_URI("sc_gott_compressor_lr"),
             LSP_CLAP_URI("sc_gott_compressor_lr"),
@@ -607,6 +622,8 @@ namespace lsp
             LSP_LV2_URI("sc_gott_compressor_ms"),
             LSP_LV2UI_URI("sc_gott_compressor_ms"),
             "sgcM",
+            LSP_VST3_UID("scgc1ms sgcM"),
+            LSP_VST3UI_UID("scgc1ms sgcM"),
             LSP_LADSPA_GOTT_COMPRESSOR_BASE + 7,
             LSP_LADSPA_URI("sc_gott_compressor_ms"),
             LSP_CLAP_URI("sc_gott_compressor_ms"),

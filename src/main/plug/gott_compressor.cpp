@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -26,6 +26,7 @@
 #include <lsp-plug.in/dsp-units/units.h>
 #include <lsp-plug.in/dsp-units/misc/envelope.h>
 #include <lsp-plug.in/plug-fw/meta/func.h>
+#include <lsp-plug.in/shared/debug.h>
 #include <lsp-plug.in/shared/id_colors.h>
 #include <lsp-plug.in/stdlib/string.h>
 
@@ -36,12 +37,6 @@
 
 namespace lsp
 {
-    static plug::IPort *TRACE_PORT(plug::IPort *p)
-    {
-        lsp_trace("  port id=%s", (p)->metadata()->id);
-        return p;
-    }
-
     namespace plugins
     {
         //---------------------------------------------------------------------
@@ -155,6 +150,7 @@ namespace lsp
             pOutGain            = NULL;
             pDryGain            = NULL;
             pWetGain            = NULL;
+            pDryWet             = NULL;
             pScMode             = NULL;
             pScSource           = NULL;
             pScSpSource         = NULL;
@@ -249,31 +245,19 @@ namespace lsp
             if (ptr == NULL)
                 return;
 
-            vChannels               = reinterpret_cast<channel_t *>(ptr);
-            ptr                    += szof_channels;
+            vChannels               = advance_ptr_bytes<channel_t>(ptr, szof_channels);
 
-            vBuffer                 = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_buffer;
-            vProtBuffer             = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_buffer;
-            vSC[0]                  = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_buffer;
-            vSC[1]                  = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_buffer;
-            vEnv                    = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_buffer;
-            vTr                     = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_freq*2;
-            vPFc                    = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_freq*2;
-            vRFc                    = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_freq*2;
-            vCurveBuffer            = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_curve;
-            vFreqBuffer             = reinterpret_cast<float *>(ptr);
-            ptr                    += szof_freq;
-            vFreqIndexes            = reinterpret_cast<uint32_t *>(ptr);
-            ptr                    += szof_indexes;
+            vBuffer                 = advance_ptr_bytes<float>(ptr, szof_buffer);
+            vProtBuffer             = advance_ptr_bytes<float>(ptr, szof_buffer);
+            vSC[0]                  = advance_ptr_bytes<float>(ptr, szof_buffer);
+            vSC[1]                  = advance_ptr_bytes<float>(ptr, szof_buffer);
+            vEnv                    = advance_ptr_bytes<float>(ptr, szof_buffer);
+            vTr                     = advance_ptr_bytes<float>(ptr, szof_freq*2);
+            vPFc                    = advance_ptr_bytes<float>(ptr, szof_freq*2);
+            vRFc                    = advance_ptr_bytes<float>(ptr, szof_freq*2);
+            vCurveBuffer            = advance_ptr_bytes<float>(ptr, szof_curve);
+            vFreqBuffer             = advance_ptr_bytes<float>(ptr, szof_freq);
+            vFreqIndexes            = advance_ptr_bytes<uint32_t>(ptr, szof_indexes);
 
             // Initialize channels
             for (size_t i=0; i<channels; ++i)
@@ -338,16 +322,11 @@ namespace lsp
                     }
 
                     // Initialize oteher fields
-                    b->vBuffer          = reinterpret_cast<float *>(ptr);
-                    ptr                += szof_buffer;
-                    b->vVCA             = reinterpret_cast<float *>(ptr);
-                    ptr                += szof_buffer;
-                    b->vCurveBuffer     = reinterpret_cast<float *>(ptr);
-                    ptr                += szof_curve;
-                    b->vFilterBuffer    = reinterpret_cast<float *>(ptr);
-                    ptr                += szof_freq * 2;
-                    b->vSidechainBuffer = reinterpret_cast<float *>(ptr);
-                    ptr                += szof_freq * 2;
+                    b->vBuffer          = advance_ptr_bytes<float>(ptr, szof_buffer);
+                    b->vVCA             = advance_ptr_bytes<float>(ptr, szof_buffer);
+                    b->vCurveBuffer     = advance_ptr_bytes<float>(ptr, szof_curve);
+                    b->vFilterBuffer    = advance_ptr_bytes<float>(ptr, szof_freq * 2);
+                    b->vSidechainBuffer = advance_ptr_bytes<float>(ptr, szof_freq * 2);
 
                     b->fMinThresh       = GAIN_AMP_M_72_DB;
                     b->fUpThresh        = GAIN_AMP_M_48_DB;
@@ -388,18 +367,12 @@ namespace lsp
                 c->vIn                  = NULL;
                 c->vOut                 = NULL;
                 c->vScIn                = NULL;
-                c->vInBuffer            = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_buffer;
-                c->vBuffer              = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_buffer;
-                c->vScBuffer            = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_buffer;
-                c->vInAnalyze           = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_buffer;
-                c->vTmpFilterBuffer     = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_freq * 2;
-                c->vFilterBuffer        = reinterpret_cast<float *>(ptr);
-                ptr                    += szof_freq;
+                c->vInBuffer            = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->vBuffer              = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->vScBuffer            = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->vInAnalyze           = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->vTmpFilterBuffer     = advance_ptr_bytes<float>(ptr, szof_freq * 2);
+                c->vFilterBuffer        = advance_ptr_bytes<float>(ptr, szof_freq);
 
                 vSCIn[i]                = c->vScBuffer;
 
@@ -428,48 +401,49 @@ namespace lsp
             size_t port_id          = 0;
             lsp_trace("Binding input ports");
             for (size_t i=0; i<channels; ++i)
-                vChannels[i].pIn            = TRACE_PORT(ports[port_id++]);
+                BIND_PORT(vChannels[i].pIn);
             lsp_trace("Binding output ports");
             for (size_t i=0; i<channels; ++i)
-                vChannels[i].pOut           = TRACE_PORT(ports[port_id++]);
+                BIND_PORT(vChannels[i].pOut);
             if (bSidechain)
             {
                 lsp_trace("Binding sidechain ports");
                 for (size_t i=0; i<channels; ++i)
-                    vChannels[i].pScIn          = TRACE_PORT(ports[port_id++]);
+                    BIND_PORT(vChannels[i].pScIn);
             }
 
             lsp_trace("Binding common ports");
-            pBypass                 = TRACE_PORT(ports[port_id++]);
-            pMode                   = TRACE_PORT(ports[port_id++]);
-            pProt                   = TRACE_PORT(ports[port_id++]);
-            pInGain                 = TRACE_PORT(ports[port_id++]);
-            pOutGain                = TRACE_PORT(ports[port_id++]);
-            pDryGain                = TRACE_PORT(ports[port_id++]);
-            pWetGain                = TRACE_PORT(ports[port_id++]);
-            pScMode                 = TRACE_PORT(ports[port_id++]);
-            pScSource               = TRACE_PORT(ports[port_id++]);
-            pScPreamp               = TRACE_PORT(ports[port_id++]);
-            pScReact                = TRACE_PORT(ports[port_id++]);
-            pLookahead              = TRACE_PORT(ports[port_id++]);
-            pReactivity             = TRACE_PORT(ports[port_id++]);
-            pShiftGain              = TRACE_PORT(ports[port_id++]);
-            pZoom                   = TRACE_PORT(ports[port_id++]);
-            pEnvBoost               = TRACE_PORT(ports[port_id++]);
-            pSplits[0]              = TRACE_PORT(ports[port_id++]);
-            pSplits[1]              = TRACE_PORT(ports[port_id++]);
-            pSplits[2]              = TRACE_PORT(ports[port_id++]);
-            TRACE_PORT(ports[port_id++]); // Skip filter curve enable button
-            pExtraBand              = TRACE_PORT(ports[port_id++]);
+            BIND_PORT(pBypass);
+            BIND_PORT(pMode);
+            BIND_PORT(pProt);
+            BIND_PORT(pInGain);
+            BIND_PORT(pOutGain);
+            BIND_PORT(pDryGain);
+            BIND_PORT(pWetGain);
+            BIND_PORT(pDryWet);
+            BIND_PORT(pScMode);
+            BIND_PORT(pScSource);
+            BIND_PORT(pScPreamp);
+            BIND_PORT(pScReact);
+            BIND_PORT(pLookahead);
+            BIND_PORT(pReactivity);
+            BIND_PORT(pShiftGain);
+            BIND_PORT(pZoom);
+            BIND_PORT(pEnvBoost);
+            BIND_PORT(pSplits[0]);
+            BIND_PORT(pSplits[1]);
+            BIND_PORT(pSplits[2]);
+            SKIP_PORT("Filter curve enable switch"); // Skip filter curve enable button
+            BIND_PORT(pExtraBand);
             if (bSidechain)
-                pExtSidechain           = TRACE_PORT(ports[port_id++]);
+                BIND_PORT(pExtSidechain);
             if (nMode == GOTT_STEREO)
             {
-                pStereoSplit            = TRACE_PORT(ports[port_id++]);
-                pScSpSource             = TRACE_PORT(ports[port_id++]);
+                BIND_PORT(pStereoSplit);
+                BIND_PORT(pScSpSource);
             }
             if ((nMode == GOTT_LR) || (nMode == GOTT_MS))
-                TRACE_PORT(ports[port_id++]); // Skip channel selector
+                SKIP_PORT("Channel selector"); // Skip channel selector
 
             lsp_trace("Binding band ports");
             for (size_t i=0; i<channels; ++i)
@@ -507,22 +481,22 @@ namespace lsp
                     {
                         band_t *b               = &c->vBands[j];
 
-                        b->pMinThresh           = TRACE_PORT(ports[port_id++]);
-                        b->pUpThresh            = TRACE_PORT(ports[port_id++]);
-                        b->pDownThresh          = TRACE_PORT(ports[port_id++]);
-                        b->pUpRatio             = TRACE_PORT(ports[port_id++]);
-                        b->pDownRatio           = TRACE_PORT(ports[port_id++]);
-                        b->pKnee                = TRACE_PORT(ports[port_id++]);
-                        b->pAttackTime          = TRACE_PORT(ports[port_id++]);
-                        b->pReleaseTime         = TRACE_PORT(ports[port_id++]);
-                        b->pMakeup              = TRACE_PORT(ports[port_id++]);
+                        BIND_PORT(b->pMinThresh);
+                        BIND_PORT(b->pUpThresh);
+                        BIND_PORT(b->pDownThresh);
+                        BIND_PORT(b->pUpRatio);
+                        BIND_PORT(b->pDownRatio);
+                        BIND_PORT(b->pKnee);
+                        BIND_PORT(b->pAttackTime);
+                        BIND_PORT(b->pReleaseTime);
+                        BIND_PORT(b->pMakeup);
 
-                        b->pEnabled             = TRACE_PORT(ports[port_id++]);
-                        b->pSolo                = TRACE_PORT(ports[port_id++]);
-                        b->pMute                = TRACE_PORT(ports[port_id++]);
+                        BIND_PORT(b->pEnabled);
+                        BIND_PORT(b->pSolo);
+                        BIND_PORT(b->pMute);
 
-                        b->pCurveMesh           = TRACE_PORT(ports[port_id++]);
-                        b->pFreqMesh            = TRACE_PORT(ports[port_id++]);
+                        BIND_PORT(b->pCurveMesh);
+                        BIND_PORT(b->pFreqMesh);
                     }
                 }
             }
@@ -535,9 +509,9 @@ namespace lsp
                 {
                     band_t *b               = &c->vBands[j];
 
-                    b->pEnvLvl              = TRACE_PORT(ports[port_id++]);
-                    b->pCurveLvl            = TRACE_PORT(ports[port_id++]);
-                    b->pMeterGain           = TRACE_PORT(ports[port_id++]);
+                    BIND_PORT(b->pEnvLvl);
+                    BIND_PORT(b->pCurveLvl);
+                    BIND_PORT(b->pMeterGain);
                 }
             }
 
@@ -545,19 +519,19 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c            = &vChannels[i];
-                c->pFftInSw             = TRACE_PORT(ports[port_id++]);
-                c->pFftOutSw            = TRACE_PORT(ports[port_id++]);
-                c->pFftIn               = TRACE_PORT(ports[port_id++]);
-                c->pFftOut              = TRACE_PORT(ports[port_id++]);
-                c->pInLvl               = TRACE_PORT(ports[port_id++]);
-                c->pOutLvl              = TRACE_PORT(ports[port_id++]);
+                BIND_PORT(c->pFftInSw);
+                BIND_PORT(c->pFftOutSw);
+                BIND_PORT(c->pFftIn);
+                BIND_PORT(c->pFftOut);
+                BIND_PORT(c->pInLvl);
+                BIND_PORT(c->pOutLvl);
             }
 
             lsp_trace("Binding aplification curve ports");
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c            = &vChannels[i];
-                c->pAmpGraph            = TRACE_PORT(ports[port_id++]);
+                BIND_PORT(c->pAmpGraph);
             }
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
@@ -808,11 +782,16 @@ namespace lsp
             bStereoSplit        = (pStereoSplit != NULL) ? pStereoSplit->value() >= 0.5f : false;
 
             // Store gain
-            float out_gain      = pOutGain->value();
+            const float out_gain= pOutGain->value();
+            const float drywet  = pDryWet->value() * 0.01f;
+            const float dry_gain= pDryGain->value();
+            const float wet_gain= pWetGain->value();
+
             fInGain             = pInGain->value();
-            fDryGain            = out_gain * pDryGain->value();
-            fWetGain            = out_gain * pWetGain->value();
+            fDryGain            = (dry_gain * drywet + 1.0f - drywet) * out_gain;
+            fWetGain            = wet_gain * drywet * out_gain;
             fZoom               = pZoom->value();
+
             bExtSidechain       = (pExtSidechain != NULL) ? pExtSidechain->value() > 0.5f : false;
             plug::IPort *sc     = (bStereoSplit) ? pScSpSource : pScSource;
             size_t sc_src       = (sc != NULL) ? sc->value() : dspu::SCS_MIDDLE;
@@ -1159,7 +1138,7 @@ namespace lsp
                 c->sDryDelay.set_delay(lookahead + xover_latency);
                 c->sAnDelay.set_delay(xover_latency);
                 c->sScDelay.set_delay(xover_latency);
-                c->sXOverDelay.set_delay(lookahead + xover_latency);
+                c->sXOverDelay.set_delay(xover_latency);
             }
         }
 
@@ -1420,7 +1399,8 @@ namespace lsp
                     vAnalyze[c->nAnOutChannel]  = c->vBuffer;
                 }
 
-                sAnalyzer.process(vAnalyze, to_process);
+                if (sAnalyzer.activity())
+                    sAnalyzer.process(vAnalyze, to_process);
 
                 // Post-process data (if needed)
                 if (nMode == GOTT_MS)
@@ -1930,6 +1910,7 @@ namespace lsp
             v->write("pOutGain", pOutGain);
             v->write("pDryGain", pDryGain);
             v->write("pWetGain", pWetGain);
+            v->write("pDryWet", pDryWet);
             v->write("pScMode", pScMode);
             v->write("pScSource", pScSource);
             v->write("pScSpSource", pScSpSource);
