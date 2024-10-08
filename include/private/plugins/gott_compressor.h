@@ -73,6 +73,13 @@ namespace lsp
                     XOVER_LINEAR_PHASE                          // Linear phase mode
                 };
 
+                enum sc_mode_t
+                {
+                    SCT_INTERNAL,
+                    SCT_EXTERNAL,
+                    SCT_LINK
+                };
+
                 typedef struct band_t
                 {
                     dspu::Sidechain         sSC;                // Sidechain module
@@ -97,8 +104,8 @@ namespace lsp
                     float                   fReleaseTime;       // Release time
                     float                   fMakeup;            // Makeup gain
                     float                   fGainLevel;         // Measured gain adjustment level
-                    size_t                  nSync;              // Mesh synchronization flags
-                    size_t                  nFilterID;          // Filter ID in dynamic filters
+                    uint32_t                nSync;              // Mesh synchronization flags
+                    uint32_t                nFilterID;          // Filter ID in dynamic filters
                     bool                    bEnabled;           // Enabled flag
                     bool                    bSolo;              // Solo channel
                     bool                    bMute;              // Mute channel
@@ -140,6 +147,7 @@ namespace lsp
                     float                  *vIn;                // Input data buffer
                     float                  *vOut;               // Output data buffer
                     float                  *vScIn;              // Sidechain data buffer (if present)
+                    float                  *vShmIn;             // Shared memory input buffer (if present)
                     float                  *vInBuffer;          // Input buffer
                     float                  *vBuffer;            // Temporary buffer
                     float                  *vScBuffer;          // Sidechain buffer
@@ -147,8 +155,8 @@ namespace lsp
                     float                  *vTmpFilterBuffer;   // Filter transfer function of the channel (temporary)
                     float                  *vFilterBuffer;      // Filter transfer function of the channel
 
-                    size_t                  nAnInChannel;       // Analyzer channel used for input signal analysis
-                    size_t                  nAnOutChannel;      // Analyzer channel used for output signal analysis
+                    uint32_t                nAnInChannel;       // Analyzer channel used for input signal analysis
+                    uint32_t                nAnOutChannel;      // Analyzer channel used for output signal analysis
                     bool                    bInFft;             // Input signal FFT enabled
                     bool                    bOutFft;            // Output signal FFT enabled
                     bool                    bRebuildFilers;     // Rebuild filter configuration
@@ -156,6 +164,7 @@ namespace lsp
                     plug::IPort            *pIn;                // Input
                     plug::IPort            *pOut;               // Output
                     plug::IPort            *pScIn;              // Sidechain
+                    plug::IPort            *pShmIn;             // Shared memory input
                     plug::IPort            *pFftInSw;           // Pre-processing FFT analysis control port
                     plug::IPort            *pFftOutSw;          // Post-processing FFT analysis controlport
                     plug::IPort            *pFftIn;             // Pre-processing FFT analysis data
@@ -172,23 +181,24 @@ namespace lsp
                 dspu::SurgeProtector    sProt;                  // Surge protector
                 dspu::Counter           sCounter;               // Sync counter
 
-                size_t                  nMode;                  // Processor mode
+                uint32_t                nMode;                  // Processor mode
+                uint32_t                nBands;                 // Number of bands
+                xover_mode_t            enXOver;                // Crossover mode
+                uint32_t                nScType;                // Sidechain type
                 bool                    bSidechain;             // External side chain
                 bool                    bProt;                  // Surge protection enabled
-                xover_mode_t            enXOver;                // Crossover mode
                 bool                    bEnvUpdate;             // Envelope filter update
-                size_t                  nBands;                 // Number of bands
-                bool                    bExtSidechain;          // External sidechain
                 bool                    bStereoSplit;           // Stereo split mode
                 float                   fInGain;                // Input gain adjustment
                 float                   fDryGain;               // Dry gain
                 float                   fWetGain;               // Wet gain
                 float                   fScPreamp;              // Sidechain pre-amplification
-                size_t                  nEnvBoost;              // Envelope boost
+                uint32_t                nEnvBoost;              // Envelope boost
                 float                   fZoom;                  // Zoom value
                 float                   vSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
+                float                  *vEmptyBuf;              // Empty buffer
                 float                  *vBuffer;                // Temporary buffer
                 float                  *vProtBuffer;            // Surge protection buffer
                 const float            *vSCIn[2];               // Sidechain input buffers
@@ -222,7 +232,7 @@ namespace lsp
                 plug::IPort            *pEnvBoost;              // Envelope adjust
                 plug::IPort            *pSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 plug::IPort            *pExtraBand;             // Extra band enable
-                plug::IPort            *pExtSidechain;          // External sidechain enable
+                plug::IPort            *pScType;                // Sidechain type
                 plug::IPort            *pStereoSplit;           // Stereo split mode
 
                 uint8_t                *pData;                  // Aligned data pointer
@@ -233,6 +243,8 @@ namespace lsp
                 static void                         process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
 
             protected:
+                uint32_t            decode_sidechain_type(uint32_t sc) const;
+                void                process_sidechain(size_t samples);
                 void                do_destroy();
 
             public:

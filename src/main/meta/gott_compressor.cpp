@@ -25,7 +25,7 @@
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MAJOR       1
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MINOR       0
-#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       9
+#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       10
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION  \
     LSP_MODULE_VERSION( \
@@ -104,7 +104,28 @@ namespace lsp
             { NULL, NULL }
         };
 
-        #define GOTT_COMMON \
+        static const port_item_t gott_sc_source[] =
+        {
+            { "Internal",       "sidechain.internal"        },
+            { "Link",           "sidechain.link"            },
+            { NULL, NULL }
+        };
+
+        static const port_item_t gott_sc_source_for_sc[] =
+        {
+            { "Internal",       "sidechain.internal"        },
+            { "External",       "sidechain.external"        },
+            { "Link",           "sidechain.link"            },
+            { NULL, NULL }
+        };
+
+        #define GOTT_SHM_LINK_MONO \
+            OPT_RETURN_MONO("link", "shml", "Side-chain shared memory link")
+
+        #define GOTT_SHM_LINK_STEREO \
+            OPT_RETURN_STEREO("link", "shml_", "Side-chain shared memory link")
+
+        #define GOTT_BASE \
             BYPASS, \
             COMBO("mode", "Operating mode", 1, gott_global_dyna_modes), \
             SWITCH("prot", "Surge protection", 1.0f), \
@@ -128,8 +149,13 @@ namespace lsp
             SWITCH("flt", "Band filter curves", 1.0f), \
             SWITCH("ebe", "Enable extra band", 0)
 
+        #define GOTT_COMMON \
+            GOTT_BASE, \
+            COMBO("sc_ext", "External sidechain source", 0, gott_sc_source)
+
         #define GOTT_SC_COMMON \
-            SWITCH("sc_ext", "Enable external sidechain", 0)
+            GOTT_BASE, \
+            COMBO("sc_ext", "External sidechain source", 0, gott_sc_source_for_sc)
 
         #define GOTT_SPLIT_COMMON \
             SWITCH("ssplit", "Stereo split", 0.0f), \
@@ -172,6 +198,7 @@ namespace lsp
         static const port_t gott_compressor_mono_ports[] =
         {
             PORTS_MONO_PLUGIN,
+            GOTT_SHM_LINK_MONO,
             GOTT_COMMON,
 
             GOTT_BAND("_1", ""),
@@ -193,6 +220,7 @@ namespace lsp
         static const port_t gott_compressor_stereo_ports[] =
         {
             PORTS_STEREO_PLUGIN,
+            GOTT_SHM_LINK_STEREO,
             GOTT_COMMON,
             GOTT_SPLIT_COMMON,
 
@@ -222,6 +250,7 @@ namespace lsp
         static const port_t gott_compressor_lr_ports[] =
         {
             PORTS_STEREO_PLUGIN,
+            GOTT_SHM_LINK_STEREO,
             GOTT_COMMON,
             COMBO("csel", "Channel selector", 0, gott_lr_selectors),
 
@@ -255,6 +284,7 @@ namespace lsp
         static const port_t gott_compressor_ms_ports[] =
         {
             PORTS_STEREO_PLUGIN,
+            GOTT_SHM_LINK_STEREO,
             GOTT_COMMON,
             COMBO("csel", "Channel selector", 0, gott_ms_selectors),
 
@@ -289,7 +319,7 @@ namespace lsp
         {
             PORTS_MONO_PLUGIN,
             PORTS_MONO_SIDECHAIN,
-            GOTT_COMMON,
+            GOTT_SHM_LINK_MONO,
             GOTT_SC_COMMON,
 
             GOTT_BAND("_1", ""),
@@ -312,7 +342,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
-            GOTT_COMMON,
+            GOTT_SHM_LINK_STEREO,
             GOTT_SC_COMMON,
             GOTT_SPLIT_COMMON,
 
@@ -343,7 +373,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
-            GOTT_COMMON,
+            GOTT_SHM_LINK_STEREO,
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", 0, gott_lr_selectors),
 
@@ -378,7 +408,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
-            GOTT_COMMON,
+            GOTT_SHM_LINK_STEREO,
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", 0, gott_ms_selectors),
 

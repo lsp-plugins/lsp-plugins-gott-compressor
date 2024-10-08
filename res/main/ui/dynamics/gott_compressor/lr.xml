@@ -334,15 +334,16 @@
 			</cell>
 
 			<!-- bottom line -->
-			<align halign="-1" vreduce="true">
-				<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
-					<label text="labels.mode:"/>
-					<combo id="mode" pad.r="8" pad.v="4"/>
-					<label text="labels.sc_boost:"/>
-					<combo id="envb" pad.r="8"/>
-					<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
-				</hbox>
-			</align>
+			<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
+				<label text="labels.mode:"/>
+				<combo id="mode" pad.r="8" pad.v="4"/>
+				<label text="labels.sc_boost:"/>
+				<combo id="envb" pad.r="8"/>
+				<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+				<void hexpand="true"/>
+				<vsep pad.h="2" bg.color="bg" reduce="true"/>
+				<shmlink id="link" pad.l="2"/>
+			</hbox>
 		</grid>
 
 		<!-- down part -->
@@ -355,7 +356,7 @@
 						<button id="prot" text="labels.surge" fill="true" pad.h="6" pad.b="4"/>
 						<combo id="sc_mode" pad.h="6" pad.b="4"/>
 						<combo id="sc_src" pad.h="6"/>
-						<button id="sc_ext" text="labels.chan.external_sc" fill="true" visibility="ex :sc_ext" ui:inject="Button_orange" pad.t="4" pad.h="6"/>
+						<combo id="sc_ext" fill="true" pad.t="4" pad.h="6"/>
 					</vbox>
 					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
 

@@ -25,6 +25,7 @@
 #include <lsp-plug.in/dsp/dsp.h>
 #include <lsp-plug.in/dsp-units/units.h>
 #include <lsp-plug.in/dsp-units/misc/envelope.h>
+#include <lsp-plug.in/plug-fw/core/AudioBuffer.h>
 #include <lsp-plug.in/plug-fw/meta/func.h>
 #include <lsp-plug.in/shared/debug.h>
 #include <lsp-plug.in/shared/id_colors.h>
@@ -108,11 +109,11 @@ namespace lsp
                 bSidechain          = true;
             }
 
-            bProt               = true;
             enXOver             = XOVER_MODERN;
-            bEnvUpdate          = true;
             nBands              = meta::gott_compressor::BANDS_MAX;
-            bExtSidechain       = false;
+            nScType             = SCT_INTERNAL;
+            bProt               = true;
+            bEnvUpdate          = true;
             bStereoSplit        = false;
             fInGain             = GAIN_AMP_0_DB;
             fDryGain            = GAIN_AMP_M_INF_DB;
@@ -128,6 +129,7 @@ namespace lsp
             vAnalyze[1]         = NULL;
             vAnalyze[2]         = NULL;
             vAnalyze[3]         = NULL;
+            vEmptyBuf           = NULL;
             vBuffer             = NULL;
             vProtBuffer         = NULL;
             vSCIn[0]            = NULL;
@@ -165,7 +167,7 @@ namespace lsp
             pSplits[1]          = NULL;
             pSplits[2]          = NULL;
             pExtraBand          = NULL;
-            pExtSidechain       = NULL;
+            pScType             = NULL;
             pStereoSplit        = NULL;
 
             pData               = NULL;
@@ -214,6 +216,7 @@ namespace lsp
 
             size_t to_alloc         =
                 szof_channels +
+                szof_buffer +       // vEmptyBuf
                 szof_buffer +       // vBuffer
                 szof_buffer +       // vProtBuffer
                 szof_buffer*2 +     // vSC[2]
@@ -247,6 +250,7 @@ namespace lsp
 
             vChannels               = advance_ptr_bytes<channel_t>(ptr, szof_channels);
 
+            vEmptyBuf               = advance_ptr_bytes<float>(ptr, szof_buffer);
             vBuffer                 = advance_ptr_bytes<float>(ptr, szof_buffer);
             vProtBuffer             = advance_ptr_bytes<float>(ptr, szof_buffer);
             vSC[0]                  = advance_ptr_bytes<float>(ptr, szof_buffer);
@@ -367,6 +371,7 @@ namespace lsp
                 c->vIn                  = NULL;
                 c->vOut                 = NULL;
                 c->vScIn                = NULL;
+                c->vShmIn               = NULL;
                 c->vInBuffer            = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vBuffer              = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vScBuffer            = advance_ptr_bytes<float>(ptr, szof_buffer);
@@ -388,6 +393,7 @@ namespace lsp
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
                 c->pScIn                = NULL;
+                c->pShmIn               = NULL;
                 c->pFftInSw             = NULL;
                 c->pFftOutSw            = NULL;
                 c->pFftIn               = NULL;
@@ -412,6 +418,12 @@ namespace lsp
                     BIND_PORT(vChannels[i].pScIn);
             }
 
+            // Shared memory link
+            lsp_trace("Binding shared memory link");
+            SKIP_PORT("Shared memory link name");
+            for (size_t i=0; i<channels; ++i)
+                BIND_PORT(vChannels[i].pShmIn);
+
             lsp_trace("Binding common ports");
             BIND_PORT(pBypass);
             BIND_PORT(pMode);
@@ -435,8 +447,7 @@ namespace lsp
             BIND_PORT(pSplits[2]);
             SKIP_PORT("Filter curve enable switch"); // Skip filter curve enable button
             BIND_PORT(pExtraBand);
-            if (bSidechain)
-                BIND_PORT(pExtSidechain);
+            BIND_PORT(pScMode);
             if (nMode == GOTT_STEREO)
             {
                 BIND_PORT(pStereoSplit);
@@ -533,6 +544,8 @@ namespace lsp
                 channel_t *c            = &vChannels[i];
                 BIND_PORT(c->pAmpGraph);
             }
+
+            dsp::fill_zero(vEmptyBuf, GOTT_BUFFER_SIZE);
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
             float delta = (meta::gott_compressor::CURVE_DB_MAX - meta::gott_compressor::CURVE_DB_MIN) / (meta::gott_compressor::CURVE_MESH_SIZE-1);
@@ -741,6 +754,31 @@ namespace lsp
             return dspu::SCS_MIDDLE;
         }
 
+        uint32_t gott_compressor::decode_sidechain_type(uint32_t sc) const
+        {
+            if (bSidechain)
+            {
+                switch (sc)
+                {
+                    case 0: return SCT_INTERNAL;
+                    case 1: return SCT_EXTERNAL;
+                    case 2: return SCT_LINK;
+                    default: break;
+                }
+            }
+            else
+            {
+                switch (sc)
+                {
+                    case 0: return SCT_INTERNAL;
+                    case 1: return SCT_LINK;
+                    default: break;
+                }
+            }
+
+            return SCT_INTERNAL;
+        }
+
         void gott_compressor::update_settings()
         {
             dspu::filter_params_t fp;
@@ -792,7 +830,7 @@ namespace lsp
             fWetGain            = wet_gain * drywet * out_gain;
             fZoom               = pZoom->value();
 
-            bExtSidechain       = (pExtSidechain != NULL) ? pExtSidechain->value() > 0.5f : false;
+            nScType             = decode_sidechain_type(pScMode->value());
             plug::IPort *sc     = (bStereoSplit) ? pScSpSource : pScSource;
             size_t sc_src       = (sc != NULL) ? sc->value() : dspu::SCS_MIDDLE;
 
@@ -1151,6 +1189,70 @@ namespace lsp
             dsp::copy(&b->vBuffer[sample], data, count);
         }
 
+        void gott_compressor::process_sidechain(size_t samples)
+        {
+            switch (nScType)
+            {
+                case SCT_EXTERNAL:
+                {
+                    const float *lc = (vChannels[0].vScIn != NULL) ? vChannels[0].vScIn : vEmptyBuf;
+                    if (nMode == GOTT_MONO)
+                    {
+                        dsp::mul_k3(vChannels[0].vScBuffer, lc, fInGain, samples);
+                        break;
+                    }
+
+                    const float *rc = (vChannels[1].vScIn != NULL) ? vChannels[1].vScIn : vEmptyBuf;
+                    if (nMode == GOTT_MS)
+                    {
+                        dsp::lr_to_ms(vChannels[0].vScBuffer, vChannels[1].vScBuffer, lc, rc, samples);
+                        dsp::mul_k2(vChannels[0].vScBuffer, fInGain, samples);
+                        dsp::mul_k2(vChannels[1].vScBuffer, fInGain, samples);
+                    }
+                    else
+                    {
+                        dsp::mul_k3(vChannels[0].vScBuffer, lc, fInGain, samples);
+                        dsp::mul_k3(vChannels[1].vScBuffer, rc, fInGain, samples);
+                    }
+                    break;
+                }
+                case SCT_LINK:
+                {
+                    const float *lc = (vChannels[0].vShmIn != NULL) ? vChannels[0].vShmIn: vEmptyBuf;
+                    if (nMode == GOTT_MONO)
+                    {
+                        dsp::mul_k3(vChannels[0].vScBuffer, lc, fInGain, samples);
+                        break;
+                    }
+
+                    const float *rc = (vChannels[1].vShmIn != NULL) ? vChannels[1].vShmIn : vEmptyBuf;
+                    if (nMode == GOTT_MS)
+                    {
+                        dsp::lr_to_ms(vChannels[0].vScBuffer, vChannels[1].vScBuffer, lc, rc, samples);
+                        dsp::mul_k2(vChannels[0].vScBuffer, fInGain, samples);
+                        dsp::mul_k2(vChannels[1].vScBuffer, fInGain, samples);
+                    }
+                    else
+                    {
+                        dsp::mul_k3(vChannels[0].vScBuffer, lc, fInGain, samples);
+                        dsp::mul_k3(vChannels[1].vScBuffer, rc, fInGain, samples);
+                    }
+                    break;
+                }
+                default:
+                {
+                    if (nMode != GOTT_MONO)
+                    {
+                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, samples);
+                        dsp::copy(vChannels[1].vScBuffer, vChannels[1].vBuffer, samples);
+                    }
+                    else
+                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, samples);
+                    break;
+                }
+            }
+        }
+
         void gott_compressor::process(size_t samples)
         {
             size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
@@ -1163,6 +1265,11 @@ namespace lsp
                 c->vIn              = c->pIn->buffer<float>();
                 c->vOut             = c->pOut->buffer<float>();
                 c->vScIn            = (c->pScIn != NULL) ? c->pScIn->buffer<float>() : NULL;
+                c->vShmIn           = NULL;
+
+                core::AudioBuffer *shm_buf  = (c->pShmIn != NULL) ? c->pShmIn->buffer<core::AudioBuffer>() : NULL;
+                if ((shm_buf != NULL) && (shm_buf->active()))
+                    c->vShmIn           = shm_buf->buffer();
             }
 
             // Do processing
@@ -1195,32 +1302,7 @@ namespace lsp
                 }
 
                 // Process sidechain
-                if (bSidechain && bExtSidechain)
-                {
-                    if (nMode == GOTT_MS)
-                    {
-                        dsp::lr_to_ms(vChannels[0].vScBuffer, vChannels[1].vScBuffer, vChannels[0].vScIn, vChannels[1].vScIn, to_process);
-                        dsp::mul_k2(vChannels[0].vScBuffer, fInGain, to_process);
-                        dsp::mul_k2(vChannels[1].vScBuffer, fInGain, to_process);
-                    }
-                    else if (nMode == GOTT_MONO)
-                        dsp::mul_k3(vChannels[0].vScBuffer, vChannels[0].vScIn, fInGain, to_process);
-                    else
-                    {
-                        dsp::mul_k3(vChannels[0].vScBuffer, vChannels[0].vScIn, fInGain, to_process);
-                        dsp::mul_k3(vChannels[1].vScBuffer, vChannels[1].vScIn, fInGain, to_process);
-                    }
-                }
-                else
-                {
-                    if (nMode != GOTT_MONO)
-                    {
-                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, to_process);
-                        dsp::copy(vChannels[1].vScBuffer, vChannels[1].vBuffer, to_process);
-                    }
-                    else
-                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, to_process);
-                }
+                process_sidechain(to_process);
 
                 // Do frequency boost and input channel analysis
                 for (size_t i=0; i<channels; ++i)
@@ -1275,7 +1357,7 @@ namespace lsp
                             b->fGainLevel   = b->vVCA[to_process-1] * b->fMakeup;
 
                             // Check muting option
-                            if ((bProt) && (!bExtSidechain))
+                            if ((bProt) && (nScType == SCT_INTERNAL))
                                 dsp::fmmul_k3(b->vVCA, vProtBuffer, b->fMakeup, to_process);
                             else
                                 dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
@@ -1438,6 +1520,8 @@ namespace lsp
                     c->vOut            += to_process;
                     if (c->vScIn != NULL)
                         c->vScIn           += to_process;
+                    if (c->vShmIn != NULL)
+                        c->vShmIn          += to_process;
                 }
                 offset     += to_process;
             }
@@ -1773,12 +1857,12 @@ namespace lsp
             v->write_object("sCounter", &sCounter);
 
             v->write("nMode", nMode);
+            v->write("nBands", nBands);
+            v->write("enXOver", enXOver);
+            v->write("nScType", nScType);
             v->write("bSidechain", bSidechain);
             v->write("bProt", bProt);
-            v->write("enXOver", enXOver);
             v->write("bEnvUpdate", bEnvUpdate);
-            v->write("nBands", nBands);
-            v->write("bExtSidechain", bExtSidechain);
             v->write("bStereoSplit", bStereoSplit);
             v->write("fInGain", fInGain);
             v->write("fDryGain", fDryGain);
@@ -1867,6 +1951,7 @@ namespace lsp
                     v->write("vIn", c->vIn);
                     v->write("vOut", c->vOut);
                     v->write("vScIn", c->vScIn);
+                    v->write("vShmIn", c->vScIn);
                     v->write("vInBuffer", c->vInBuffer);
                     v->write("vBuffer", c->vBuffer);
                     v->write("vScBuffer", c->vScBuffer);
@@ -1883,6 +1968,7 @@ namespace lsp
                     v->write("pIn", c->pIn);
                     v->write("pOut", c->pOut);
                     v->write("pScIn", c->pScIn);
+                    v->write("pShmIn", c->pScIn);
                     v->write("pFftInSw", c->pFftInSw);
                     v->write("pFftOutSw", c->pFftOutSw);
                     v->write("pFftIn", c->pFftIn);
@@ -1893,6 +1979,7 @@ namespace lsp
                 }
             }
             v->writev("vAnalyze", vAnalyze, 4);
+            v->write("vEmptyBuf", vEmptyBuf);
             v->write("vBuffer", vBuffer);
             v->writev("vSC", vSC, 4);
             v->write("vEnv", vEnv);
@@ -1923,7 +2010,7 @@ namespace lsp
             v->write("pEnvBoost", pEnvBoost);
             v->writev("pSplits", pSplits, meta::gott_compressor::BANDS_MAX - 1);
             v->write("pExtraBand", pExtraBand);
-            v->write("pExtSidechain", pExtSidechain);
+            v->write("pScType", pScType);
             v->write("pStereoSplit", pStereoSplit);
 
             v->write("pData", pData);
