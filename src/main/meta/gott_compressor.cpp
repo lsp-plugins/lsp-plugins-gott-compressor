@@ -138,7 +138,7 @@ namespace lsp
             COMBO("sc_src", "Sidechain source", "SC source", 0, gott_sc_sources), \
             AMP_GAIN("sc_pamp", "Sidechain pre-amplification", 1.0f, 10.0f), \
             LOG_CONTROL("sc_rea", "Sidechain reactivity", "SC react", U_MSEC, gott_compressor::SC_REACTIVITY), \
-            CONTROL("lkahead", "Lookahead", U_MSEC, gott_compressor::LOOKAHEAD), \
+            CONTROL("lkahead", "Lookahead", "Lookahead", U_MSEC, gott_compressor::LOOKAHEAD), \
             LOG_CONTROL("react", "FFT reactivity", "Reactivity", U_MSEC, gott_compressor::REACT_TIME), \
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
             LOG_CONTROL("zoom", "Graph zoom", "Zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
