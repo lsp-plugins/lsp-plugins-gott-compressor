@@ -129,18 +129,18 @@ namespace lsp
             BYPASS, \
             COMBO("mode", "Operating mode", "Mode", 1, gott_global_dyna_modes), \
             SWITCH("prot", "Surge protection", "Surge protect", 1.0f), \
-            AMP_GAIN("g_in", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
-            AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
-            AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
-            AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
-            PERCENTS("drywet", "Dry/Wet balance", 100.0f, 0.1f), \
+            AMP_GAIN("g_in", "Input gain", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
+            AMP_GAIN("g_out", "Output gain", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
+            AMP_GAIN("g_dry", "Dry gain", "Dry", 0.0f, 10.0f), \
+            AMP_GAIN("g_wet", "Wet gain", "Wet", 1.0f, 10.0f), \
+            PERCENTS("drywet", "Dry/Wet balance", "Dry/Wet", 100.0f, 0.1f), \
             COMBO("sc_mode", "Sidechain mode", "SC mode", gott_compressor::SC_MODE_DFL, gott_sc_modes), \
             COMBO("sc_src", "Sidechain source", "SC source", 0, gott_sc_sources), \
-            AMP_GAIN("sc_pamp", "Sidechain pre-amplification", 1.0f, 10.0f), \
+            AMP_GAIN("sc_pamp", "Sidechain pre-amplification", "SC preamp", 1.0f, 10.0f), \
             LOG_CONTROL("sc_rea", "Sidechain reactivity", "SC react", U_MSEC, gott_compressor::SC_REACTIVITY), \
             CONTROL("lkahead", "Lookahead", "Lookahead", U_MSEC, gott_compressor::LOOKAHEAD), \
             LOG_CONTROL("react", "FFT reactivity", "Reactivity", U_MSEC, gott_compressor::REACT_TIME), \
-            AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+            AMP_GAIN("shift", "Shift gain", "Shift", 1.0f, 100.0f), \
             LOG_CONTROL("zoom", "Graph zoom", "Zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
             COMBO("envb", "Envelope boost", "Env boost", gott_compressor::FB_DEFAULT, gott_dyna_sc_boost), \
             LOG_CONTROL("sf1", "Split frequency 1", "Split 1", U_HZ, gott_compressor::SPLIT1), \
