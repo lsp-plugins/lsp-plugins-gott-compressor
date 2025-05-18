@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -25,7 +25,7 @@
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MAJOR       1
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MINOR       0
-#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       13
+#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       14
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION  \
     LSP_MODULE_VERSION( \
@@ -127,43 +127,43 @@ namespace lsp
 
         #define GOTT_BASE \
             BYPASS, \
-            COMBO("mode", "Operating mode", 1, gott_global_dyna_modes), \
-            SWITCH("prot", "Surge protection", 1.0f), \
-            AMP_GAIN("g_in", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
-            AMP_GAIN("g_out", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
-            AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
-            AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
-            PERCENTS("drywet", "Dry/Wet balance", 100.0f, 0.1f), \
-            COMBO("sc_mode", "Sidechain mode", gott_compressor::SC_MODE_DFL, gott_sc_modes), \
-            COMBO("sc_src", "Sidechain source", 0, gott_sc_sources), \
-            AMP_GAIN("sc_pamp", "Sidechain pre-amplification", 1.0f, 10.0f), \
-            LOG_CONTROL("sc_rea", "Sidechain reactivity", U_MSEC, gott_compressor::SC_REACTIVITY), \
-            CONTROL("lkahead", "Lookahead", U_MSEC, gott_compressor::LOOKAHEAD), \
-            LOG_CONTROL("react", "FFT reactivity", U_MSEC, gott_compressor::REACT_TIME), \
-            AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
-            LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
-            COMBO("envb", "Envelope boost", gott_compressor::FB_DEFAULT, gott_dyna_sc_boost), \
-            LOG_CONTROL("sf1", "Split frequency 1", U_HZ, gott_compressor::SPLIT1), \
-            LOG_CONTROL("sf2", "Split frequency 2", U_HZ, gott_compressor::SPLIT2), \
-            LOG_CONTROL("sf3", "Split frequency 3", U_HZ, gott_compressor::SPLIT3), \
-            SWITCH("flt", "Band filter curves", 1.0f), \
-            SWITCH("ebe", "Enable extra band", 0)
+            COMBO("mode", "Operating mode", "Mode", 1, gott_global_dyna_modes), \
+            SWITCH("prot", "Surge protection", "Surge protect", 1.0f), \
+            AMP_GAIN("g_in", "Input gain", "Input gain", gott_compressor::IN_GAIN_DFL, 10.0f), \
+            AMP_GAIN("g_out", "Output gain", "Output gain", gott_compressor::OUT_GAIN_DFL, 10.0f), \
+            AMP_GAIN("g_dry", "Dry gain", "Dry", 0.0f, 10.0f), \
+            AMP_GAIN("g_wet", "Wet gain", "Wet", 1.0f, 10.0f), \
+            PERCENTS("drywet", "Dry/Wet balance", "Dry/Wet", 100.0f, 0.1f), \
+            COMBO("sc_mode", "Sidechain mode", "SC mode", gott_compressor::SC_MODE_DFL, gott_sc_modes), \
+            COMBO("sc_src", "Sidechain source", "SC source", 0, gott_sc_sources), \
+            AMP_GAIN("sc_pamp", "Sidechain pre-amplification", "SC preamp", 1.0f, 10.0f), \
+            LOG_CONTROL("sc_rea", "Sidechain reactivity", "SC react", U_MSEC, gott_compressor::SC_REACTIVITY), \
+            CONTROL("lkahead", "Lookahead", "Lookahead", U_MSEC, gott_compressor::LOOKAHEAD), \
+            LOG_CONTROL("react", "FFT reactivity", "Reactivity", U_MSEC, gott_compressor::REACT_TIME), \
+            AMP_GAIN("shift", "Shift gain", "Shift", 1.0f, 100.0f), \
+            LOG_CONTROL("zoom", "Graph zoom", "Zoom", U_GAIN_AMP, gott_compressor::ZOOM), \
+            COMBO("envb", "Envelope boost", "Env boost", gott_compressor::FB_DEFAULT, gott_dyna_sc_boost), \
+            LOG_CONTROL("sf1", "Split frequency 1", "Split 1", U_HZ, gott_compressor::SPLIT1), \
+            LOG_CONTROL("sf2", "Split frequency 2", "Split 2", U_HZ, gott_compressor::SPLIT2), \
+            LOG_CONTROL("sf3", "Split frequency 3", "Split 3", U_HZ, gott_compressor::SPLIT3), \
+            SWITCH("flt", "Band filter curves", "Show filters", 1.0f), \
+            SWITCH("ebe", "Enable extra band", "Extra band on", 0)
 
         #define GOTT_COMMON \
             GOTT_BASE, \
-            COMBO("sc_ext", "External sidechain source", 0, gott_sc_source)
+            COMBO("sc_ext", "External sidechain source", "Ext SC source", 0, gott_sc_source)
 
         #define GOTT_SC_COMMON \
             GOTT_BASE, \
-            COMBO("sc_ext", "External sidechain source", 0, gott_sc_source_for_sc)
+            COMBO("sc_ext", "External sidechain source", "Ext SC source", 0, gott_sc_source_for_sc)
 
         #define GOTT_SPLIT_COMMON \
-            SWITCH("ssplit", "Stereo split", 0.0f), \
-            COMBO("sp_src", "Split sidechain source", 0, gott_sc_split_source)
+            SWITCH("ssplit", "Stereo split", "Stereo split", 0.0f), \
+            COMBO("sp_src", "Split sidechain source", "Split SC source", 0, gott_sc_split_source)
 
-        #define GOTT_ANALYSIS(id, label) \
-            SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
-            SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
+        #define GOTT_ANALYSIS(id, label, alias) \
+            SWITCH("ife" id, "Input FFT graph enable" label, "FFT In" alias, 1.0f), \
+            SWITCH("ofe" id, "Output FFT graph enable" label, "FFT Out" alias, 1.0f), \
             MESH("ifg" id, "Input FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS + 2), \
             MESH("ofg" id, "Output FFT graph" label, 2, gott_compressor::FFT_MESH_POINTS)
 
@@ -174,19 +174,19 @@ namespace lsp
             METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
             METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_24_DB)
 
-        #define GOTT_BAND(id, label) \
-            LOG_CONTROL("tm" id, "Minimum threshold" label, U_GAIN_AMP, gott_compressor::THRESH_MIN), \
-            LOG_CONTROL("tu" id, "Upward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_UP), \
-            LOG_CONTROL("td" id, "Downward threshold" label, U_GAIN_AMP, gott_compressor::THRESH_DOWN), \
-            LOG_CONTROL("ru" id, "Upward ratio" label, U_NONE, gott_compressor::RATIO_UP), \
-            LOG_CONTROL("rd" id, "Downward ratio" label, U_NONE, gott_compressor::RATIO_DOWN), \
-            LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, gott_compressor::KNEE), \
-            LOG_CONTROL("ta" id, "Attack time" label, U_MSEC, gott_compressor::ATTACK_TIME), \
-            LOG_CONTROL("tr" id, "Release time" label, U_MSEC, gott_compressor::RELEASE_TIME), \
-            LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, gott_compressor::MAKEUP), \
-            SWITCH("be" id, "Enable compressor on the band" label, 1.0f), \
-            SWITCH("bs" id, "Solo band" label, 0.0f), \
-            SWITCH("bm" id, "Mute band" label, 0.0f), \
+        #define GOTT_BAND(id, label, alias) \
+            LOG_CONTROL("tm" id, "Minimum threshold" label, "Min thresh" alias, U_GAIN_AMP, gott_compressor::THRESH_MIN), \
+            LOG_CONTROL("tu" id, "Upward threshold" label, "Up thresh" alias, U_GAIN_AMP, gott_compressor::THRESH_UP), \
+            LOG_CONTROL("td" id, "Downward threshold" label, "Down thresh" alias, U_GAIN_AMP, gott_compressor::THRESH_DOWN), \
+            LOG_CONTROL("ru" id, "Upward ratio" label, "Up ratio" alias, U_NONE, gott_compressor::RATIO_UP), \
+            LOG_CONTROL("rd" id, "Downward ratio" label, "Down ratio" alias, U_NONE, gott_compressor::RATIO_DOWN), \
+            LOG_CONTROL("kn" id, "Knee" label, "Knee" alias, U_GAIN_AMP, gott_compressor::KNEE), \
+            LOG_CONTROL("ta" id, "Attack time" label, "Att time" alias, U_MSEC, gott_compressor::ATTACK_TIME), \
+            LOG_CONTROL("tr" id, "Release time" label, "Rel time" alias, U_MSEC, gott_compressor::RELEASE_TIME), \
+            LOG_CONTROL("mk" id, "Makeup gain" label, "Makeup" alias, U_GAIN_AMP, gott_compressor::MAKEUP), \
+            SWITCH("be" id, "Enable compressor on the band" label, "On " alias, 1.0f), \
+            SWITCH("bs" id, "Solo band" label, "Solo " alias, 0.0f), \
+            SWITCH("bm" id, "Mute band" label, "Mute " alias, 0.0f), \
             MESH("ccg" id, "Compression curve graph" label, 2, gott_compressor::CURVE_MESH_SIZE), \
             MESH("bfc" id, "Band frequency chart" label, 2, gott_compressor::FILTER_MESH_POINTS)
 
@@ -201,17 +201,17 @@ namespace lsp
             GOTT_SHM_LINK_MONO,
             GOTT_COMMON,
 
-            GOTT_BAND("_1", ""),
-            GOTT_BAND("_2", ""),
-            GOTT_BAND("_3", ""),
-            GOTT_BAND("_4", ""),
+            GOTT_BAND("_1", " 1", " 1"),
+            GOTT_BAND("_2", " 2", " 2"),
+            GOTT_BAND("_3", " 3", " 3"),
+            GOTT_BAND("_4", " 4", " 4"),
 
-            GOTT_BAND_METERS("_1", ""),
-            GOTT_BAND_METERS("_2", ""),
-            GOTT_BAND_METERS("_3", ""),
-            GOTT_BAND_METERS("_4", ""),
+            GOTT_BAND_METERS("_1", " 1"),
+            GOTT_BAND_METERS("_2", " 2"),
+            GOTT_BAND_METERS("_3", " 3"),
+            GOTT_BAND_METERS("_4", " 4"),
 
-            GOTT_ANALYSIS("", ""),
+            GOTT_ANALYSIS("", "", ""),
             GOTT_METERS("", ""),
             GOTT_AMP_CURVE("", ""),
             PORTS_END
@@ -224,23 +224,23 @@ namespace lsp
             GOTT_COMMON,
             GOTT_SPLIT_COMMON,
 
-            GOTT_BAND("_1", ""),
-            GOTT_BAND("_2", ""),
-            GOTT_BAND("_3", ""),
-            GOTT_BAND("_4", ""),
+            GOTT_BAND("_1", " 1", " 1"),
+            GOTT_BAND("_2", " 2", " 2"),
+            GOTT_BAND("_3", " 3", " 3"),
+            GOTT_BAND("_4", " 4", " 4"),
 
-            GOTT_BAND_METERS("_1l", " Left"),
-            GOTT_BAND_METERS("_2l", " Left"),
-            GOTT_BAND_METERS("_3l", " Left"),
-            GOTT_BAND_METERS("_4l", " Left"),
-            GOTT_BAND_METERS("_1r", " Right"),
-            GOTT_BAND_METERS("_2r", " Right"),
-            GOTT_BAND_METERS("_3r", " Right"),
-            GOTT_BAND_METERS("_4r", " Right"),
+            GOTT_BAND_METERS("_1l", " 1 Left"),
+            GOTT_BAND_METERS("_2l", " 2 Left"),
+            GOTT_BAND_METERS("_3l", " 3 Left"),
+            GOTT_BAND_METERS("_4l", " 4 Left"),
+            GOTT_BAND_METERS("_1r", " 1 Right"),
+            GOTT_BAND_METERS("_2r", " 2 Right"),
+            GOTT_BAND_METERS("_3r", " 3 Right"),
+            GOTT_BAND_METERS("_4r", " 4 Right"),
 
-            GOTT_ANALYSIS("_l", " Left"),
+            GOTT_ANALYSIS("_l", " Left", " L"),
             GOTT_METERS("_l", " Left"),
-            GOTT_ANALYSIS("_r", " Right"),
+            GOTT_ANALYSIS("_r", " Right", " R"),
             GOTT_METERS("_r", " Right"),
             GOTT_AMP_CURVE("_l", " Left"),
             GOTT_AMP_CURVE("_r", " Right"),
@@ -252,29 +252,29 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             GOTT_SHM_LINK_STEREO,
             GOTT_COMMON,
-            COMBO("csel", "Channel selector", 0, gott_lr_selectors),
+            COMBO("csel", "Channel selector", "Channel select", 0, gott_lr_selectors),
 
-            GOTT_BAND("_1l", " Left"),
-            GOTT_BAND("_2l", " Left"),
-            GOTT_BAND("_3l", " Left"),
-            GOTT_BAND("_4l", " Left"),
-            GOTT_BAND("_1r", " Right"),
-            GOTT_BAND("_2r", " Right"),
-            GOTT_BAND("_3r", " Right"),
-            GOTT_BAND("_4r", " Right"),
+            GOTT_BAND("_1l", " 1 Left", " 1 L"),
+            GOTT_BAND("_2l", " 2 Left", " 2 L"),
+            GOTT_BAND("_3l", " 3 Left", " 3 L"),
+            GOTT_BAND("_4l", " 4 Left", " 4 L"),
+            GOTT_BAND("_1r", " 1 Right", " 1 R"),
+            GOTT_BAND("_2r", " 2 Right", " 2 R"),
+            GOTT_BAND("_3r", " 3 Right", " 3 R"),
+            GOTT_BAND("_4r", " 4 Right", " 4 R"),
 
-            GOTT_BAND_METERS("_1l", " Left"),
-            GOTT_BAND_METERS("_2l", " Left"),
-            GOTT_BAND_METERS("_3l", " Left"),
-            GOTT_BAND_METERS("_4l", " Left"),
-            GOTT_BAND_METERS("_1r", " Right"),
-            GOTT_BAND_METERS("_2r", " Right"),
-            GOTT_BAND_METERS("_3r", " Right"),
-            GOTT_BAND_METERS("_4r", " Right"),
+            GOTT_BAND_METERS("_1l", " 1 Left"),
+            GOTT_BAND_METERS("_2l", " 2 Left"),
+            GOTT_BAND_METERS("_3l", " 3 Left"),
+            GOTT_BAND_METERS("_4l", " 4 Left"),
+            GOTT_BAND_METERS("_1r", " 1 Right"),
+            GOTT_BAND_METERS("_2r", " 2 Right"),
+            GOTT_BAND_METERS("_3r", " 3 Right"),
+            GOTT_BAND_METERS("_4r", " 4 Right"),
 
-            GOTT_ANALYSIS("_l", " Left"),
+            GOTT_ANALYSIS("_l", " Left", " L"),
             GOTT_METERS("_l", " Left"),
-            GOTT_ANALYSIS("_r", " Right"),
+            GOTT_ANALYSIS("_r", " Right", " R"),
             GOTT_METERS("_r", " Right"),
             GOTT_AMP_CURVE("_l", " Left"),
             GOTT_AMP_CURVE("_r", " Right"),
@@ -286,29 +286,29 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             GOTT_SHM_LINK_STEREO,
             GOTT_COMMON,
-            COMBO("csel", "Channel selector", 0, gott_ms_selectors),
+            COMBO("csel", "Channel selector", "Channel select", 0, gott_ms_selectors),
 
-            GOTT_BAND("_1m", " Mid"),
-            GOTT_BAND("_2m", " Mid"),
-            GOTT_BAND("_3m", " Mid"),
-            GOTT_BAND("_4m", " Mid"),
-            GOTT_BAND("_1s", " Side"),
-            GOTT_BAND("_2s", " Side"),
-            GOTT_BAND("_3s", " Side"),
-            GOTT_BAND("_4s", " Side"),
+            GOTT_BAND("_1m", " 1 Mid", " 1 M"),
+            GOTT_BAND("_2m", " 2 Mid", " 2 M"),
+            GOTT_BAND("_3m", " 3 Mid", " 3 M"),
+            GOTT_BAND("_4m", " 4 Mid", " 4 M"),
+            GOTT_BAND("_1s", " 1 Side", " 1 S"),
+            GOTT_BAND("_2s", " 2 Side", " 2 S"),
+            GOTT_BAND("_3s", " 3 Side", " 3 S"),
+            GOTT_BAND("_4s", " 4 Side", " 4 S"),
 
-            GOTT_BAND_METERS("_1m", " Mid"),
-            GOTT_BAND_METERS("_2m", " Mid"),
-            GOTT_BAND_METERS("_3m", " Mid"),
-            GOTT_BAND_METERS("_4m", " Mid"),
-            GOTT_BAND_METERS("_1s", " Side"),
-            GOTT_BAND_METERS("_2s", " Side"),
-            GOTT_BAND_METERS("_3s", " Side"),
-            GOTT_BAND_METERS("_4s", " Side"),
+            GOTT_BAND_METERS("_1m", " 1 Mid"),
+            GOTT_BAND_METERS("_2m", " 2 Mid"),
+            GOTT_BAND_METERS("_3m", " 3 Mid"),
+            GOTT_BAND_METERS("_4m", " 4 Mid"),
+            GOTT_BAND_METERS("_1s", " 1 Side"),
+            GOTT_BAND_METERS("_2s", " 2 Side"),
+            GOTT_BAND_METERS("_3s", " 3 Side"),
+            GOTT_BAND_METERS("_4s", " 4 Side"),
 
-            GOTT_ANALYSIS("_m", " Mid"),
+            GOTT_ANALYSIS("_m", " Mid", " M"),
             GOTT_METERS("_l", " Left"),
-            GOTT_ANALYSIS("_s", " Side"),
+            GOTT_ANALYSIS("_s", " Side", " S"),
             GOTT_METERS("_r", " Right"),
             GOTT_AMP_CURVE("_m", " Mid"),
             GOTT_AMP_CURVE("_s", " Side"),
@@ -322,17 +322,17 @@ namespace lsp
             GOTT_SHM_LINK_MONO,
             GOTT_SC_COMMON,
 
-            GOTT_BAND("_1", ""),
-            GOTT_BAND("_2", ""),
-            GOTT_BAND("_3", ""),
-            GOTT_BAND("_4", ""),
+            GOTT_BAND("_1", " 1", " 1"),
+            GOTT_BAND("_2", " 2", " 2"),
+            GOTT_BAND("_3", " 3", " 3"),
+            GOTT_BAND("_4", " 4", " 4"),
 
-            GOTT_BAND_METERS("_1", ""),
-            GOTT_BAND_METERS("_2", ""),
-            GOTT_BAND_METERS("_3", ""),
-            GOTT_BAND_METERS("_4", ""),
+            GOTT_BAND_METERS("_1", " 1"),
+            GOTT_BAND_METERS("_2", " 2"),
+            GOTT_BAND_METERS("_3", " 3"),
+            GOTT_BAND_METERS("_4", " 4"),
 
-            GOTT_ANALYSIS("", ""),
+            GOTT_ANALYSIS("", "", ""),
             GOTT_METERS("", ""),
             GOTT_AMP_CURVE("", ""),
             PORTS_END
@@ -346,23 +346,23 @@ namespace lsp
             GOTT_SC_COMMON,
             GOTT_SPLIT_COMMON,
 
-            GOTT_BAND("_1", ""),
-            GOTT_BAND("_2", ""),
-            GOTT_BAND("_3", ""),
-            GOTT_BAND("_4", ""),
+            GOTT_BAND("_1", " 1", " 1"),
+            GOTT_BAND("_2", " 2", " 2"),
+            GOTT_BAND("_3", " 3", " 3"),
+            GOTT_BAND("_4", " 4", " 4"),
 
-            GOTT_BAND_METERS("_1l", " Left"),
-            GOTT_BAND_METERS("_2l", " Left"),
-            GOTT_BAND_METERS("_3l", " Left"),
-            GOTT_BAND_METERS("_4l", " Left"),
-            GOTT_BAND_METERS("_1r", " Right"),
-            GOTT_BAND_METERS("_2r", " Right"),
-            GOTT_BAND_METERS("_3r", " Right"),
-            GOTT_BAND_METERS("_4r", " Right"),
+            GOTT_BAND_METERS("_1l", " 1 Left"),
+            GOTT_BAND_METERS("_2l", " 2 Left"),
+            GOTT_BAND_METERS("_3l", " 3 Left"),
+            GOTT_BAND_METERS("_4l", " 4 Left"),
+            GOTT_BAND_METERS("_1r", " 1 Right"),
+            GOTT_BAND_METERS("_2r", " 2 Right"),
+            GOTT_BAND_METERS("_3r", " 3 Right"),
+            GOTT_BAND_METERS("_4r", " 4 Right"),
 
-            GOTT_ANALYSIS("_l", " Left"),
+            GOTT_ANALYSIS("_l", " Left", " L"),
             GOTT_METERS("_l", " Left"),
-            GOTT_ANALYSIS("_r", " Right"),
+            GOTT_ANALYSIS("_r", " Right", " R"),
             GOTT_METERS("_r", " Right"),
             GOTT_AMP_CURVE("_l", " Left"),
             GOTT_AMP_CURVE("_r", " Right"),
@@ -375,29 +375,29 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_SHM_LINK_STEREO,
             GOTT_SC_COMMON,
-            COMBO("csel", "Channel selector", 0, gott_lr_selectors),
+            COMBO("csel", "Channel selector", "Channel select", 0, gott_lr_selectors),
 
-            GOTT_BAND("_1l", " Left"),
-            GOTT_BAND("_2l", " Left"),
-            GOTT_BAND("_3l", " Left"),
-            GOTT_BAND("_4l", " Left"),
-            GOTT_BAND("_1r", " Right"),
-            GOTT_BAND("_2r", " Right"),
-            GOTT_BAND("_3r", " Right"),
-            GOTT_BAND("_4r", " Right"),
+            GOTT_BAND("_1l", " 1 Left", "1 L"),
+            GOTT_BAND("_2l", " 2 Left", "2 L"),
+            GOTT_BAND("_3l", " 3 Left", "3 L"),
+            GOTT_BAND("_4l", " 4 Left", "4 L"),
+            GOTT_BAND("_1r", " 1 Right", "1 R"),
+            GOTT_BAND("_2r", " 2 Right", "2 R"),
+            GOTT_BAND("_3r", " 3 Right", "3 R"),
+            GOTT_BAND("_4r", " 4 Right", "4 R"),
 
-            GOTT_BAND_METERS("_1l", " Left"),
-            GOTT_BAND_METERS("_2l", " Left"),
-            GOTT_BAND_METERS("_3l", " Left"),
-            GOTT_BAND_METERS("_4l", " Left"),
-            GOTT_BAND_METERS("_1r", " Right"),
-            GOTT_BAND_METERS("_2r", " Right"),
-            GOTT_BAND_METERS("_3r", " Right"),
-            GOTT_BAND_METERS("_4r", " Right"),
+            GOTT_BAND_METERS("_1l", " 1 Left"),
+            GOTT_BAND_METERS("_2l", " 2 Left"),
+            GOTT_BAND_METERS("_3l", " 3 Left"),
+            GOTT_BAND_METERS("_4l", " 4 Left"),
+            GOTT_BAND_METERS("_1r", " 1 Right"),
+            GOTT_BAND_METERS("_2r", " 2 Right"),
+            GOTT_BAND_METERS("_3r", " 3 Right"),
+            GOTT_BAND_METERS("_4r", " 4 Right"),
 
-            GOTT_ANALYSIS("_l", " Left"),
+            GOTT_ANALYSIS("_l", " Left", " L"),
             GOTT_METERS("_l", " Left"),
-            GOTT_ANALYSIS("_r", " Right"),
+            GOTT_ANALYSIS("_r", " Right", " R"),
             GOTT_METERS("_r", " Right"),
             GOTT_AMP_CURVE("_l", " Left"),
             GOTT_AMP_CURVE("_r", " Right"),
@@ -410,29 +410,29 @@ namespace lsp
             PORTS_STEREO_SIDECHAIN,
             GOTT_SHM_LINK_STEREO,
             GOTT_SC_COMMON,
-            COMBO("csel", "Channel selector", 0, gott_ms_selectors),
+            COMBO("csel", "Channel selector", "Channel select", 0, gott_ms_selectors),
 
-            GOTT_BAND("_1m", " Mid"),
-            GOTT_BAND("_2m", " Mid"),
-            GOTT_BAND("_3m", " Mid"),
-            GOTT_BAND("_4m", " Mid"),
-            GOTT_BAND("_1s", " Side"),
-            GOTT_BAND("_2s", " Side"),
-            GOTT_BAND("_3s", " Side"),
-            GOTT_BAND("_4s", " Side"),
+            GOTT_BAND("_1m", " 1 Mid", "1 M"),
+            GOTT_BAND("_2m", " 2 Mid", "2 M"),
+            GOTT_BAND("_3m", " 3 Mid", "3 M"),
+            GOTT_BAND("_4m", " 4 Mid", "4 M"),
+            GOTT_BAND("_1s", " 1 Side", "1 S"),
+            GOTT_BAND("_2s", " 2 Side", "2 S"),
+            GOTT_BAND("_3s", " 3 Side", "3 S"),
+            GOTT_BAND("_4s", " 4 Side", "4 S"),
 
-            GOTT_BAND_METERS("_1m", " Mid"),
-            GOTT_BAND_METERS("_2m", " Mid"),
-            GOTT_BAND_METERS("_3m", " Mid"),
-            GOTT_BAND_METERS("_4m", " Mid"),
-            GOTT_BAND_METERS("_1s", " Side"),
-            GOTT_BAND_METERS("_2s", " Side"),
-            GOTT_BAND_METERS("_3s", " Side"),
-            GOTT_BAND_METERS("_4s", " Side"),
+            GOTT_BAND_METERS("_1m", " 1 Mid"),
+            GOTT_BAND_METERS("_2m", " 2 Mid"),
+            GOTT_BAND_METERS("_3m", " 3 Mid"),
+            GOTT_BAND_METERS("_4m", " 4 Mid"),
+            GOTT_BAND_METERS("_1s", " 1 Side"),
+            GOTT_BAND_METERS("_2s", " 2 Side"),
+            GOTT_BAND_METERS("_3s", " 3 Side"),
+            GOTT_BAND_METERS("_4s", " 4 Side"),
 
-            GOTT_ANALYSIS("_m", " Mid"),
+            GOTT_ANALYSIS("_m", " Mid", " M"),
             GOTT_METERS("_l", " Left"),
-            GOTT_ANALYSIS("_s", " Side"),
+            GOTT_ANALYSIS("_s", " Side", " S"),
             GOTT_METERS("_r", " Right"),
             GOTT_AMP_CURVE("_m", " Mid"),
             GOTT_AMP_CURVE("_s", " Side"),
