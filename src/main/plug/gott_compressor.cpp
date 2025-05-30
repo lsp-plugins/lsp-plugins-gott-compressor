@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -33,13 +33,13 @@
 
 #include <private/plugins/gott_compressor.h>
 
-/* The size of temporary buffer for audio processing */
-#define GOTT_BUFFER_SIZE        0x400U
-
 namespace lsp
 {
     namespace plugins
     {
+        /* The size of temporary buffer for audio processing */
+        static constexpr size_t GOTT_BUFFER_SIZE       = 0x200;
+
         //---------------------------------------------------------------------
         // Plugin factory
         static const meta::plugin_t *plugins[] =
@@ -1216,6 +1216,7 @@ namespace lsp
                     }
                     break;
                 }
+
                 case SCT_LINK:
                 {
                     const float *lc = (vChannels[0].vShmIn != NULL) ? vChannels[0].vShmIn: vEmptyBuf;
@@ -1239,15 +1240,28 @@ namespace lsp
                     }
                     break;
                 }
+
                 default:
                 {
-                    if (nMode != GOTT_MONO)
+                    const float *lc = vChannels[0].vBuffer;
+                    if (nMode == GOTT_MONO)
                     {
-                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, samples);
-                        dsp::copy(vChannels[1].vScBuffer, vChannels[1].vBuffer, samples);
+                        dsp::mul_k3(vChannels[0].vScBuffer, lc, fInGain, samples);
+                        break;
+                    }
+
+                    const float *rc = vChannels[1].vBuffer;
+                    if (nMode == GOTT_MS)
+                    {
+                        dsp::lr_to_ms(vChannels[0].vScBuffer, vChannels[1].vScBuffer, lc, rc, samples);
+                        dsp::mul_k2(vChannels[0].vScBuffer, fInGain, samples);
+                        dsp::mul_k2(vChannels[1].vScBuffer, fInGain, samples);
                     }
                     else
-                        dsp::copy(vChannels[0].vScBuffer, vChannels[0].vBuffer, samples);
+                    {
+                        dsp::mul_k3(vChannels[0].vScBuffer, lc, fInGain, samples);
+                        dsp::mul_k3(vChannels[1].vScBuffer, rc, fInGain, samples);
+                    }
                     break;
                 }
             }
@@ -1264,7 +1278,7 @@ namespace lsp
 
                 c->vIn              = c->pIn->buffer<float>();
                 c->vOut             = c->pOut->buffer<float>();
-                c->vScIn            = (c->pScIn != NULL) ? c->pScIn->buffer<float>() : NULL;
+                c->vScIn            = (c->pScIn != NULL) ? c->pScIn->buffer<float>() : c->vIn;
                 c->vShmIn           = NULL;
 
                 core::AudioBuffer *shm_buf  = (c->pShmIn != NULL) ? c->pShmIn->buffer<core::AudioBuffer>() : NULL;
@@ -1286,6 +1300,9 @@ namespace lsp
                     c->pInLvl->set_value(level);
                 }
 
+                // Process sidechain
+                process_sidechain(to_process);
+
                 // Pre-process channel data
                 if (nMode == GOTT_MS)
                 {
@@ -1300,9 +1317,6 @@ namespace lsp
                     dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
                     dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
                 }
-
-                // Process sidechain
-                process_sidechain(to_process);
 
                 // Do frequency boost and input channel analysis
                 for (size_t i=0; i<channels; ++i)
