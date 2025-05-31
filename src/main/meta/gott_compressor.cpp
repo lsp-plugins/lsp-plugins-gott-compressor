@@ -149,6 +149,18 @@ namespace lsp
             SWITCH("flt", "Band filter curves", "Show filters", 1.0f), \
             SWITCH("ebe", "Enable extra band", "Extra band on", 0)
 
+        #define GOTT_PREMIX \
+            SWITCH("showpmx", "Show pre-mix overlay", "Show premix bar", 0.0f), \
+            AMP_GAIN10("in2lk", "Input to Link mix", "In to Link mix", GAIN_AMP_M_INF_DB), \
+            AMP_GAIN10("lk2in", "Link to Input mix", "Link to In mix", GAIN_AMP_M_INF_DB), \
+            AMP_GAIN10("lk2sc", "Link to Sidechain mix", "Link to SC mix", GAIN_AMP_M_INF_DB)
+
+        #define GOTT_SC_PREMIX \
+            GOTT_PREMIX, \
+            AMP_GAIN10("in2sc", "Input to Sidechain mix", "In to SC mix", GAIN_AMP_M_INF_DB), \
+            AMP_GAIN10("sc2in", "Sidechain to Input mix", "SC to In mix", GAIN_AMP_M_INF_DB), \
+            AMP_GAIN10("sc2lk", "Sidechain to Link mix", "SC to Link mix", GAIN_AMP_M_INF_DB)
+
         #define GOTT_COMMON \
             GOTT_BASE, \
             COMBO("sc_ext", "External sidechain source", "Ext SC source", 0, gott_sc_source)
@@ -199,6 +211,7 @@ namespace lsp
         {
             PORTS_MONO_PLUGIN,
             GOTT_SHM_LINK_MONO,
+            GOTT_PREMIX,
             GOTT_COMMON,
 
             GOTT_BAND("_1", " 1", " 1"),
@@ -221,6 +234,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_SHM_LINK_STEREO,
+            GOTT_PREMIX,
             GOTT_COMMON,
             GOTT_SPLIT_COMMON,
 
@@ -251,6 +265,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_SHM_LINK_STEREO,
+            GOTT_PREMIX,
             GOTT_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_lr_selectors),
 
@@ -285,6 +300,7 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             GOTT_SHM_LINK_STEREO,
+            GOTT_PREMIX,
             GOTT_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_ms_selectors),
 
@@ -320,6 +336,7 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             PORTS_MONO_SIDECHAIN,
             GOTT_SHM_LINK_MONO,
+            GOTT_SC_PREMIX,
             GOTT_SC_COMMON,
 
             GOTT_BAND("_1", " 1", " 1"),
@@ -343,6 +360,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_SHM_LINK_STEREO,
+            GOTT_SC_PREMIX,
             GOTT_SC_COMMON,
             GOTT_SPLIT_COMMON,
 
@@ -374,6 +392,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_SHM_LINK_STEREO,
+            GOTT_SC_PREMIX,
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_lr_selectors),
 
@@ -409,6 +428,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             PORTS_STEREO_SIDECHAIN,
             GOTT_SHM_LINK_STEREO,
+            GOTT_SC_PREMIX,
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_ms_selectors),
 

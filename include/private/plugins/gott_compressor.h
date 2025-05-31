@@ -80,6 +80,32 @@ namespace lsp
                     SCT_LINK
                 };
 
+                typedef struct premix_t
+                {
+                    float               fInToSc;                // Input -> Sidechain mix
+                    float               fInToLink;              // Input -> Link mix
+                    float               fLinkToIn;              // Link -> Input mix
+                    float               fLinkToSc;              // Link -> Sidechain mix
+                    float               fScToIn;                // Sidechain -> Input mix
+                    float               fScToLink;              // Sidechain -> Link mix
+
+                    float              *vIn[2];                 // Input buffer
+                    float              *vOut[2];                // Output buffer
+                    float              *vSc[2];                 // Sidechain buffer
+                    float              *vLink[2];               // Link buffer
+
+                    float              *vTmpIn[2];              // Replacement buffer for input
+                    float              *vTmpLink[2];            // Replacement buffer for link
+                    float              *vTmpSc[2];              // Replacement buffer for sidechain
+
+                    plug::IPort        *pInToSc;                // Input -> Sidechain mix
+                    plug::IPort        *pInToLink;              // Input -> Link mix
+                    plug::IPort        *pLinkToIn;              // Link -> Input mix
+                    plug::IPort        *pLinkToSc;              // Link -> Sidechain mix
+                    plug::IPort        *pScToIn;                // Sidechain -> Input mix
+                    plug::IPort        *pScToLink;              // Sidechain -> Link mix
+                } premix_t;
+
                 typedef struct band_t
                 {
                     dspu::Sidechain         sSC;                // Sidechain module
@@ -180,6 +206,7 @@ namespace lsp
                 dspu::Sidechain         sProtSC;                // Surge protector sidechain module
                 dspu::SurgeProtector    sProt;                  // Surge protector
                 dspu::Counter           sCounter;               // Sync counter
+                premix_t                sPremix;                // Premix
 
                 uint32_t                nMode;                  // Processor mode
                 uint32_t                nBands;                 // Number of bands
@@ -198,7 +225,6 @@ namespace lsp
                 float                   vSplits[meta::gott_compressor::BANDS_MAX - 1];  // Split frequencies
                 channel_t              *vChannels;              // Processor channels
                 float                  *vAnalyze[4];            // Analysis buffer
-                float                  *vEmptyBuf;              // Empty buffer
                 float                  *vBuffer;                // Temporary buffer
                 float                  *vProtBuffer;            // Surge protection buffer
                 const float            *vSCIn[2];               // Sidechain input buffers
@@ -245,6 +271,7 @@ namespace lsp
             protected:
                 uint32_t            decode_sidechain_type(uint32_t sc) const;
                 void                process_sidechain(size_t samples);
+                void                update_premix();
                 void                do_destroy();
 
             public:

@@ -95,6 +95,7 @@
 	<li><b>Shift</b> - allows to adjust the overall gain of the analysis.</li>
 	<li><b>FFT<?= $sm ?> In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
 	<li><b>FFT<?= $sm ?> Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
+	<li><b>Pre-mix</b> - shows pre-mix control overlay.</li>
 	<li><b>Filters</b> - enables drawing tranfer function of each sidechain filter on the spectrum graph.</li>
 	<li><b>Surge</b> - enables surge protection mechanism.</li>
 </ul>
@@ -157,5 +158,17 @@
 	<li><b>Compression curve</b> - the compression curve graph and the gain reduction meter.</li>
 </ul>
 
-
+<p><b>Pre-mix control overlay:</b></p>
+<ul>
+	<?php if ($sc) { ?>
+	<li><b>In -> SC</b> - the amount of signal from input channel added to the Sidechain.</li>
+	<?php } ?>
+	<li><b>In -> Link</b> - the amount of signal from input channel added to the shared memory link.</li>
+	<?php if ($sc) { ?>
+	<li><b>SC -> In</b> - the amount of signal from sidechain input channel added to the input channel.</li>
+	<li><b>SC -> Link</b> - the amount of signal from sidechain input channel added to the shared memory link.</li>
+	<?php } ?>
+	<li><b>Link -> In</b> - the amount of signal from shared memory link added to the input channel.</li>
+	<li><b>Link -> SC</b> - the amount of signal from shared memory link added to the sidechain channel.</li>
+</ul>
 
