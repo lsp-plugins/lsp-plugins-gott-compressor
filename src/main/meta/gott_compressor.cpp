@@ -173,6 +173,9 @@ namespace lsp
             SWITCH("ssplit", "Stereo split", "Stereo split", 0.0f), \
             COMBO("sp_src", "Split sidechain source", "Split SC source", 0, gott_sc_split_source)
 
+        #define GOTT_LINK(id, label, alias) \
+            SWITCH(id, label, alias, 0.0f)
+
         #define GOTT_ANALYSIS(id, label, alias) \
             SWITCH("ife" id, "Input FFT graph enable" label, "FFT In" alias, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, "FFT Out" alias, 1.0f), \
@@ -268,6 +271,7 @@ namespace lsp
             GOTT_PREMIX,
             GOTT_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_lr_selectors),
+            GOTT_LINK("clink", "Left/Right controls link", "L/R link"),
 
             GOTT_BAND("_1l", " 1 Left", " 1 L"),
             GOTT_BAND("_2l", " 2 Left", " 2 L"),
@@ -303,6 +307,7 @@ namespace lsp
             GOTT_PREMIX,
             GOTT_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_ms_selectors),
+            GOTT_LINK("clink", "Mid/Sidde controls link", "M/S link"),
 
             GOTT_BAND("_1m", " 1 Mid", " 1 M"),
             GOTT_BAND("_2m", " 2 Mid", " 2 M"),
@@ -395,6 +400,7 @@ namespace lsp
             GOTT_SC_PREMIX,
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_lr_selectors),
+            GOTT_LINK("clink", "Left/Right controls link", "L/R link"),
 
             GOTT_BAND("_1l", " 1 Left", "1 L"),
             GOTT_BAND("_2l", " 2 Left", "2 L"),
@@ -431,6 +437,7 @@ namespace lsp
             GOTT_SC_PREMIX,
             GOTT_SC_COMMON,
             COMBO("csel", "Channel selector", "Channel select", 0, gott_ms_selectors),
+            GOTT_LINK("clink", "Mid/Side controls link", "M/S link"),
 
             GOTT_BAND("_1m", " 1 Mid", "1 M"),
             GOTT_BAND("_2m", " 2 Mid", "2 M"),

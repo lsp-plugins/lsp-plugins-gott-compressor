@@ -4,6 +4,18 @@
 		(:bs_1m or :bs_2m or :bs_3m or (:ebe and :bs_4m)) or
 		(:bs_1s or :bs_2s or :bs_3s or (:ebe and :bs_4s))"/>
 
+	<!-- Control linking -->
+	<ui:for
+		id="port"
+		list="'tm'; 'tu'; 'td'; 'ru'; 'rd'; 'kn'; 'ta'; 'tr'; 'mk'; 'be'; 'bs'; 'bm'">
+		<ui:for id="i" first="1" count="4">
+			<ctl:link
+				id.1="${port}_${i}m" value.1=":${port}_${i}s"
+				id.2="${port}_${i}s" value.2=":${port}_${i}m"
+				activity=":clink" />
+		</ui:for>
+	</ui:for>
+
 	<vbox spacing="4">
 		<grid rows="2" cols="6" vspacing="4" hspacing="4" expand="true">
 
@@ -342,6 +354,7 @@
 				<combo id="envb" pad.r="8"/>
 				<button ui:id="premix_trigger" id="showpmx" text="labels.premix" size="22" />
 				<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+				<button id="clink" ui:inject="Button_green" text="labels.chan.lr_link" />
 				<void hexpand="true"/>
 				<vsep pad.h="2" bg.color="bg" reduce="true"/>
 				<shmlink id="link" pad.l="2"/>

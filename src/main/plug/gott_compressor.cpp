@@ -499,7 +499,10 @@ namespace lsp
                 BIND_PORT(pScSpSource);
             }
             if ((nMode == GOTT_LR) || (nMode == GOTT_MS))
-                SKIP_PORT("Channel selector"); // Skip channel selector
+            {
+                SKIP_PORT("Channel selector");
+                SKIP_PORT("Separate channels link");
+            }
 
             lsp_trace("Binding band ports");
             for (size_t i=0; i<channels; ++i)
@@ -1384,7 +1387,12 @@ namespace lsp
 
                     case SCT_INTERNAL:
                     default:
-                        dsp::mul_k3(c->vScBuffer, c->vIn, fInGain, samples);
+                        if (bSidechain)
+                            dsp::mul_k3(c->vScBuffer, c->vIn, fInGain, samples);
+                        else if (c->vScIn != NULL)
+                            dsp::mul_k3(c->vScBuffer, c->vScIn, fInGain, samples);
+                        else
+                            dsp::fill_zero(c->vScBuffer, samples);
                         break;
                 }
             }

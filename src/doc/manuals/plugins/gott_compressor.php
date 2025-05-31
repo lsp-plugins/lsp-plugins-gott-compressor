@@ -85,7 +85,12 @@
 		<?php } ?>
 		<li><b>Link</b> - the shared memory link is used to receive sidechain signal.</li>
 	</ul>
-	<?php if ($sc) { ?>
+	<li><b>Pre-mix</b> - shows pre-mix control overlay.</li>
+	<?php if ($m == 'lr') { ?>
+		<li><b>L/R Link</b> - enables linking between Left and Right channel controls so change of one forces the sibling to become the same value.</li>
+	<?php } elseif ($m == 'ms') { ?>
+		<li><b>M/S Link</b> - enables linking between Mid and Side channel controls so change of one forces the sibling to become the same value.</li>
+	<?php } elseif ($m == 's') { ?>
 	<li><b>Stereo Split</b> - enables independent compression of left and right channels.</li>
 	<?php } ?>
 </ul>
@@ -95,7 +100,6 @@
 	<li><b>Shift</b> - allows to adjust the overall gain of the analysis.</li>
 	<li><b>FFT<?= $sm ?> In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
 	<li><b>FFT<?= $sm ?> Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
-	<li><b>Pre-mix</b> - shows pre-mix control overlay.</li>
 	<li><b>Filters</b> - enables drawing tranfer function of each sidechain filter on the spectrum graph.</li>
 	<li><b>Surge</b> - enables surge protection mechanism.</li>
 </ul>
