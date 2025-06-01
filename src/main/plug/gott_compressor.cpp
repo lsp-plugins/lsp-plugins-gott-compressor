@@ -2008,6 +2008,14 @@ namespace lsp
                 v->write("fScToIn", sPremix.fScToIn);
                 v->write("fScToLink", sPremix.fScToLink);
 
+                v->writev("vIn", sPremix.vIn, 2);
+                v->writev("vOut", sPremix.vOut, 2);
+                v->writev("vSc", sPremix.vSc, 2);
+                v->writev("vLink", sPremix.vLink, 2);
+                v->writev("vTmpIn", sPremix.vTmpIn, 2);
+                v->writev("vTmpLink", sPremix.vTmpLink, 2);
+                v->writev("vTmpSc", sPremix.vTmpSc, 2);
+
                 v->write("pInToSc", sPremix.pInToSc);
                 v->write("pInToLink", sPremix.pInToLink);
                 v->write("pLinkToIn", sPremix.pLinkToIn);
