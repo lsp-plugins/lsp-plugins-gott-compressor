@@ -33,7 +33,7 @@
 	<ul>
 		<li>Unlike classic crossovers which use IIR (Infinite Impulse Response) filters to split signal into multiple bands and shift the phase
 		of the audio signal at band split points, the <b>Linear Phase</b> allows to use FIR (Finite Impulse Response) filters which are deprived of this.
-		<li>Unlike most IIR filters which are designed using bilinear transform, linear phase filters allow to simulate their tranfer function
+		<li>Unlike most IIR filters which are designed using bilinear transform, linear phase filters allow to simulate their transfer function
 		to look like the transfer function of analog filters, without deforming it's magnitude envelope near the nyquist frequency.</li>
 		<li>Unlike design of classic Linkwitz-Riley filters, the design of IIR filters provides shorter transition zone of the filter.</li>
 	</ul>
@@ -100,7 +100,7 @@
 	<li><b>Shift</b> - allows to adjust the overall gain of the analysis.</li>
 	<li><b>FFT<?= $sm ?> In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
 	<li><b>FFT<?= $sm ?> Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
-	<li><b>Filters</b> - enables drawing tranfer function of each sidechain filter on the spectrum graph.</li>
+	<li><b>Filters</b> - enables drawing transfer function of each sidechain filter on the spectrum graph.</li>
 	<li><b>Surge</b> - enables surge protection mechanism.</li>
 </ul>
 <p><b>'Signal' section:</b></p>
@@ -151,9 +151,9 @@
 	<li><b>ON</b> - enables extra band.</li>
 	<li><b>Frequency</b> - the knob that allows to control the split frequency between bands.</li>
 	<li><b>Bottom</b> - the bottom threshold, below which any upward compression is disabled.</li>
-	<li><b>Upward theshold</b> - the threshold, below which the upward compression starts working.</li>
+	<li><b>Upward threshold</b> - the threshold, below which the upward compression starts working.</li>
 	<li><b>Upward ratio</b> - the ratio of the upward compression.</li>
-	<li><b>Downward theshold</b> - the threshold, above which the downward compression starts working.</li>
+	<li><b>Downward threshold</b> - the threshold, above which the downward compression starts working.</li>
 	<li><b>Downward ratio</b> - the ratio of the downward compression.</li>
 	<li><b>Attack</b> - the compressor's attack time.</li>
 	<li><b>Release</b> - the compressor's release time.</li>
