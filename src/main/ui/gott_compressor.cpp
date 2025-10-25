@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -312,6 +312,15 @@ namespace lsp
 
         void gott_compressor::process_band_port(band_t *b, ui::IPort *port)
         {
+            if (b->pUpThresh != NULL)
+                b->pUpThresh->begin_edit();
+            if (b->pDownThresh != NULL)
+                b->pDownThresh->begin_edit();
+            if (b->pLoThresh != NULL)
+                b->pLoThresh->begin_edit();
+            if (b->pUpThresh != NULL)
+                b->pUpThresh->begin_edit();
+
             // We always need to keep the lo <= up <= down condition
             if (port == b->pLoThresh)
             {
@@ -328,6 +337,15 @@ namespace lsp
                 make_value_less_eq(b->pUpThresh, b->pDownThresh);
                 make_value_less_eq(b->pLoThresh, b->pUpThresh);
             }
+
+            if (b->pUpThresh != NULL)
+                b->pUpThresh->end_edit();
+            if (b->pDownThresh != NULL)
+                b->pDownThresh->end_edit();
+            if (b->pLoThresh != NULL)
+                b->pLoThresh->end_edit();
+            if (b->pUpThresh != NULL)
+                b->pUpThresh->end_edit();
         }
 
         void gott_compressor::make_value_greater_eq(ui::IPort *dst, ui::IPort *src)
