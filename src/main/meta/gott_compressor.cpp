@@ -473,7 +473,7 @@ namespace lsp
         const meta::bundle_t gott_compressor_bundle =
         {
             "gott_compressor",
-            "GOTT Comressor",
+            "GOTT Compressor",
             B_MB_DYNAMICS,
             "wb8QnU4yRF0",
             "Performs Grand Over-The-Top multiband compression of audio signal"
