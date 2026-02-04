@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -20,6 +20,7 @@
  */
 
 #include <lsp-plug.in/plug-fw/meta/ports.h>
+#include <lsp-plug.in/plug-fw/meta/registry.h>
 #include <lsp-plug.in/shared/meta/developers.h>
 #include <private/meta/gott_compressor.h>
 
@@ -508,6 +509,7 @@ namespace lsp
             mono_plugin_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(gott_compressor_mono);
 
         const plugin_t gott_compressor_stereo =
         {
@@ -538,6 +540,7 @@ namespace lsp
             stereo_plugin_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(gott_compressor_stereo);
 
         const plugin_t gott_compressor_lr =
         {
@@ -568,6 +571,7 @@ namespace lsp
             stereo_plugin_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(gott_compressor_lr);
 
         const plugin_t gott_compressor_ms =
         {
@@ -598,6 +602,7 @@ namespace lsp
             stereo_plugin_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(gott_compressor_ms);
 
         const plugin_t sc_gott_compressor_mono =
         {
@@ -628,6 +633,7 @@ namespace lsp
             mono_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_mono);
 
         const plugin_t sc_gott_compressor_stereo =
         {
@@ -658,6 +664,7 @@ namespace lsp
             stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_stereo);
 
         const plugin_t sc_gott_compressor_lr =
         {
@@ -688,6 +695,7 @@ namespace lsp
             stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_lr);
 
         const plugin_t sc_gott_compressor_ms =
         {
@@ -718,6 +726,7 @@ namespace lsp
             stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_ms);
 
     } /* namespace meta */
 } /* namespace lsp */
