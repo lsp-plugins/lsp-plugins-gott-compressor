@@ -1,6 +1,6 @@
 {
 	"gott_compressor": {
-		"description": "Выполняет компрессию аудиосигнала в режмие Grand Over-The-Top",
+		"description": "Выполняет компрессию аудиосигнала в режмие Grand Over-The-Top.",
 		"name": "Компрессор GOTT"
 	},
 	"launcher": {
