@@ -504,7 +504,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_mono_ports,
-            "dynamics/gott_compressor/mono.xml",
+            "plugins/dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_port_groups,
             &gott_compressor_bundle
@@ -535,7 +535,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_stereo_ports,
-            "dynamics/gott_compressor/stereo.xml",
+            "plugins/dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_port_groups,
             &gott_compressor_bundle
@@ -566,7 +566,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_lr_ports,
-            "dynamics/gott_compressor/lr.xml",
+            "plugins/dynamics/gott_compressor/lr.xml",
             NULL,
             stereo_plugin_port_groups,
             &gott_compressor_bundle
@@ -597,7 +597,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_ms_ports,
-            "dynamics/gott_compressor/ms.xml",
+            "plugins/dynamics/gott_compressor/ms.xml",
             NULL,
             stereo_plugin_port_groups,
             &gott_compressor_bundle
@@ -628,7 +628,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_mono_ports,
-            "dynamics/gott_compressor/mono.xml",
+            "plugins/dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_sidechain_port_groups,
             &gott_compressor_bundle
@@ -659,7 +659,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_stereo_ports,
-            "dynamics/gott_compressor/stereo.xml",
+            "plugins/dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
@@ -690,7 +690,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_lr_ports,
-            "dynamics/gott_compressor/lr.xml",
+            "plugins/dynamics/gott_compressor/lr.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
@@ -721,7 +721,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_ms_ports,
-            "dynamics/gott_compressor/ms.xml",
+            "plugins/dynamics/gott_compressor/ms.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
             &gott_compressor_bundle
