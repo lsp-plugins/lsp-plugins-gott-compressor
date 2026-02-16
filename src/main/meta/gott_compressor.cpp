@@ -507,7 +507,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            3
         };
         LSP_REGISTER_METADATA(gott_compressor_mono);
 
@@ -538,7 +539,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            1
         };
         LSP_REGISTER_METADATA(gott_compressor_stereo);
 
@@ -569,7 +571,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/lr.xml",
             NULL,
             stereo_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            5
         };
         LSP_REGISTER_METADATA(gott_compressor_lr);
 
@@ -600,7 +603,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/ms.xml",
             NULL,
             stereo_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            7
         };
         LSP_REGISTER_METADATA(gott_compressor_ms);
 
@@ -631,7 +635,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            4
         };
         LSP_REGISTER_METADATA(sc_gott_compressor_mono);
 
@@ -662,7 +667,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            2
         };
         LSP_REGISTER_METADATA(sc_gott_compressor_stereo);
 
@@ -693,7 +699,8 @@ namespace lsp
             "plugins/dynamics/gott_compressor/lr.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            6
         };
         LSP_REGISTER_METADATA(sc_gott_compressor_lr);
 
@@ -724,12 +731,10 @@ namespace lsp
             "plugins/dynamics/gott_compressor/ms.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            8
         };
         LSP_REGISTER_METADATA(sc_gott_compressor_ms);
 
     } /* namespace meta */
 } /* namespace lsp */
-
-
-

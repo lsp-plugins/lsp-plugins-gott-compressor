@@ -4,14 +4,13 @@
 		"name": "GOTT Compressor"
 	},
 	"launcher": {
-		"gott_compressor_lr": "Split LR",
+		"gott_compressor_lr": "LR",
 		"gott_compressor_mono": "Mono",
-		"gott_compressor_ms": "Split MS",
+		"gott_compressor_ms": "MS",
 		"gott_compressor_stereo": "Stereo",
-		"sc_gott_compressor_lr": "SC Split LR",
+		"sc_gott_compressor_lr": "SC LR",
 		"sc_gott_compressor_mono": "SC Mono",
-		"sc_gott_compressor_ms": "SC Split MS",
+		"sc_gott_compressor_ms": "SC MS",
 		"sc_gott_compressor_stereo": "SC Stereo"
 	}
 }
-
