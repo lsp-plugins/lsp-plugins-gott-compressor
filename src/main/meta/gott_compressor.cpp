@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -20,12 +20,13 @@
  */
 
 #include <lsp-plug.in/plug-fw/meta/ports.h>
+#include <lsp-plug.in/plug-fw/meta/registry.h>
 #include <lsp-plug.in/shared/meta/developers.h>
 #include <private/meta/gott_compressor.h>
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MAJOR       1
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MINOR       0
-#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       18
+#define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION_MICRO       19
 
 #define LSP_PLUGINS_GOTT_COMPRESSOR_VERSION  \
     LSP_MODULE_VERSION( \
@@ -473,7 +474,7 @@ namespace lsp
         const meta::bundle_t gott_compressor_bundle =
         {
             "gott_compressor",
-            "GOTT Comressor",
+            "GOTT Compressor",
             B_MB_DYNAMICS,
             "wb8QnU4yRF0",
             "Performs Grand Over-The-Top multiband compression of audio signal"
@@ -503,11 +504,13 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_mono_ports,
-            "dynamics/gott_compressor/mono.xml",
+            "plugins/dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            3
         };
+        LSP_REGISTER_METADATA(gott_compressor_mono);
 
         const plugin_t gott_compressor_stereo =
         {
@@ -533,11 +536,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_stereo_ports,
-            "dynamics/gott_compressor/stereo.xml",
+            "plugins/dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            1
         };
+        LSP_REGISTER_METADATA(gott_compressor_stereo);
 
         const plugin_t gott_compressor_lr =
         {
@@ -563,11 +568,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_lr_ports,
-            "dynamics/gott_compressor/lr.xml",
+            "plugins/dynamics/gott_compressor/lr.xml",
             NULL,
             stereo_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            5
         };
+        LSP_REGISTER_METADATA(gott_compressor_lr);
 
         const plugin_t gott_compressor_ms =
         {
@@ -593,11 +600,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             gott_compressor_ms_ports,
-            "dynamics/gott_compressor/ms.xml",
+            "plugins/dynamics/gott_compressor/ms.xml",
             NULL,
             stereo_plugin_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            7
         };
+        LSP_REGISTER_METADATA(gott_compressor_ms);
 
         const plugin_t sc_gott_compressor_mono =
         {
@@ -623,11 +632,13 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_mono_ports,
-            "dynamics/gott_compressor/mono.xml",
+            "plugins/dynamics/gott_compressor/mono.xml",
             NULL,
             mono_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            4
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_mono);
 
         const plugin_t sc_gott_compressor_stereo =
         {
@@ -653,11 +664,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_stereo_ports,
-            "dynamics/gott_compressor/stereo.xml",
+            "plugins/dynamics/gott_compressor/stereo.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            2
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_stereo);
 
         const plugin_t sc_gott_compressor_lr =
         {
@@ -683,11 +696,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_lr_ports,
-            "dynamics/gott_compressor/lr.xml",
+            "plugins/dynamics/gott_compressor/lr.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            6
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_lr);
 
         const plugin_t sc_gott_compressor_ms =
         {
@@ -713,14 +728,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             sc_gott_compressor_ms_ports,
-            "dynamics/gott_compressor/ms.xml",
+            "plugins/dynamics/gott_compressor/ms.xml",
             NULL,
             stereo_plugin_sidechain_port_groups,
-            &gott_compressor_bundle
+            &gott_compressor_bundle,
+            8
         };
+        LSP_REGISTER_METADATA(sc_gott_compressor_ms);
 
     } /* namespace meta */
 } /* namespace lsp */
-
-
-

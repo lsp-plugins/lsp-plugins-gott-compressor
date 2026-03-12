@@ -1,0 +1,16 @@
+{
+	"gott_compressor": {
+		"description": "Выполняет компрессию аудиосигнала в режмие Grand Over-The-Top.",
+		"name": "Компрессор GOTT"
+	},
+	"launcher": {
+		"gott_compressor_lr": "ЛП",
+		"gott_compressor_mono": "Моно",
+		"gott_compressor_ms": "ЦС",
+		"gott_compressor_stereo": "Стерео",
+		"sc_gott_compressor_lr": "БЦ ЛП",
+		"sc_gott_compressor_mono": "БЦ Моно",
+		"sc_gott_compressor_ms": "БЦ ЦС",
+		"sc_gott_compressor_stereo": "БЦ Стерео"
+	}
+}

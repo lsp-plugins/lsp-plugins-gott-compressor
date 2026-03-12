@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 19 июн. 2023 г.
@@ -64,8 +64,8 @@ namespace lsp
                 static void         make_value_less_eq(ui::IPort *dst, ui::IPort *src);
 
             protected:
-                static status_t slot_split_mouse_in(tk::Widget *sender, void *ptr, void *data);
-                static status_t slot_split_mouse_out(tk::Widget *sender, void *ptr, void *data);
+                static status_t     slot_split_mouse_in(tk::Widget *sender, void *ptr, void *data);
+                static status_t     slot_split_mouse_out(tk::Widget *sender, void *ptr, void *data);
 
             protected:
                 band_t             *find_band_by_port(const ui::IPort *port);
@@ -76,22 +76,27 @@ namespace lsp
 
             protected:
                 template <class T>
-                T              *find_split_widget(const char *fmt, const char *base, size_t id);
-                split_t        *find_split_by_widget(tk::Widget *widget);
+                T                  *find_split_widget(const char *fmt, const char *base, size_t id);
+                split_t            *find_split_by_widget(tk::Widget *widget);
 
             public:
                 explicit            gott_compressor(const meta::plugin_t *meta);
-                virtual            ~gott_compressor() override;
+                gott_compressor(const gott_compressor &) = delete;
+                gott_compressor(gott_compressor &&) = delete;
+                virtual ~gott_compressor() override;
+
+                gott_compressor & operator = (const gott_compressor &) = delete;
+                gott_compressor & operator = (gott_compressor &&) = delete;
 
                 virtual status_t    post_init() override;
                 virtual status_t    pre_destroy() override;
 
             protected:
-                void            on_split_mouse_in(split_t *s);
-                void            on_split_mouse_out();
+                void                on_split_mouse_in(split_t *s);
+                void                on_split_mouse_out();
 
-                void            add_splits();
-                void            update_split_note_text(split_t *s);
+                void                add_splits();
+                void                update_split_note_text(split_t *s);
 
             public:
                 virtual void        notify(ui::IPort *port, size_t flags) override;
