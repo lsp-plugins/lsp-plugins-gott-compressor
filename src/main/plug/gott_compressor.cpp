@@ -892,7 +892,7 @@ namespace lsp
 
             nScType             = decode_sidechain_type(pScMode->value());
             plug::IPort *sc     = (bStereoSplit) ? pScSpSource : pScSource;
-            size_t sc_src       = (sc != NULL) ? sc->value() : dspu::SCS_MIDDLE;
+            size_t sc_src       = (sc != NULL) ? size_t(sc->value()) : size_t(dspu::SCS_MIDDLE);
 
             float max_attack    = meta::gott_compressor::ATTACK_TIME_MIN;
             float sc_react      = pScReact->value();
