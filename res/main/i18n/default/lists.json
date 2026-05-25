@@ -1,10 +1,10 @@
 {
 	"gott_comp": {
 		"selectors": {
-			"left": "Left channel",
-			"middle": "Middle channel",
-			"right": "Right channel",
-			"side": "Side channel"
+			"left": "Left Channel",
+			"middle": "Middle Channel",
+			"right": "Right Channel",
+			"side": "Side Channel"
 		},
 		"notes": {
 			"full": "{@frequency} Hz, {@note}{@octave}{@cents}",
