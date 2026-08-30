@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -671,12 +671,14 @@ namespace lsp
 
         void gott_compressor::ui_activated()
         {
-            size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+            sAnalyzer.set_activity(true);
+
+            const size_t channels   = (nMode == GOTT_MONO) ? 1 : 2;
 
             // Force meshes with the UI to synchronized
             for (size_t i=0; i<channels; ++i)
             {
-                channel_t *c        = &vChannels[i];
+                channel_t * const c = &vChannels[i];
 
                 for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                 {
@@ -684,6 +686,11 @@ namespace lsp
                     b->nSync            = S_ALL;
                 }
             }
+        }
+
+        void gott_compressor::ui_deactivated()
+        {
+            sAnalyzer.set_activity(false);
         }
 
         size_t gott_compressor::select_fft_rank(size_t sample_rate)
@@ -846,7 +853,6 @@ namespace lsp
             bool solo_on        = false;
             bool prot_on        = pProt->value() >= 0.5f;
             bool rebuild_filters= false;
-            int active_channels = 0;
             size_t env_boost    = pEnvBoost->value();
             size_t num_bands    = (pExtraBand->value() >= 0.5f) ? meta::gott_compressor::BANDS_MAX : meta::gott_compressor::BANDS_MAX - 1;
             float sc_preamp     = pScPreamp->value();
@@ -914,11 +920,6 @@ namespace lsp
 
                 sAnalyzer.enable_channel(c->nAnInChannel, c->bInFft);
                 sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->value()  >= 0.5f);
-
-                if (sAnalyzer.channel_active(c->nAnInChannel))
-                    active_channels ++;
-                if (sAnalyzer.channel_active(c->nAnOutChannel))
-                    active_channels ++;
 
                 // Update bands
                 for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
@@ -1044,7 +1045,6 @@ namespace lsp
             sAnalyzer.set_reactivity(pReactivity->value());
             if (pShiftGain != NULL)
                 sAnalyzer.set_shift(pShiftGain->value() * 100.0f);
-            sAnalyzer.set_activity(active_channels > 0);
 
             // Update analyzer
             if (sAnalyzer.needs_reconfiguration())
