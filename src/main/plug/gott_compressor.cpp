@@ -310,7 +310,7 @@ namespace lsp
                 c->sDryEq.construct();
                 c->sDryEq.init(meta::gott_compressor::BANDS_MAX - 1, 0);
                 c->sDryEq.set_mode(dspu::EQM_IIR);
-                c->sFFTXOver.construct();
+                c->sLPXOver.construct();
                 c->sDryDelay.construct();
                 c->sAnDelay.construct();
                 c->sScDelay.construct();
@@ -630,7 +630,7 @@ namespace lsp
                     c->sEnvBoost[0].destroy();
                     c->sEnvBoost[1].destroy();
                     c->sDryEq.destroy();
-                    c->sFFTXOver.destroy();
+                    c->sLPXOver.destroy();
                     c->sDelay.destroy();
                     c->sDryDelay.destroy();
                     c->sAnDelay.destroy();
@@ -728,16 +728,16 @@ namespace lsp
                 c->sScDelay.init(bins);
                 c->sXOverDelay.init(max_delay);
 
-                // Need to re-initialize FFT crossover?
-                if (fft_rank != c->sFFTXOver.rank())
+                // Need to re-initialize linear phase crossover?
+                if (fft_rank != c->sLPXOver.rank())
                 {
-                    c->sFFTXOver.init(fft_rank, meta::gott_compressor::BANDS_MAX);
+                    c->sLPXOver.init(fft_rank, meta::gott_compressor::BANDS_MAX);
                     for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
-                        c->sFFTXOver.set_handler(j, process_band, this, c);
-                    c->sFFTXOver.set_rank(fft_rank);
-                    c->sFFTXOver.set_phase(float(i) / float(channels));
+                        c->sLPXOver.set_handler(j, process_band, this, c);
+                    c->sLPXOver.set_rank(fft_rank);
+                    c->sLPXOver.set_phase(float(i) / float(channels));
                 }
-                c->sFFTXOver.set_sample_rate(sr);
+                c->sLPXOver.set_sample_rate(sr);
 
                 // Update bands
                 for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
@@ -1061,14 +1061,14 @@ namespace lsp
             // Second pass over filter
             for (size_t i=0; i<channels; ++i)
             {
-                channel_t *c    = &vChannels[i];
+                channel_t * const c = &vChannels[i];
 
                 // Check muting option
                 for (size_t j=0; j<nBands; ++j)
                 {
-                    band_t *b       = &c->vBands[j];
+                    band_t * const b    = &c->vBands[j];
                     if ((!b->bMute) && (solo_on))
-                        b->bMute        = !b->bSolo;
+                        b->bMute            = !b->bSolo;
                 }
 
                 // Rebuild compression plan
@@ -1077,8 +1077,7 @@ namespace lsp
                     // Configure equalizers
                     for (size_t j=0; j<nBands; ++j)
                     {
-                        band_t *b           = &c->vBands[j];
-                        size_t band         = b - c->vBands;
+                        band_t * const b    = &c->vBands[j];
 
                         float freq_start    = (j > 0) ? vSplits[j-1] : 0.0f;
                         float freq_end      = (j < (nBands - 1)) ? vSplits[j] : fSampleRate * 0.5f;
@@ -1179,31 +1178,15 @@ namespace lsp
                         {
                             if (j > 0)
                             {
-                                c->sFFTXOver.enable_hpf(band, true);
-                                c->sFFTXOver.set_hpf_frequency(band, freq_start);
-                                c->sFFTXOver.set_hpf_slope(band, -48.0f);
+                                c->sLPXOver.set_frequency(j-1, freq_start);
+                                c->sLPXOver.set_slope(j-1, -48.0f);
                             }
-                            else
-                                c->sFFTXOver.disable_hpf(band);
-
-                            if (j < (nBands-1))
-                            {
-                                c->sFFTXOver.enable_lpf(band, true);
-                                c->sFFTXOver.set_lpf_frequency(band, freq_end);
-                                c->sFFTXOver.set_lpf_slope(band, -48.0f);
-                            }
-                            else
-                                c->sFFTXOver.disable_lpf(band);
                         }
                     }
 
-                    // Enable/disable bands in FFT crossover
-                    for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
-                    {
-                        band_t *b       = &c->vBands[j];
-                        size_t band     = b - c->vBands;
-                        c->sFFTXOver.enable_band(band, j < nBands);
-                    }
+                    // Enable/disable bands in linear phase crossover
+                    for (size_t j=nBands; j<meta::gott_compressor::BANDS_MAX; ++j)
+                        c->sLPXOver.set_slope(j-1, 0.0f);
 
                     // Set-up all-pass filters for the 'dry' chain which can be mixed with the 'wet' chain.
                     for (size_t j=0; j<meta::gott_compressor::BANDS_MAX-1; ++j)
@@ -1225,7 +1208,7 @@ namespace lsp
             }
 
             // Report latency
-            size_t xover_latency = (enXOver == XOVER_LINEAR_PHASE) ? vChannels[0].sFFTXOver.latency() : 0;
+            size_t xover_latency = (enXOver == XOVER_LINEAR_PHASE) ? vChannels[0].sLPXOver.latency() : 0;
 
             set_latency(lookahead + xover_latency);
             for (size_t i=0; i<channels; ++i)
@@ -1609,7 +1592,7 @@ namespace lsp
                         c->sDelay.process(c->vBuffer, c->vBuffer, to_process);
                         // Apply delay to unprocessed signal to compensate lookahead + crossover delay
                         c->sXOverDelay.process(c->vInBuffer, c->vBuffer, to_process);
-                        c->sFFTXOver.process(c->vBuffer, to_process);
+                        c->sLPXOver.process(c->vBuffer, to_process);
 
                         // First band
                         band_t *b           = &c->vBands[0];
@@ -1765,7 +1748,7 @@ namespace lsp
                             size_t band         = b - c->vBands;
                             if (b->nSync & S_BAND_CURVE)
                             {
-                                c->sFFTXOver.freq_chart(band, b->vFilterBuffer, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
+                                c->sLPXOver.freq_chart(band, b->vFilterBuffer, vFreqBuffer, meta::gott_compressor::FFT_MESH_POINTS);
                                 b->nSync           &= ~size_t(S_BAND_CURVE);
                             }
                             if (j == 0)
@@ -1992,7 +1975,7 @@ namespace lsp
         {
             plug::Module::dump(v);
 
-            size_t channels     = (nMode == GOTT_MONO) ? 1 : 2;
+            const size_t channels   = (nMode == GOTT_MONO) ? 1 : 2;
 
             v->write_object("sAnalyzer", &sAnalyzer);
             v->write_object("sFilters", &sFilters);
@@ -2046,12 +2029,12 @@ namespace lsp
 
                 for (size_t i=0; i<channels; ++i)
                 {
-                    channel_t *c        = &vChannels[i];
+                    const channel_t * const c   = &vChannels[i];
 
                     v->write_object("sBypass", &c->sBypass);
                     v->write_object_array("sEnvBoost", c->sEnvBoost, 2);
                     v->write_object("sDryEq", &c->sBypass);
-                    v->write_object("sFFTXOver", &c->sFFTXOver);
+                    v->write_object("sLPXOver", &c->sLPXOver);
                     v->write_object("sDelay", &c->sBypass);
                     v->write_object("sDryDelay", &c->sDryDelay);
                     v->write_object("sAnDelay", &c->sAnDelay);
@@ -2064,7 +2047,7 @@ namespace lsp
 
                         for (size_t j=0; j<meta::gott_compressor::BANDS_MAX; ++j)
                         {
-                            band_t *b       = &c->vBands[j];
+                            const band_t * const b      = &c->vBands[j];
 
                             v->begin_object(b, sizeof(band_t));
                             lsp_finally { v->end_object(); };
