@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-gott-compressor
  * Created on: 29 мая 2023 г.
@@ -31,7 +31,7 @@
 #include <lsp-plug.in/dsp-units/filters/Filter.h>
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
-#include <lsp-plug.in/dsp-units/util/FFTCrossover.h>
+#include <lsp-plug.in/dsp-units/util/LPCrossover.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/core/IDBuffer.h>
 #include <lsp-plug.in/plug-fw/plug.h>
@@ -161,7 +161,7 @@ namespace lsp
                     dspu::Bypass            sBypass;            // Bypass
                     dspu::Filter            sEnvBoost[2];       // Envelope boost filter
                     dspu::Equalizer         sDryEq;             // Dry equalizer
-                    dspu::FFTCrossover      sFFTXOver;          // FFT crossover for linear phase
+                    dspu::LPCrossover       sLPXOver;           // Linear phase crossover
                     dspu::Delay             sDelay;             // Lookahead Delay
                     dspu::Delay             sDryDelay;          // Delay for dry signal
                     dspu::Delay             sAnDelay;           // Delay for analyzer
@@ -290,6 +290,7 @@ namespace lsp
                 virtual void        update_sample_rate(long sr) override;
                 virtual void        update_settings() override;
                 virtual void        ui_activated() override;
+                virtual void        ui_deactivated() override;
                 virtual void        process(size_t samples) override;
                 virtual bool        inline_display(plug::ICanvas *cv, size_t width, size_t height) override;
                 virtual void        dump(dspu::IStateDumper *v) const override;
